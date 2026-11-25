@@ -217,6 +217,11 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
                       origin: .topLeft, baudRate: 115200),
         DeviceProfile(name: "Generic GRBL laser", kind: .grblLaser, bedWidth: 400, bedHeight: 400,
                       origin: .bottomLeft, baudRate: 115200),
+        // Creality Falcon2: 400×415 mm work area, GRBL over USB serial. Check which corner yours homes to.
+        DeviceProfile(name: "Creality Falcon2 12 W", kind: .grblLaser, bedWidth: 400, bedHeight: 415,
+                      origin: .bottomLeft, baudRate: 115200, sMax: 1000, rapidSpeed: 6000),
+        DeviceProfile(name: "Creality Falcon2 40 W", kind: .grblLaser, bedWidth: 400, bedHeight: 415,
+                      origin: .bottomLeft, baudRate: 115200, sMax: 1000, rapidSpeed: 6000),
         // K40-style 40 W CO2 laser converted to a GRBL controller. Most home at the back left.
         DeviceProfile(name: "40 W CO2 laser (GRBL, K40-style 300×200)", kind: .grblLaser, bedWidth: 300, bedHeight: 200,
                       origin: .topLeft, baudRate: 115200, sMax: 1000, rapidSpeed: 6000),
