@@ -208,7 +208,7 @@ target_settings = {
     "KerfKutter": {
         "PRODUCT_NAME": "KerfKutter", "PRODUCT_BUNDLE_IDENTIFIER": BUNDLE_ID, "GENERATE_INFOPLIST_FILE": "YES",
         "INFOPLIST_KEY_CFBundleDisplayName": "KerfKutter", "INFOPLIST_KEY_LSApplicationCategoryType": "public.app-category.graphics-design",
-        "INFOPLIST_KEY_NSHumanReadableCopyright": "", "MARKETING_VERSION": "0.2", "CURRENT_PROJECT_VERSION": "1",
+        "INFOPLIST_KEY_NSHumanReadableCopyright": "", "MARKETING_VERSION": "0.2", "CURRENT_PROJECT_VERSION": "2",
         "ENABLE_HARDENED_RUNTIME": "YES", "ENABLE_APP_SANDBOX": "YES",
         "CODE_SIGN_ENTITLEMENTS": "Resources/KerfKutter.entitlements",
         "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
@@ -220,7 +220,7 @@ target_settings = {
         "DEFINES_MODULE": "YES", "DYLIB_COMPATIBILITY_VERSION": "1", "DYLIB_CURRENT_VERSION": "1",
         "DYLIB_INSTALL_NAME_BASE": "@rpath", "INSTALL_PATH": "$(LOCAL_LIBRARY_DIR)/Frameworks", "SKIP_INSTALL": "YES",
         "LD_RUNPATH_SEARCH_PATHS": ["$(inherited)", "@executable_path/../Frameworks", "@loader_path/Frameworks"],
-        "MARKETING_VERSION": "0.2", "CURRENT_PROJECT_VERSION": "1",
+        "MARKETING_VERSION": "0.2", "CURRENT_PROJECT_VERSION": "2",
     },
     "KerfCoreTests": {
         "PRODUCT_NAME": "KerfCoreTests", "PRODUCT_BUNDLE_IDENTIFIER": BUNDLE_ID + ".core.tests", "GENERATE_INFOPLIST_FILE": "YES",
