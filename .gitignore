@@ -6,3 +6,4 @@ DerivedData/
 KerfKutter.xcodeproj/project.xcworkspace/
 KerfKutter.xcodeproj/xcuserdata/
 scripts/team-id.txt
+Config/Signing.local.xcconfig

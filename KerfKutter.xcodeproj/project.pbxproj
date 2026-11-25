@@ -109,6 +109,7 @@
 		2D1B4A7191B74A6ED7C450F9 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		6D97051E564AB2BB7366BFDA /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		DCE498C0536AFA6C6A77EB68 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		ACE706354A0F0A08F193E12C /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		78C7C0833F8C48AE3EAC0309 /* KerfKutter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KerfKutter.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -147,9 +148,18 @@
 				4917D8C381AA3D44C43066A2 /* KerfKutter */,
 				DC31EEF57A25B0B82E25DFFE /* KerfCore */,
 				57D4214DC5EAAA741489E407 /* KerfCoreTests */,
+				D1F831BEDADE6D7706CCBA24 /* Config */,
 				78293C213848B86FA7E3E3C8 /* Resources */,
 				1BADDC1D73C1A20F347483E1 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		D1F831BEDADE6D7706CCBA24 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				ACE706354A0F0A08F193E12C /* Signing.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		78293C213848B86FA7E3E3C8 /* Resources */ = {
@@ -400,13 +410,11 @@
 /* Begin XCBuildConfiguration section */
 		80DB6ACE13380ADC3D86D6C5 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = ACE706354A0F0A08F193E12C /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = "NO";
 				CLANG_ENABLE_MODULES = "YES";
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = "Manual";
 				DEBUG_INFORMATION_FORMAT = "dwarf";
-				DEVELOPMENT_TEAM = "";
 				ENABLE_TESTABILITY = "YES";
 				ENABLE_USER_SCRIPT_SANDBOXING = "YES";
 				GCC_OPTIMIZATION_LEVEL = "0";
@@ -421,13 +429,11 @@
 		};
 		08723DE70035A45CE7E33CC1 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = ACE706354A0F0A08F193E12C /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = "NO";
 				CLANG_ENABLE_MODULES = "YES";
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = "Manual";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
 				ENABLE_USER_SCRIPT_SANDBOXING = "YES";
 				MACOSX_DEPLOYMENT_TARGET = "14.0";
 				SDKROOT = "macosx";

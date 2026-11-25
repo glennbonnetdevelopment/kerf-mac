@@ -1,0 +1,7 @@
+// Signing defaults: ad-hoc, for running locally. Your team goes in Signing.local.xcconfig
+// (git-ignored), written by scripts/generate_xcodeproj.py from scripts/team-id.txt.
+CODE_SIGN_IDENTITY = -
+CODE_SIGN_STYLE = Manual
+DEVELOPMENT_TEAM =
+
+#include? "Signing.local.xcconfig"

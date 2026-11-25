@@ -43,6 +43,8 @@ P = {
     "assets": oid("file", "Assets.xcassets"),
     "entitlements": oid("file", "KerfKutter.entitlements"),
     "resourcesGroup": oid("group", "Resources"),
+    "signingConfig": oid("file", "Signing.xcconfig"),
+    "configGroup": oid("group", "Config"),
 }
 T = {name: oid("target", name) for name in ["KerfKutter", "KerfCore", "KerfCoreTests"]}
 
@@ -87,6 +89,7 @@ w(f"\t\t{P['tests']} /* KerfCoreTests.xctest */ = {{isa = PBXFileReference; expl
 w(f"\t\t{P['readme']} /* README.md */ = {{isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = \"<group>\"; }};\n")
 w(f"\t\t{P['package']} /* Package.swift */ = {{isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = \"<group>\"; }};\n")
 w(f"\t\t{P['assets']} /* Assets.xcassets */ = {{isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = \"<group>\"; }};\n")
+w(f"\t\t{P['signingConfig']} /* Signing.xcconfig */ = {{isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = \"<group>\"; }};\n")
 w(f"\t\t{P['entitlements']} /* KerfKutter.entitlements */ = {{isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KerfKutter.entitlements; sourceTree = \"<group>\"; }};\n")
 w("/* End PBXFileReference section */\n")
 
@@ -103,8 +106,11 @@ w("\n/* Begin PBXGroup section */\n")
 w(f"\t\t{P['mainGroup']} = {{\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n\t\t\t\t{P['readme']} /* README.md */,\n\t\t\t\t{P['package']} /* Package.swift */,\n")
 for g in groups:
     w(f"\t\t\t\t{oid('group', g)} /* {g} */,\n")
+w(f"\t\t\t\t{P['configGroup']} /* Config */,\n")
 w(f"\t\t\t\t{P['resourcesGroup']} /* Resources */,\n")
 w(f"\t\t\t\t{P['productsGroup']} /* Products */,\n\t\t\t);\n\t\t\tsourceTree = \"<group>\";\n\t\t}};\n")
+w(f"\t\t{P['configGroup']} /* Config */ = {{\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n\t\t\t\t{P['signingConfig']} /* Signing.xcconfig */,\n"
+  f"\t\t\t);\n\t\t\tpath = Config;\n\t\t\tsourceTree = \"<group>\";\n\t\t}};\n")
 w(f"\t\t{P['resourcesGroup']} /* Resources */ = {{\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n\t\t\t\t{P['assets']} /* Assets.xcassets */,\n"
   f"\t\t\t\t{P['entitlements']} /* KerfKutter.entitlements */,\n\t\t\t);\n\t\t\tpath = Resources;\n\t\t\tsourceTree = \"<group>\";\n\t\t}};\n")
 for g, (path, files) in groups.items():
@@ -182,19 +188,27 @@ def settings(d):
 
 BUNDLE_ID = "com.glennbonnetdevelopment.KerfKutter"
 
-# Signing: set your Apple team ID in scripts/team-id.txt (git-ignored) or the KERFKUTTER_TEAM_ID environment
-# variable to sign with your team automatically; without one the app is signed to run locally only.
+# Signing lives in Config/Signing.xcconfig, which optionally includes the git-ignored
+# Config/Signing.local.xcconfig with your team. The project file itself never holds a team,
+# so it stays the same on every Mac. scripts/team-id.txt (or KERFKUTTER_TEAM_ID) writes that local file.
 TEAM_ID = os.environ.get("KERFKUTTER_TEAM_ID", "").strip()
 _team_file = os.path.join(ROOT, "scripts", "team-id.txt")
 if not TEAM_ID and os.path.exists(_team_file):
     TEAM_ID = open(_team_file).read().strip()
+os.makedirs(os.path.join(ROOT, "Config"), exist_ok=True)
+with open(os.path.join(ROOT, "Config", "Signing.xcconfig"), "w") as f:
+    f.write("// Signing defaults: ad-hoc, for running locally. Your team goes in Signing.local.xcconfig\n"
+            "// (git-ignored), written by scripts/generate_xcodeproj.py from scripts/team-id.txt.\n"
+            "CODE_SIGN_IDENTITY = -\nCODE_SIGN_STYLE = Manual\nDEVELOPMENT_TEAM =\n\n"
+            "#include? \"Signing.local.xcconfig\"\n")
+if TEAM_ID:
+    with open(os.path.join(ROOT, "Config", "Signing.local.xcconfig"), "w") as f:
+        f.write(f"// Your Apple developer team (not committed).\nDEVELOPMENT_TEAM = {TEAM_ID}\n"
+                "CODE_SIGN_STYLE = Automatic\nCODE_SIGN_IDENTITY = Apple Development\n")
 
 common = {
     "ALWAYS_SEARCH_USER_PATHS": "NO",
     "CLANG_ENABLE_MODULES": "YES",
-    "CODE_SIGN_IDENTITY": "Apple Development" if TEAM_ID else "-",
-    "CODE_SIGN_STYLE": "Automatic" if TEAM_ID else "Manual",
-    "DEVELOPMENT_TEAM": TEAM_ID,
     "ENABLE_USER_SCRIPT_SANDBOXING": "YES",
     "MACOSX_DEPLOYMENT_TARGET": "14.0",
     "SDKROOT": "macosx",
@@ -234,7 +248,8 @@ for owner in ["project"] + list(T):
         s = dict(common) if owner == "project" else dict(target_settings[owner])
         if owner == "project":
             s.update(extra)
-        w(f"\t\t{oid('cfg', owner, cfg)} /* {cfg} */ = {{\n\t\t\tisa = XCBuildConfiguration;\n\t\t\tbuildSettings = {{\n{settings(s)}\t\t\t}};\n\t\t\tname = {cfg};\n\t\t}};\n")
+        base = f"\t\t\tbaseConfigurationReference = {P['signingConfig']} /* Signing.xcconfig */;\n" if owner == "project" else ""
+        w(f"\t\t{oid('cfg', owner, cfg)} /* {cfg} */ = {{\n\t\t\tisa = XCBuildConfiguration;\n{base}\t\t\tbuildSettings = {{\n{settings(s)}\t\t\t}};\n\t\t\tname = {cfg};\n\t\t}};\n")
 w("/* End XCBuildConfiguration section */\n")
 
 w("\n/* Begin XCConfigurationList section */\n")
