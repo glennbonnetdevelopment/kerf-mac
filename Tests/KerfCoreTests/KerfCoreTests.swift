@@ -322,6 +322,18 @@ final class Phase2Tests: XCTestCase {
         XCTAssertEqual(part.width, 44, accuracy: 1e-6)
     }
 
+    func testTextInsideAnOutlineStillCutsAsParts() {
+        var doc = KerfDocument()
+        let layer = doc.addLayer(mode: .mill)
+        doc.layers[0].toolDiameter = 2
+        doc.shapes.append(Artwork(layerID: layer, name: "frame", paths: [square(0, 0, 100)]))
+        // Two "letters": one inside the frame, one crossing its edge.
+        doc.shapes.append(Artwork(layerID: layer, name: "text", paths: [square(40, 40, 10), square(95, 40, 10)],
+                                  text: TextSpec(text: "II", fontName: "Helvetica", height: 10)))
+        let tl = Planner.plan(doc, for: .cncRouter).layers[0]
+        XCTAssertEqual(tl.cuts.filter { $0 == .part }.count, 3) // frame and both letters
+    }
+
     func testCNCShapeRoleOverridesAndDrill() {
         var doc = KerfDocument()
         let layer = doc.addLayer(mode: .mill)

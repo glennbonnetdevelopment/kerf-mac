@@ -206,8 +206,17 @@ public enum Planner {
     /// Nesting depth of each closed polyline among `polys` (how many others contain it).
     static func nestingDepth(_ polys: [Polyline]) -> [Int] {
         polys.indices.map { i in
-            guard polys[i].closed, let probe = polys[i].points.first else { return 0 }
-            return polys.indices.filter { j in j != i && polys[j].closed && contains(polys[j], probe) }.count
+            guard polys[i].closed, !polys[i].points.isEmpty else { return 0 }
+            // A shape only counts as inside another when it is wholly inside, so a letter that
+            // crosses a circle's line isn't treated as a hole in it.
+            let pts = polys[i].points
+            let stride = max(1, pts.count / 24)
+            let probes = Swift.stride(from: 0, to: pts.count, by: stride).map { pts[$0] }
+            let bi = polys[i].bounds
+            return polys.indices.filter { j in
+                guard j != i, polys[j].closed, polys[j].bounds.contains(bi, tolerance: 1e-6) else { return false }
+                return probes.allSatisfy { contains(polys[j], $0) }
+            }.count
         }
     }
 
@@ -229,10 +238,15 @@ public enum Planner {
     static func millPaths(_ shapes: [Artwork], layer: Layer, from start: Vec2) -> ([[Vec2]], [MillCut]) {
         let r = max(0, layer.toolDiameter / 2)
         // Auto roles come from nesting across the whole layer, so a hole drawn as a separate shape still counts.
-        let all = shapes.flatMap(\.placedPaths).filter { $0.points.count > 1 }
-        let allDepth = nestingDepth(all)
+        // Text is self-contained: its letters and counters nest only within the text itself, so the
+        // same lettering cuts the same way whether or not it sits inside another outline.
         var depthLookup: [Polyline: Int] = [:]
-        for (p, d) in zip(all, allDepth) { depthLookup[p] = d }
+        var groups: [[Polyline]] = [shapes.filter { $0.text == nil }.flatMap(\.placedPaths)]
+        groups += shapes.filter { $0.text != nil }.map(\.placedPaths)
+        for group in groups {
+            let polys = group.filter { $0.points.count > 1 }
+            for (p, d) in zip(polys, nestingDepth(polys)) { depthLookup[p] = d }
+        }
 
         var contours: [Polyline] = []
         var contourCuts: [MillCut] = []
