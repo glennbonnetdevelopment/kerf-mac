@@ -329,7 +329,7 @@ final class Phase2Tests: XCTestCase {
     }
 
     func testOldLayerJSONStillDecodes() throws {
-        let json = #"{"id":"6F9619FF-8B86-D011-B42D-00CF4FC964FF","name":"L","colorHex":"#000000","mode":"line","enabled":true,"passes":1,"speed":900,"power":20,"airAssist":false,"fillInterval":0.1,"fillAngle":0,"fillBidirectional":true,"cutSpeed":20,"cutForce":80}"#
+        let json = ##"{"id":"6F9619FF-8B86-D011-B42D-00CF4FC964FF","name":"L","colorHex":"#000000","mode":"line","enabled":true,"passes":1,"speed":900,"power":20,"airAssist":false,"fillInterval":0.1,"fillAngle":0,"fillBidirectional":true,"cutSpeed":20,"cutForce":80}"##
         let layer = try JSONDecoder().decode(Layer.self, from: Data(json.utf8))
         XCTAssertEqual(layer.speed, 900)
         XCTAssertEqual(layer.dither, .floydSteinberg)

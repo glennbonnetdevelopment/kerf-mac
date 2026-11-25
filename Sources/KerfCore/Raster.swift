@@ -22,9 +22,9 @@ public enum Raster {
             for i in gray.indices { out[i] = UInt8(max(0, min(255, ((1 - gray[i]) * 255).rounded()))) }
         case .floydSteinberg, .atkinson:
             var g = gray
-            let kernel: [(Int, Int, Double)] = mode == .floydSteinberg
-                ? [(1, 0, 7.0 / 16), (-1, 1, 3.0 / 16), (0, 1, 5.0 / 16), (1, 1, 1.0 / 16)]
-                : [(1, 0, 1.0 / 8), (2, 0, 1.0 / 8), (-1, 1, 1.0 / 8), (0, 1, 1.0 / 8), (1, 1, 1.0 / 8), (0, 2, 1.0 / 8)]
+            let floyd: [(Int, Int, Double)] = [(1, 0, 0.4375), (-1, 1, 0.1875), (0, 1, 0.3125), (1, 1, 0.0625)]
+            let atkinson: [(Int, Int, Double)] = [(1, 0, 0.125), (2, 0, 0.125), (-1, 1, 0.125), (0, 1, 0.125), (1, 1, 0.125), (0, 2, 0.125)]
+            let kernel = mode == .floydSteinberg ? floyd : atkinson
             for y in 0..<height {
                 for x in 0..<width {
                     let i = y * width + x
