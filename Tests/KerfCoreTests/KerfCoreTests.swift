@@ -761,4 +761,30 @@ final class Phase2Tests: XCTestCase {
         let layer = try JSONDecoder().decode(Layer.self, from: Data(##"{"name":"A","colorHex":"#000000"}"##.utf8))
         XCTAssertNil(layer.materialID)
     }
+
+    func testXToolStartersAreStableAndSensible() {
+        let a = CutMaterial.xToolStarters, b = CutMaterial.xToolStarters
+        XCTAssertEqual(a.map(\.id), b.map(\.id), "fixed ids so adding them again doesn't duplicate")
+        XCTAssertEqual(Set(a.map(\.id)).count, a.count)
+        for laser in ["xTool 5 W", "xTool 10 W", "xTool 40 W", "xTool 2 W IR"] {
+            XCTAssertTrue(a.contains { $0.name.hasPrefix(laser + " ") }, laser)
+        }
+        for m in a {
+            XCTAssertEqual(m.kind, .grblLaser)
+            XCTAssertTrue((1...100).contains(m.settings.power))
+            XCTAssertGreaterThan(m.settings.speed, 0)
+            XCTAssertGreaterThanOrEqual(m.settings.passes, 1)
+        }
+        // mm/s from xTool's tables is stored as mm/min.
+        let cut = a.first { $0.name == "xTool 10 W – Basswood plywood" && $0.operation == "Cut" }!
+        XCTAssertEqual(cut.settings.speed, 360)
+        var lib = MaterialLibrary(materials: a)
+        XCTAssertEqual(lib.merge(MaterialLibrary(materials: b)), 0)
+    }
+
+    func testCO2PresetExists() {
+        let co2 = DeviceProfile.presets.first { $0.name.contains("40 W CO2") }
+        XCTAssertEqual(co2?.kind, .grblLaser)
+        XCTAssertEqual(co2?.bedWidth, 300)
+    }
 }

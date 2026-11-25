@@ -61,6 +61,8 @@ struct MaterialLibraryView: View {
         }
         .toolbar {
             ToolbarItemGroup {
+                Button { model.restoreStarterMaterials() } label: { Label("xTool starters", systemImage: "wand.and.stars") }
+                    .help("Add back the built-in xTool 5 W, 10 W, 40 W and 2 W IR starter settings")
                 Button { model.importMaterials() } label: { Label("Import", systemImage: "square.and.arrow.down") }
                     .help("Add materials from a KerfKutter materials file")
                 Button { model.exportMaterials() } label: { Label("Export", systemImage: "square.and.arrow.up") }

@@ -10,9 +10,27 @@ extension AppModel {
     }
 
     func loadMaterials() {
-        defer { materialsLoaded = true }
-        guard let url = Self.materialsURL, let data = try? Data(contentsOf: url) else { return }
-        if let lib = try? MaterialLibrary.decode(data) { materials = lib }
+        if let url = Self.materialsURL, let data = try? Data(contentsOf: url), let lib = try? MaterialLibrary.decode(data) {
+            materials = lib
+        }
+        // Add the xTool starter settings once; deleting them afterwards keeps them deleted.
+        let key = "addedXToolStarters"
+        if !UserDefaults.standard.bool(forKey: key) {
+            materials.merge(MaterialLibrary(materials: CutMaterial.xToolStarters))
+            UserDefaults.standard.set(true, forKey: key)
+            saveMaterials()
+        }
+        materialsLoaded = true
+    }
+
+    /// Adds back any xTool starter settings that are missing, without touching ones you've edited.
+    func restoreStarterMaterials() {
+        let before = materials.materials.count
+        var lib = materials
+        for m in CutMaterial.xToolStarters where lib.material(m.id) == nil { lib.upsert(m) }
+        materials = lib
+        let added = materials.materials.count - before
+        alertMessage = added == 0 ? "All the xTool starter settings are already in your library." : "Added \(added) xTool starter setting\(added == 1 ? "" : "s")."
     }
 
     func saveMaterials() {

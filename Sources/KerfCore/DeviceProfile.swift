@@ -217,6 +217,9 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
                       origin: .topLeft, baudRate: 115200),
         DeviceProfile(name: "Generic GRBL laser", kind: .grblLaser, bedWidth: 400, bedHeight: 400,
                       origin: .bottomLeft, baudRate: 115200),
+        // K40-style 40 W CO2 laser converted to a GRBL controller. Most home at the back left.
+        DeviceProfile(name: "40 W CO2 laser (GRBL, K40-style 300×200)", kind: .grblLaser, bedWidth: 300, bedHeight: 200,
+                      origin: .topLeft, baudRate: 115200, sMax: 1000, rapidSpeed: 6000),
         DeviceProfile(name: "SainSmart Genmitsu 4040 Pro (CNC)", kind: .cncRouter, bedWidth: 400, bedHeight: 400,
                       origin: .bottomLeft, baudRate: 115200, sMax: 1000, rapidSpeed: 2500, safeZ: 5),
         DeviceProfile(name: "GCC Expert 24", kind: .vinylCutter, bedWidth: 600, bedHeight: 1000,
