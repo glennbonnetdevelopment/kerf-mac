@@ -232,7 +232,7 @@ struct SaveMaterialForm: View {
     @EnvironmentObject var model: AppModel
     let layerID: UUID
     let kind: DeviceKind
-    let suggestion: Material?
+    let suggestion: CutMaterial?
     let done: () -> Void
     @State private var name = ""
     @State private var thickness = 0.0

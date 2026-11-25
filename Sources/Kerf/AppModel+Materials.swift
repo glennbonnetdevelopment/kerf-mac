@@ -27,9 +27,9 @@ extension AppModel {
 
     /// Saves a layer's settings as a new material for the current machine type and links the layer to it.
     @discardableResult
-    func saveLayerAsMaterial(_ layerID: UUID, name: String, thickness: Double, operation: String, notes: String) -> Material? {
+    func saveLayerAsMaterial(_ layerID: UUID, name: String, thickness: Double, operation: String, notes: String) -> CutMaterial? {
         guard let i = document.layers.firstIndex(where: { $0.id == layerID }) else { return nil }
-        var m = Material(name: name.trimmingCharacters(in: .whitespaces), thickness: max(0, thickness),
+        var m = CutMaterial(name: name.trimmingCharacters(in: .whitespaces), thickness: max(0, thickness),
                          operation: operation.trimmingCharacters(in: .whitespaces), notes: notes, kind: profile.kind,
                          settings: document.layers[i])
         m.capture(document.layers[i])

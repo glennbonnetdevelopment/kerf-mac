@@ -8,7 +8,7 @@ struct MaterialLibraryView: View {
     @State private var search = ""
     @State private var selectedID: UUID?
 
-    private var shown: [Material] {
+    private var shown: [CutMaterial] {
         let all = model.materials.materials(for: kind)
         let q = search.trimmingCharacters(in: .whitespaces).lowercased()
         guard !q.isEmpty else { return all }
@@ -27,7 +27,7 @@ struct MaterialLibraryView: View {
                     ForEach(shown) { m in
                         VStack(alignment: .leading, spacing: 2) {
                             Text(m.name.isEmpty ? "Untitled" : m.name)
-                            Text([m.thickness > 0 ? Material.formatThickness(m.thickness) : nil, m.operation.isEmpty ? nil : m.operation, m.settings.mode.title]
+                            Text([m.thickness > 0 ? CutMaterial.formatThickness(m.thickness) : nil, m.operation.isEmpty ? nil : m.operation, m.settings.mode.title]
                                 .compactMap { $0 }.joined(separator: " · "))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -75,15 +75,15 @@ struct MaterialLibraryView: View {
         }
     }
 
-    private func materialBinding(_ id: UUID) -> Binding<Material>? {
+    private func materialBinding(_ id: UUID) -> Binding<CutMaterial>? {
         guard model.materials.material(id) != nil else { return nil }
         return Binding(
-            get: { model.materials.material(id) ?? Material(name: "", kind: kind, settings: Layer(name: "", colorHex: "#000000")) },
+            get: { model.materials.material(id) ?? CutMaterial(name: "", kind: kind, settings: Layer(name: "", colorHex: "#000000")) },
             set: { var m = $0; m.modified = Date(); model.materials.upsert(m) }
         )
     }
 
-    private func duplicate(_ m: Material) {
+    private func duplicate(_ m: CutMaterial) {
         var copy = m
         copy.id = UUID()
         copy.name = m.name + " copy"
@@ -100,7 +100,7 @@ struct MaterialLibraryView: View {
 
 private struct MaterialDetail: View {
     @EnvironmentObject var model: AppModel
-    @Binding var material: Material
+    @Binding var material: CutMaterial
     let delete: () -> Void
     let duplicate: () -> Void
 

@@ -711,7 +711,7 @@ final class Phase2Tests: XCTestCase {
     func testMaterialAppliesSettingsButKeepsLayerIdentity() {
         var source = Layer(name: "Cut", colorHex: "#E5222D", mode: .line, passes: 3, speed: 300, power: 95)
         source.airAssist = true
-        var m = Material(name: "Birch plywood", thickness: 3, operation: "Cut", kind: .grblLaser, settings: source)
+        var m = CutMaterial(name: "Birch plywood", thickness: 3, operation: "Cut", kind: .grblLaser, settings: source)
         m.capture(source)
         XCTAssertEqual(m.title, "Birch plywood · 3 mm · Cut")
 
@@ -733,10 +733,10 @@ final class Phase2Tests: XCTestCase {
     func testMaterialLibraryFiltersSortsAndRoundTrips() throws {
         var lib = MaterialLibrary()
         let layer = Layer(name: "", colorHex: "#000000")
-        lib.upsert(Material(name: "Walnut", thickness: 6, kind: .grblLaser, settings: layer))
-        lib.upsert(Material(name: "acrylic", thickness: 3, kind: .grblLaser, settings: layer))
-        lib.upsert(Material(name: "Acrylic", thickness: 2, kind: .grblLaser, settings: layer))
-        lib.upsert(Material(name: "Oracal 651", kind: .vinylCutter, settings: Layer(name: "", colorHex: "#000000", mode: .cut)))
+        lib.upsert(CutMaterial(name: "Walnut", thickness: 6, kind: .grblLaser, settings: layer))
+        lib.upsert(CutMaterial(name: "acrylic", thickness: 3, kind: .grblLaser, settings: layer))
+        lib.upsert(CutMaterial(name: "Acrylic", thickness: 2, kind: .grblLaser, settings: layer))
+        lib.upsert(CutMaterial(name: "Oracal 651", kind: .vinylCutter, settings: Layer(name: "", colorHex: "#000000", mode: .cut)))
         XCTAssertEqual(lib.materials(for: .grblLaser).map(\.thickness), [2, 3, 6])
         XCTAssertEqual(lib.materials(for: .vinylCutter).count, 1)
         XCTAssertEqual(lib.materials(for: .cncRouter).count, 0)
@@ -751,14 +751,14 @@ final class Phase2Tests: XCTestCase {
         newer.notes = "Mask both sides"
         newer.modified = lib.materials[0].modified.addingTimeInterval(60)
         other.upsert(newer)
-        other.upsert(Material(name: "Cardstock", kind: .vinylCutter, settings: layer))
+        other.upsert(CutMaterial(name: "Cardstock", kind: .vinylCutter, settings: layer))
         XCTAssertEqual(lib.merge(other), 2)
         XCTAssertEqual(lib.materials.count, 5)
         XCTAssertEqual(lib.material(newer.id)?.notes, "Mask both sides")
     }
 
     func testLayerWithoutMaterialIDStillDecodes() throws {
-        let layer = try JSONDecoder().decode(Layer.self, from: Data(#"{"name":"A","colorHex":"#000000"}"#.utf8))
+        let layer = try JSONDecoder().decode(Layer.self, from: Data(##"{"name":"A","colorHex":"#000000"}"##.utf8))
         XCTAssertNil(layer.materialID)
     }
 }

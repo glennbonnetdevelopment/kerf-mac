@@ -2,7 +2,7 @@ import Foundation
 
 /// Saved cut settings for one material and operation on one kind of machine,
 /// such as "Birch plywood, 3 mm, cut" on a laser or "Oracal 651, cut" on a vinyl cutter.
-public struct Material: Identifiable, Codable, Hashable, Sendable {
+public struct CutMaterial: Identifiable, Codable, Hashable, Sendable {
     public var id: UUID
     public var name: String
     /// Material thickness in mm; 0 when it doesn't matter (vinyl, engraving).
@@ -65,14 +65,14 @@ public struct Material: Identifiable, Codable, Hashable, Sendable {
 
 /// The saved materials, stored as JSON.
 public struct MaterialLibrary: Codable, Hashable, Sendable {
-    public var materials: [Material]
+    public var materials: [CutMaterial]
 
-    public init(materials: [Material] = []) {
+    public init(materials: [CutMaterial] = []) {
         self.materials = materials
     }
 
     /// Materials for one machine type, sorted by name, then thickness, then operation.
-    public func materials(for kind: DeviceKind) -> [Material] {
+    public func materials(for kind: DeviceKind) -> [CutMaterial] {
         materials.filter { $0.kind == kind }.sorted {
             let a = $0.name.localizedLowercase, b = $1.name.localizedLowercase
             if a != b { return a < b }
@@ -81,13 +81,13 @@ public struct MaterialLibrary: Codable, Hashable, Sendable {
         }
     }
 
-    public func material(_ id: UUID?) -> Material? {
+    public func material(_ id: UUID?) -> CutMaterial? {
         guard let id else { return nil }
         return materials.first { $0.id == id }
     }
 
     /// Adds a material, or replaces the one with the same id.
-    public mutating func upsert(_ m: Material) {
+    public mutating func upsert(_ m: CutMaterial) {
         if let i = materials.firstIndex(where: { $0.id == m.id }) { materials[i] = m } else { materials.append(m) }
     }
 
