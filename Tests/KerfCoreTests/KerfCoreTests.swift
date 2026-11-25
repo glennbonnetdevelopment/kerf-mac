@@ -530,6 +530,20 @@ final class Phase2Tests: XCTestCase {
         XCTAssertEqual(r.shapes[3].paths.bounds.width, 10, accuracy: 0.01)
     }
 
+    func testLightBurnMirrorYMeasuresFromTheTop() throws {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <LightBurnProject AppVersion="1.2.04" FormatVersion="1" MirrorX="False" MirrorY="True">
+            <Shape Type="Rect" CutIndex="0" W="20" H="10"><XForm>1 0 0 1 50 50</XForm></Shape>
+            <Shape Type="Bitmap" CutIndex="0" W="40" H="20" Data="iVBORw0KGgo="><XForm>1 0 0 1 100 100</XForm></Shape>
+        </LightBurnProject>
+        """
+        let r = try LightBurnImporter.parse(Data(xml.utf8), bedHeight: 400)
+        XCTAssertEqual(r.shapes[0].paths.bounds.minY, 45, accuracy: 1e-6)
+        // The picture's top row stays at the top.
+        XCTAssertEqual(r.images[0].transform.apply(Vec2(0, -10)).y, 90, accuracy: 1e-6)
+    }
+
     func testLightBurnImportImageAndText() throws {
         let xml = """
         <?xml version="1.0" encoding="UTF-8"?>

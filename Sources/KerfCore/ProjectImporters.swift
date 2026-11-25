@@ -106,18 +106,26 @@ public enum LightBurnImporter {
     ]
 
     /// - Parameter bedHeight: LightBurn measures up from the bottom of the bed; Kerf measures down from the top.
-    public static func parse(_ data: Data, bedHeight: Double) throws -> ProjectImport {
+    public static func parse(_ data: Data, bedWidth: Double = 0, bedHeight: Double) throws -> ProjectImport {
         let root = try XMLNode.parse(data)
         guard root.name == "LightBurnProject" else { throw ImportError.unreadable("not a LightBurn project") }
         var result = ProjectImport()
-        let world = Affine(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: bedHeight)
+        // Normally LightBurn measures y up from the bottom of the bed. With MirrorY (machines whose origin
+        // is at the top, such as the xTool D1) it measures down from the top like Kerf. MirrorX measures x from the right.
+        let mirrorY = root.attributes["MirrorY"]?.lowercased() == "true"
+        let mirrorX = root.attributes["MirrorX"]?.lowercased() == "true"
+        var world = mirrorY ? Affine.identity : Affine(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: bedHeight)
+        if mirrorX { world = world.then(Affine(a: -1, b: 0, c: 0, d: 1, tx: bedWidth, ty: 0)) }
 
         for node in root.children where node.name.hasPrefix("CutSetting") {
             let index = node.value("index").flatMap(Int.init) ?? 0
             result.layers[index] = layer(from: node, index: index)
         }
 
-        var ctx = Context(world: world, verts: [:], prims: [:])
+        // Pictures and text are drawn top-down on screen, so they flip whenever the world does.
+        let screenFlip = mirrorY == mirrorX ? (mirrorY ? Affine.identity : Affine(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0))
+                                            : (mirrorY ? Affine(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0) : .identity)
+        var ctx = Context(world: world, screenFlip: screenFlip, verts: [:], prims: [:])
         for node in root.children where node.name == "Shape" {
             walk(node, parent: .identity, into: &result, ctx: &ctx)
         }
@@ -172,6 +180,7 @@ public enum LightBurnImporter {
 
     struct Context {
         var world: Affine
+        var screenFlip: Affine
         var verts: [String: [Vertex]]
         var prims: [String: [Prim]]
     }
@@ -225,8 +234,8 @@ public enum LightBurnImporter {
             guard !str.isEmpty else { return }
             let family = (node.attributes["Font"] ?? "Helvetica").split(separator: ",").first.map(String.init) ?? "Helvetica"
             let height = node.double("H") ?? 10
-            // Outlines are y down with the baseline at 0; LightBurn's text space is y up.
-            let flip = Affine(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0)
+            // Outlines are y down with the baseline at 0; turn them to match LightBurn's text space.
+            let flip = ctx.screenFlip
             result.texts.append(.init(layerIndex: cut, text: str, fontFamily: family, height: height,
                                       alignment: node.attributes["AH"].flatMap(Int.init) ?? 0,
                                       transform: flip.then(toDesign)))
@@ -237,8 +246,8 @@ public enum LightBurnImporter {
                 return
             }
             let name = (node.attributes["File"] ?? "Image").split(whereSeparator: { $0 == "/" || $0 == "\\" }).last.map(String.init) ?? "Image"
-            // Image rows run top to bottom (y down), LightBurn's shape space is y up.
-            let flip = Affine(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0)
+            // Image rows run top to bottom on screen.
+            let flip = ctx.screenFlip
             result.images.append(.init(layerIndex: cut, name: name, data: data,
                                        frame: Rect2(minX: -w / 2, minY: -h / 2, maxX: w / 2, maxY: h / 2),
                                        transform: flip.then(toDesign)))

@@ -104,7 +104,7 @@ extension AppModel {
         let result: ProjectImport
         do {
             let data = try Data(contentsOf: url)
-            result = ext.hasPrefix("lbrn") ? try LightBurnImporter.parse(data, bedHeight: profile.bedHeight)
+            result = ext.hasPrefix("lbrn") ? try LightBurnImporter.parse(data, bedWidth: profile.bedWidth, bedHeight: profile.bedHeight)
                                            : try EasyCutImporter.parse(data)
         } catch {
             alertMessage = "\(url.lastPathComponent): \(error.localizedDescription)"
