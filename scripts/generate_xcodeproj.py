@@ -14,6 +14,12 @@ def oid(*parts):
     return hashlib.md5("/".join(parts).encode()).hexdigest()[:24].upper()
 
 
+def q(name):
+    """Quotes a value for an old-style plist when it has characters outside the safe set."""
+    import re
+    return name if re.fullmatch(r"[A-Za-z0-9_$/:.\-]+", name) else '"' + name.replace('"', '\\"') + '"'
+
+
 def swift_files(rel):
     d = os.path.join(ROOT, rel)
     return sorted(f for f in os.listdir(d) if f.endswith(".swift"))
@@ -70,7 +76,7 @@ w("/* End PBXCopyFilesBuildPhase section */\n")
 w("\n/* Begin PBXFileReference section */\n")
 for g, (_, files) in groups.items():
     for f in files:
-        w(f"\t\t{oid('file', g, f)} /* {f} */ = {{isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = {f}; sourceTree = \"<group>\"; }};\n")
+        w(f"\t\t{oid('file', g, f)} /* {f} */ = {{isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = {q(f)}; sourceTree = \"<group>\"; }};\n")
 w(f"\t\t{P['app']} /* Kerf.app */ = {{isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kerf.app; sourceTree = BUILT_PRODUCTS_DIR; }};\n")
 w(f"\t\t{P['fw']} /* KerfCore.framework */ = {{isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = KerfCore.framework; sourceTree = BUILT_PRODUCTS_DIR; }};\n")
 w(f"\t\t{P['tests']} /* KerfCoreTests.xctest */ = {{isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KerfCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; }};\n")

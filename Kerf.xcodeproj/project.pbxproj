@@ -64,7 +64,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		B384DE2D0766C8DD8167CAFC /* AppModel+Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel+Tools.swift; sourceTree = "<group>"; };
+		B384DE2D0766C8DD8167CAFC /* AppModel+Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Tools.swift"; sourceTree = "<group>"; };
 		7DD6F148D41B20C91D9E4D29 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		BDDFE70321ED91848A480243 /* ArrangePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrangePanel.swift; sourceTree = "<group>"; };
 		A9D6891A87FDD3165B12B19C /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
