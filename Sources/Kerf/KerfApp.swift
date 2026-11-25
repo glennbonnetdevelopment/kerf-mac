@@ -30,7 +30,7 @@ struct KerfApp: App {
                 Button("Save As…") { model.saveProject(saveAs: true) }
                     .keyboardShortcut("s", modifiers: [.command, .shift])
                 Divider()
-                Button("Import SVG or DXF…") { model.importFiles() }
+                Button("Import SVG, DXF, LightBurn or Easy Cut…") { model.importFiles() }
                     .keyboardShortcut("i")
                 Button("Import Image to Engrave…") { model.importImages() }
                     .keyboardShortcut("i", modifiers: [.command, .shift])
@@ -177,7 +177,7 @@ struct ContentView: View {
                 _ = provider.loadObject(ofClass: URL.self) { url, _ in
                     guard let url else { return }
                     let ext = url.pathExtension.lowercased()
-                    if ["svg", "dxf"].contains(ext) {
+                    if AppModel.importExtensions.contains(ext) {
                         Task { @MainActor in model.importFile(url) }
                     } else if ["png", "jpg", "jpeg", "tif", "tiff", "bmp", "gif", "heic"].contains(ext) {
                         Task { @MainActor in model.importImage(url) }

@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import KerfCore
 
@@ -93,5 +94,86 @@ extension AppModel {
             document.shapes[i].layerID = layerID
         }
         currentLayerID = layerID
+    }
+}
+
+/// Importing LightBurn and Easy Cut projects.
+extension AppModel {
+    func importProjectFile(_ url: URL) {
+        let ext = url.pathExtension.lowercased()
+        let result: ProjectImport
+        do {
+            let data = try Data(contentsOf: url)
+            result = ext.hasPrefix("lbrn") ? try LightBurnImporter.parse(data, bedHeight: profile.bedHeight)
+                                           : try EasyCutImporter.parse(data)
+        } catch {
+            alertMessage = "\(url.lastPathComponent): \(error.localizedDescription)"
+            return
+        }
+        checkpoint()
+        if document.shapes.isEmpty, document.layers.count == 1 { document.layers.removeAll() }
+        let fileName = url.deletingPathExtension().lastPathComponent
+
+        // Layers keep their names and settings; on a cutter or CNC, laser line and fill layers become the machine's own mode.
+        var layerIDs: [Int: UUID] = [:]
+        func layerID(_ index: Int, fallbackMode: LayerMode) -> UUID {
+            if let id = layerIDs[index] { return id }
+            var layer = result.layers[index] ?? Layer(name: "Imported", colorHex: "#000000", mode: fallbackMode)
+            if profile.kind != .grblLaser, layer.mode == .line || layer.mode == .fill { layer.mode = defaultMode }
+            if profile.kind == .vinylCutter, layer.mode == .image { layer.mode = .print }
+            document.layers.append(layer)
+            layerIDs[index] = layer.id
+            return layer.id
+        }
+
+        var added: Set<UUID> = []
+        for shape in result.shapes {
+            let art = Artwork(layerID: layerID(shape.layerIndex, fallbackMode: defaultMode), name: fileName, paths: shape.paths)
+            document.shapes.append(art)
+            added.insert(art.id)
+        }
+        var unreadable = 0
+        for image in result.images {
+            guard let ns = NSImage(data: image.data), let cg = ns.cgImage(forProposedRect: nil, context: nil, hints: nil),
+                  let raster = Self.grayscale(cg, maxSide: 2000) else {
+                unreadable += 1
+                continue
+            }
+            let f = image.frame
+            let frame = Polyline([Vec2(f.minX, f.minY), Vec2(f.maxX, f.minY), Vec2(f.maxX, f.maxY), Vec2(f.minX, f.maxY)], closed: true)
+            let id = layerID(image.layerIndex, fallbackMode: .image)
+            // Images always go on an image (or print) layer.
+            if let i = document.layers.firstIndex(where: { $0.id == id }), document.layers[i].mode != .image, document.layers[i].mode != .print {
+                document.layers[i].mode = profile.kind == .vinylCutter ? .print : .image
+            }
+            let art = Artwork(layerID: id, name: image.name, paths: [frame], transform: image.transform, image: raster)
+            document.shapes.append(art)
+            added.insert(art.id)
+        }
+        for text in result.texts {
+            let spec = TextSpec(text: text.text, fontName: text.fontFamily, height: text.height)
+            let outlines = TextOutliner.outlines(for: spec)
+            let line = TextOutliner.lineOutlines(for: spec)
+            let lb = line.paths.bounds
+            guard !outlines.isEmpty, !lb.isEmpty else { continue }
+            // Put the outlines back on their baseline, aligned the way the file says, then into place.
+            let shift = text.alignment == 1 ? -line.width / 2 : (text.alignment == 2 ? -line.width : 0)
+            let t = Affine.translation(lb.minX + shift, lb.minY).then(text.transform)
+            let art = Artwork(layerID: layerID(text.layerIndex, fallbackMode: defaultMode), name: "Text: \(text.text)",
+                              paths: outlines, transform: t, text: spec)
+            document.shapes.append(art)
+            added.insert(art.id)
+        }
+        if document.workpiece == nil, let w = result.workpiece { document.workpiece = w }
+        if document.layers.isEmpty { _ = ensureCurrentLayer() }
+        selection = added
+        if currentLayerID == nil || document.layer(currentLayerID!) == nil { currentLayerID = document.layers.first?.id }
+
+        var notes = result.warnings
+        if unreadable > 0 { notes.append("\(unreadable) embedded picture\(unreadable == 1 ? "" : "s") could not be decoded.") }
+        let summary = "Imported \(result.shapes.count) shape\(result.shapes.count == 1 ? "" : "s"), \(result.images.count - unreadable) image\(result.images.count - unreadable == 1 ? "" : "s") and \(result.texts.count) text item\(result.texts.count == 1 ? "" : "s") from \(url.lastPathComponent)."
+        if !notes.isEmpty || added.isEmpty {
+            alertMessage = ([summary] + notes).joined(separator: "\n\n")
+        }
     }
 }

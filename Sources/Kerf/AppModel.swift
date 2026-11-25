@@ -300,14 +300,22 @@ final class AppModel: ObservableObject {
 
     func importFiles() {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.svg, Self.dxfType]
+        panel.allowedContentTypes = [.svg, Self.dxfType] + Self.projectTypes
         panel.allowsMultipleSelection = true
-        panel.message = "Choose SVG or DXF files to import"
+        panel.message = "Choose SVG, DXF, LightBurn or Easy Cut files to import"
         guard panel.runModal() == .OK else { return }
         for url in panel.urls { importFile(url) }
     }
 
+    static let projectExtensions = ["lbrn2", "lbrn", "esc5", "scut5"]
+    static let projectTypes: [UTType] = projectExtensions.compactMap { UTType(filenameExtension: $0) }
+    static let importExtensions = ["svg", "dxf"] + projectExtensions
+
     func importFile(_ url: URL) {
+        if Self.projectExtensions.contains(url.pathExtension.lowercased()) {
+            importProjectFile(url)
+            return
+        }
         do {
             let groups: [ImportedGroup]
             if url.pathExtension.lowercased() == "dxf" {

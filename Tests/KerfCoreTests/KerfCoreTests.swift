@@ -493,6 +493,100 @@ final class Phase2Tests: XCTestCase {
         XCTAssertEqual(sim.rows, 150)
     }
 
+    func testLightBurnImportShapesLayersAndGroups() throws {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <LightBurnProject AppVersion="1.2.04" FormatVersion="1">
+            <CutSetting type="Cut"><index Value="1"/><name Value="Outline"/><maxPower Value="70"/><speed Value="20"/><numPasses Value="2"/></CutSetting>
+            <CutSetting type="Scan"><index Value="2"/><name Value="Fill"/><interval Value="0.1"/></CutSetting>
+            <Shape Type="Rect" CutIndex="1" W="20" H="10" Cr="0"><XForm>1 0 0 1 50 50</XForm></Shape>
+            <Shape Type="Group" CutIndex="0"><XForm>1 0 0 1 100 0</XForm><Children>
+                <Shape Type="Path" CutIndex="2" VertID="7" PrimID="7"><XForm>1 0 0 1 0 0</XForm>
+                    <VertList>V0 0c0x0c0y5V10 0V10 10c1x10c1y5</VertList><PrimList>L0 1B1 2L2 0</PrimList></Shape>
+                <Shape Type="Path" CutIndex="2" VertID="7" PrimID="7"><XForm>1 0 0 1 0 100</XForm></Shape>
+            </Children></Shape>
+            <Shape Type="Ellipse" CutIndex="1" Rx="5" Ry="5"><XForm>1 0 0 1 0 0</XForm></Shape>
+        </LightBurnProject>
+        """
+        let r = try LightBurnImporter.parse(Data(xml.utf8), bedHeight: 400)
+        XCTAssertEqual(r.layers[1]?.name, "Outline")
+        XCTAssertEqual(r.layers[1]?.speed, 1200) // 20 mm/s
+        XCTAssertEqual(r.layers[1]?.passes, 2)
+        XCTAssertEqual(r.layers[1]?.colorHex, "#0000FF")
+        XCTAssertEqual(r.layers[2]?.mode, .fill)
+        XCTAssertEqual(r.shapes.count, 4)
+        // The rectangle is centred on (50, 50) measured up from the bed's bottom.
+        let rect = r.shapes[0].paths.bounds
+        XCTAssertEqual(rect.minX, 40, accuracy: 1e-6)
+        XCTAssertEqual(rect.maxX, 60, accuracy: 1e-6)
+        XCTAssertEqual(rect.minY, 345, accuracy: 1e-6)
+        XCTAssertEqual(rect.maxY, 355, accuracy: 1e-6)
+        // The grouped path is closed, curved, moved by the group, and its copy reuses the shared points.
+        let tri = r.shapes[1].paths[0]
+        XCTAssertTrue(tri.closed)
+        XCTAssertGreaterThan(tri.points.count, 4)
+        XCTAssertEqual(tri.bounds.minX, 100, accuracy: 1e-6)
+        XCTAssertEqual(r.shapes[2].paths[0].bounds.maxY, 300, accuracy: 1e-6)
+        XCTAssertEqual(r.shapes[3].paths.bounds.width, 10, accuracy: 0.01)
+    }
+
+    func testLightBurnImportImageAndText() throws {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <LightBurnProject AppVersion="1.2.04" FormatVersion="1">
+            <CutSetting_Img type="Image"><index Value="0"/><name Value="C00"/><speed Value="55"/><interval Value="0.08"/></CutSetting_Img>
+            <Shape Type="Bitmap" CutIndex="0" W="40" H="20" File="//mac/logo.jpg" Data="iVBORw0KGgo="><XForm>0 1 -1 0 100 100</XForm></Shape>
+            <Shape Type="Text" CutIndex="3" Str="Hi" Font="Arial,-1,100,5,50,0,0,0,0,0" H="12" AH="1"><XForm>1 0 0 1 10 20</XForm></Shape>
+        </LightBurnProject>
+        """
+        let r = try LightBurnImporter.parse(Data(xml.utf8), bedHeight: 300)
+        XCTAssertEqual(r.layers[0]?.mode, .image)
+        XCTAssertEqual(r.layers[0]?.fillInterval, 0.08)
+        XCTAssertEqual(r.images.count, 1)
+        XCTAssertEqual(r.images[0].name, "logo.jpg")
+        // Turned a quarter turn: 40 × 20 becomes 20 wide and 40 tall, centred at (100, 200).
+        let placed = [Polyline([Vec2(-20, -10), Vec2(20, -10), Vec2(20, 10), Vec2(-20, 10)], closed: true)].transformed(r.images[0].transform).bounds
+        XCTAssertEqual(placed.width, 20, accuracy: 1e-6)
+        XCTAssertEqual(placed.height, 40, accuracy: 1e-6)
+        XCTAssertEqual(placed.center.y, 200, accuracy: 1e-6)
+        XCTAssertEqual(r.texts.first?.text, "Hi")
+        XCTAssertEqual(r.texts.first?.fontFamily, "Arial")
+        XCTAssertEqual(r.texts.first?.alignment, 1)
+        XCTAssertNotNil(r.layers[3]) // text layer without a settings block still gets a layer
+        // Baseline at y = 20 up from the bottom, so 280 down from the top; letters rise above it.
+        let t = r.texts[0].transform
+        XCTAssertEqual(t.apply(Vec2(0, 0)).y, 280, accuracy: 1e-6)
+        XCTAssertLessThan(t.apply(Vec2(0, -10)).y, 280)
+    }
+
+    func testEasyCutImportReadsMatAndPictures() throws {
+        let text = """
+        <xml version="1.0" encoding="UTF-8">
+        <sure_cuts_alot version_major="5" version_minor="107" product="easysigncutpro">
+        <scal5_data mat_wu="11000" mat_hu="8500" mat_orientation="vertical" mat_units="in" cut_machine="Janome">
+        <pages current="0"><page id="1"><objects>
+        <group id="1"><transform a="1" b="0" c="0" d="0" e="1" f="0" g="0" h="0" i="1" /><objects>
+        <image img_src2="/x/logo.png" img_w="3300" img_h="2550" img_dpix="300" img_dpiy="300" img_data="iVBORw0KGgo=">
+        <transform a="0" b="-0.32" c="0" d="0.32" e="0" f="0" g="0" h="0" i="1" />
+        <path_list><pth i="1" t="u" s="1" pts="Mp:1,2 Lp:3,4 Z;"/></path_list></image>
+        </objects></group></objects></page></pages></scal5_data>
+        </sure_cuts_alot>
+        </xml>
+        """
+        let r = try EasyCutImporter.parse(Data(text.utf8))
+        XCTAssertEqual(r.workpiece?.width ?? 0, 215.9, accuracy: 1e-6)
+        XCTAssertEqual(r.workpiece?.height ?? 0, 279.4, accuracy: 1e-6)
+        XCTAssertEqual(r.images.count, 1)
+        XCTAssertEqual(r.images[0].name, "logo.png")
+        // 11 × 8.5 in picture turned upright to fit the 8.5 × 11 in mat.
+        let placed = [Polyline([Vec2(r.images[0].frame.minX, r.images[0].frame.minY), Vec2(r.images[0].frame.maxX, r.images[0].frame.maxY)])]
+            .transformed(r.images[0].transform).bounds
+        XCTAssertLessThanOrEqual(placed.width, 215.9)
+        XCTAssertLessThanOrEqual(placed.height, 279.4)
+        XCTAssertGreaterThan(placed.height, placed.width)
+        XCTAssertTrue(r.warnings.contains { $0.contains("SVG") })
+    }
+
     func testNestingFitsRowsAndRejectsOversize() {
         let area = Rect2(minX: 0, minY: 0, maxX: 100, maxY: 100)
         let placed = Nester.pack(sizes: [Vec2(60, 40), Vec2(30, 50), Vec2(200, 10)], in: area, spacing: 2, allowRotation: true)

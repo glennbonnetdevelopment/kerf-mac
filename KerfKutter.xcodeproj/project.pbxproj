@@ -28,6 +28,7 @@
 		BB2C4CFE8BFC425AC035C57C /* MillSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30BBBF1F89B105465D349229 /* MillSimulator.swift */; };
 		B906C86C1DACE8F4A562B1DF /* PathText.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA5602941646C375BA84D3A2 /* PathText.swift */; };
 		3E0C57B0DC2557B9CE5B00A4 /* Planner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0723E6676B095D4FE0AB26 /* Planner.swift */; };
+		4B605E8FAE1FC75646BD0640 /* ProjectImporters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BCB080CAF16C7A02A6870BE /* ProjectImporters.swift */; };
 		AEE5E2AB3606C3BB4887F06E /* Raster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64407DC74BC181882DBEEBAF /* Raster.swift */; };
 		62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */; };
 		97E8D0E03E319B8BB69C1EBA /* SerialPort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */; };
@@ -91,6 +92,7 @@
 		30BBBF1F89B105465D349229 /* MillSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MillSimulator.swift; sourceTree = "<group>"; };
 		FA5602941646C375BA84D3A2 /* PathText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathText.swift; sourceTree = "<group>"; };
 		BB0723E6676B095D4FE0AB26 /* Planner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Planner.swift; sourceTree = "<group>"; };
+		0BCB080CAF16C7A02A6870BE /* ProjectImporters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectImporters.swift; sourceTree = "<group>"; };
 		64407DC74BC181882DBEEBAF /* Raster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Raster.swift; sourceTree = "<group>"; };
 		8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SVGImporter.swift; sourceTree = "<group>"; };
 		6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPort.swift; sourceTree = "<group>"; };
@@ -174,6 +176,7 @@
 				30BBBF1F89B105465D349229 /* MillSimulator.swift */,
 				FA5602941646C375BA84D3A2 /* PathText.swift */,
 				BB0723E6676B095D4FE0AB26 /* Planner.swift */,
+				0BCB080CAF16C7A02A6870BE /* ProjectImporters.swift */,
 				64407DC74BC181882DBEEBAF /* Raster.swift */,
 				8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */,
 				6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */,
@@ -330,6 +333,7 @@
 				BB2C4CFE8BFC425AC035C57C /* MillSimulator.swift in Sources */,
 				B906C86C1DACE8F4A562B1DF /* PathText.swift in Sources */,
 				3E0C57B0DC2557B9CE5B00A4 /* Planner.swift in Sources */,
+				4B605E8FAE1FC75646BD0640 /* ProjectImporters.swift in Sources */,
 				AEE5E2AB3606C3BB4887F06E /* Raster.swift in Sources */,
 				62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */,
 				97E8D0E03E319B8BB69C1EBA /* SerialPort.swift in Sources */,
