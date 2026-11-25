@@ -123,8 +123,9 @@ public enum LightBurnImporter {
         }
 
         // Pictures and text are drawn top-down on screen, so they flip whenever the world does.
-        let screenFlip = mirrorY == mirrorX ? (mirrorY ? Affine.identity : Affine(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0))
-                                            : (mirrorY ? Affine(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0) : .identity)
+        // A mirrored world axis is undone locally so the picture or lettering isn't mirrored.
+        var screenFlip = mirrorY ? Affine.identity : Affine(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0)
+        if mirrorX { screenFlip = screenFlip.then(Affine(a: -1, b: 0, c: 0, d: 1, tx: 0, ty: 0)) }
         var ctx = Context(world: world, screenFlip: screenFlip, verts: [:], prims: [:])
         for node in root.children where node.name == "Shape" {
             walk(node, parent: .identity, into: &result, ctx: &ctx)
