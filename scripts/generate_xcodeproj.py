@@ -40,6 +40,9 @@ P = {
     "tests": oid("product", "tests"),
     "readme": oid("file", "README.md"),
     "package": oid("file", "Package.swift"),
+    "assets": oid("file", "Assets.xcassets"),
+    "entitlements": oid("file", "KerfKutter.entitlements"),
+    "resourcesGroup": oid("group", "Resources"),
 }
 T = {name: oid("target", name) for name in ["KerfKutter", "KerfCore", "KerfCoreTests"]}
 
@@ -56,6 +59,7 @@ for g, (_, files) in groups.items():
 w(f"\t\t{oid('bf', 'app-link-fw')} /* KerfCore.framework in Frameworks */ = {{isa = PBXBuildFile; fileRef = {P['fw']} /* KerfCore.framework */; }};\n")
 w(f"\t\t{oid('bf', 'app-embed-fw')} /* KerfCore.framework in Embed Frameworks */ = {{isa = PBXBuildFile; fileRef = {P['fw']} /* KerfCore.framework */; settings = {{ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }}; }};\n")
 w(f"\t\t{oid('bf', 'tests-link-fw')} /* KerfCore.framework in Frameworks */ = {{isa = PBXBuildFile; fileRef = {P['fw']} /* KerfCore.framework */; }};\n")
+w(f"\t\t{oid('bf', 'assets')} /* Assets.xcassets in Resources */ = {{isa = PBXBuildFile; fileRef = {P['assets']} /* Assets.xcassets */; }};\n")
 w("/* End PBXBuildFile section */\n")
 
 # Container proxies and dependencies
@@ -82,6 +86,8 @@ w(f"\t\t{P['fw']} /* KerfCore.framework */ = {{isa = PBXFileReference; explicitF
 w(f"\t\t{P['tests']} /* KerfCoreTests.xctest */ = {{isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KerfCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; }};\n")
 w(f"\t\t{P['readme']} /* README.md */ = {{isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = \"<group>\"; }};\n")
 w(f"\t\t{P['package']} /* Package.swift */ = {{isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = \"<group>\"; }};\n")
+w(f"\t\t{P['assets']} /* Assets.xcassets */ = {{isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = \"<group>\"; }};\n")
+w(f"\t\t{P['entitlements']} /* KerfKutter.entitlements */ = {{isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KerfKutter.entitlements; sourceTree = \"<group>\"; }};\n")
 w("/* End PBXFileReference section */\n")
 
 # Frameworks phases
@@ -97,7 +103,10 @@ w("\n/* Begin PBXGroup section */\n")
 w(f"\t\t{P['mainGroup']} = {{\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n\t\t\t\t{P['readme']} /* README.md */,\n\t\t\t\t{P['package']} /* Package.swift */,\n")
 for g in groups:
     w(f"\t\t\t\t{oid('group', g)} /* {g} */,\n")
+w(f"\t\t\t\t{P['resourcesGroup']} /* Resources */,\n")
 w(f"\t\t\t\t{P['productsGroup']} /* Products */,\n\t\t\t);\n\t\t\tsourceTree = \"<group>\";\n\t\t}};\n")
+w(f"\t\t{P['resourcesGroup']} /* Resources */ = {{\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n\t\t\t\t{P['assets']} /* Assets.xcassets */,\n"
+  f"\t\t\t\t{P['entitlements']} /* KerfKutter.entitlements */,\n\t\t\t);\n\t\t\tpath = Resources;\n\t\t\tsourceTree = \"<group>\";\n\t\t}};\n")
 for g, (path, files) in groups.items():
     children = "".join(f"\t\t\t\t{oid('file', g, f)} /* {f} */,\n" for f in files)
     w(f"\t\t{oid('group', g)} /* {g} */ = {{\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n{children}\t\t\t);\n"
@@ -111,10 +120,15 @@ w("\n/* Begin PBXHeadersBuildPhase section */\n")
 w(f"\t\t{oid('phase', 'headers')} /* Headers */ = {{\n\t\t\tisa = PBXHeadersBuildPhase;\n\t\t\tbuildActionMask = 2147483647;\n\t\t\tfiles = (\n\t\t\t);\n\t\t\trunOnlyForDeploymentPostprocessing = 0;\n\t\t}};\n")
 w("/* End PBXHeadersBuildPhase section */\n")
 
+w("\n/* Begin PBXResourcesBuildPhase section */\n")
+w(f"\t\t{oid('phase', 'res', 'KerfKutter')} /* Resources */ = {{\n\t\t\tisa = PBXResourcesBuildPhase;\n\t\t\tbuildActionMask = 2147483647;\n"
+  f"\t\t\tfiles = (\n\t\t\t\t{oid('bf', 'assets')} /* Assets.xcassets in Resources */,\n\t\t\t);\n\t\t\trunOnlyForDeploymentPostprocessing = 0;\n\t\t}};\n")
+w("/* End PBXResourcesBuildPhase section */\n")
+
 # Native targets
 specs = {
     "KerfKutter": ("com.apple.product-type.application", P["app"], "KerfKutter.app",
-             [oid("phase", "src", "KerfKutter"), oid("phase", "fw", "KerfKutter"), oid("phase", "embed")], ["KerfKutter"]),
+             [oid("phase", "src", "KerfKutter"), oid("phase", "fw", "KerfKutter"), oid("phase", "res", "KerfKutter"), oid("phase", "embed")], ["KerfKutter"]),
     "KerfCore": ("com.apple.product-type.framework", P["fw"], "KerfCore.framework",
                  [oid("phase", "headers"), oid("phase", "src", "KerfCore"), oid("phase", "fw", "KerfCore")], []),
     "KerfCoreTests": ("com.apple.product-type.bundle.unit-test", P["tests"], "KerfCoreTests.xctest",
@@ -195,7 +209,9 @@ target_settings = {
         "PRODUCT_NAME": "KerfKutter", "PRODUCT_BUNDLE_IDENTIFIER": BUNDLE_ID, "GENERATE_INFOPLIST_FILE": "YES",
         "INFOPLIST_KEY_CFBundleDisplayName": "KerfKutter", "INFOPLIST_KEY_LSApplicationCategoryType": "public.app-category.graphics-design",
         "INFOPLIST_KEY_NSHumanReadableCopyright": "", "MARKETING_VERSION": "0.2", "CURRENT_PROJECT_VERSION": "1",
-        "ENABLE_HARDENED_RUNTIME": "NO", "ENABLE_APP_SANDBOX": "NO",
+        "ENABLE_HARDENED_RUNTIME": "YES", "ENABLE_APP_SANDBOX": "YES",
+        "CODE_SIGN_ENTITLEMENTS": "Resources/KerfKutter.entitlements",
+        "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
         "LD_RUNPATH_SEARCH_PATHS": ["$(inherited)", "@executable_path/../Frameworks"],
         "SWIFT_EMIT_LOC_STRINGS": "YES",
     },

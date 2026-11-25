@@ -1,6 +1,8 @@
 #if canImport(Darwin)
 import Darwin
 import Foundation
+import IOKit
+import IOKit.serial
 
 public enum SerialError: Error, LocalizedError {
     case open(String, Int32)
@@ -40,11 +42,32 @@ public final class SerialPort: @unchecked Sendable {
     public var isOpen: Bool { fd >= 0 }
 
     /// Serial devices currently present, callout (`cu.`) devices only.
+    /// Uses IOKit, which works inside the App Sandbox (listing /dev does not).
     public static func availablePorts() -> [String] {
-        let names = (try? FileManager.default.contentsOfDirectory(atPath: "/dev")) ?? []
-        return names.filter { $0.hasPrefix("cu.") && !$0.contains("Bluetooth") && !$0.contains("debug-console") }
-            .sorted()
-            .map { "/dev/" + $0 }
+        var paths = ioKitPorts()
+        if paths.isEmpty {
+            let names = (try? FileManager.default.contentsOfDirectory(atPath: "/dev")) ?? []
+            paths = names.filter { $0.hasPrefix("cu.") }.map { "/dev/" + $0 }
+        }
+        return Array(Set(paths)).filter { !$0.contains("Bluetooth") && !$0.contains("debug-console") }.sorted()
+    }
+
+    static func ioKitPorts() -> [String] {
+        guard let matching = IOServiceMatching(kIOSerialBSDServiceValue) else { return [] }
+        var iterator: io_iterator_t = 0
+        guard IOServiceGetMatchingServices(mach_port_t(MACH_PORT_NULL), matching, &iterator) == KERN_SUCCESS else { return [] }
+        defer { IOObjectRelease(iterator) }
+        var out: [String] = []
+        var service = IOIteratorNext(iterator)
+        while service != 0 {
+            if let value = IORegistryEntryCreateCFProperty(service, kIOCalloutDeviceKey as CFString, kCFAllocatorDefault, 0)?
+                .takeRetainedValue() as? String {
+                out.append(value)
+            }
+            IOObjectRelease(service)
+            service = IOIteratorNext(iterator)
+        }
+        return out
     }
 
     public func open(baudRate: Int, flowControl: FlowControl) throws {

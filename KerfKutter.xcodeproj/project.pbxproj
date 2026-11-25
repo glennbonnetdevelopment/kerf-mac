@@ -39,6 +39,7 @@
 		893EF6FE3F847DA65CD969FE /* KerfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; };
 		E1702234442CFA704BA06EFF /* KerfCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		BD54067B074BB2544118BDFD /* KerfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; };
+		68FAC2550EF5E8F91919F963 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DCE498C0536AFA6C6A77EB68 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -107,6 +108,8 @@
 		D5400806AFA697D620185B72 /* KerfCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KerfCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D1B4A7191B74A6ED7C450F9 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		6D97051E564AB2BB7366BFDA /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
+		DCE498C0536AFA6C6A77EB68 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		78C7C0833F8C48AE3EAC0309 /* KerfKutter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KerfKutter.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -144,8 +147,18 @@
 				4917D8C381AA3D44C43066A2 /* KerfKutter */,
 				DC31EEF57A25B0B82E25DFFE /* KerfCore */,
 				57D4214DC5EAAA741489E407 /* KerfCoreTests */,
+				78293C213848B86FA7E3E3C8 /* Resources */,
 				1BADDC1D73C1A20F347483E1 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		78293C213848B86FA7E3E3C8 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				DCE498C0536AFA6C6A77EB68 /* Assets.xcassets */,
+				78C7C0833F8C48AE3EAC0309 /* KerfKutter.entitlements */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		4917D8C381AA3D44C43066A2 /* KerfKutter */ = {
@@ -223,6 +236,17 @@
 		};
 /* End PBXHeadersBuildPhase section */
 
+/* Begin PBXResourcesBuildPhase section */
+		080F212D582EA93393A25B1E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				68FAC2550EF5E8F91919F963 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXNativeTarget section */
 		D1B54AAC04A5146B0D70EACB /* KerfKutter */ = {
 			isa = PBXNativeTarget;
@@ -230,6 +254,7 @@
 			buildPhases = (
 				7FB784CAD94B89CA08E41A6C,
 				3DCAA140FC9F16E3D640DA57,
+				080F212D582EA93393A25B1E,
 				CEE661EFA17BB7F054B3B702,
 			);
 			buildRules = (
@@ -415,9 +440,11 @@
 		F3C479A1987057D75D8C4A56 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+				CODE_SIGN_ENTITLEMENTS = "Resources/KerfKutter.entitlements";
 				CURRENT_PROJECT_VERSION = "1";
-				ENABLE_APP_SANDBOX = "NO";
-				ENABLE_HARDENED_RUNTIME = "NO";
+				ENABLE_APP_SANDBOX = "YES";
+				ENABLE_HARDENED_RUNTIME = "YES";
 				GENERATE_INFOPLIST_FILE = "YES";
 				INFOPLIST_KEY_CFBundleDisplayName = "KerfKutter";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.graphics-design";
@@ -436,9 +463,11 @@
 		0C7D0855DBA735A207A41654 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+				CODE_SIGN_ENTITLEMENTS = "Resources/KerfKutter.entitlements";
 				CURRENT_PROJECT_VERSION = "1";
-				ENABLE_APP_SANDBOX = "NO";
-				ENABLE_HARDENED_RUNTIME = "NO";
+				ENABLE_APP_SANDBOX = "YES";
+				ENABLE_HARDENED_RUNTIME = "YES";
 				GENERATE_INFOPLIST_FILE = "YES";
 				INFOPLIST_KEY_CFBundleDisplayName = "KerfKutter";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.graphics-design";
