@@ -54,6 +54,40 @@ public enum MillOffset: String, Codable, CaseIterable, Sendable, Identifiable {
     }
 }
 
+/// What a CNC router does with a shape (like a part, a hole, or an engraved line).
+public enum MillRole: String, Codable, CaseIterable, Sendable, Identifiable {
+    /// Closed shapes inside an odd number of other shapes are holes; the rest are parts. Open paths run on the line.
+    case auto
+    /// Cut around the outside so the part keeps its size.
+    case part
+    /// Cut on the inside so the hole keeps its size.
+    case hole
+    /// Tool centre follows the line (engraving, V-carving lines).
+    case onLine
+    /// Clear all material inside the shape to depth.
+    case pocket
+    /// Drill at the shape's centre.
+    case drill
+
+    public var id: String { rawValue }
+    public var title: String {
+        switch self {
+        case .auto: return "Auto (part or hole)"
+        case .part: return "Part (cut outside)"
+        case .hole: return "Hole (cut inside)"
+        case .onLine: return "On the line"
+        case .pocket: return "Pocket (clear inside)"
+        case .drill: return "Drill at centre"
+        }
+    }
+}
+
+public enum MillStyle: String, Codable, CaseIterable, Sendable, Identifiable {
+    case climb, conventional
+    public var id: String { rawValue }
+    public var title: String { self == .climb ? "Climb" : "Conventional" }
+}
+
 /// A colour-coded group of shapes sharing machine settings.
 public struct Layer: Identifiable, Codable, Hashable, Sendable {
     public var id: UUID
@@ -100,6 +134,18 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
     public var plungeRate: Double
     /// Spindle S value.
     public var spindleSpeed: Double
+    /// Cut type for shapes that don't set their own.
+    public var defaultMillRole: MillRole
+    public var millStyle: MillStyle
+    /// Pocket stepover as a fraction of the tool diameter.
+    public var stepover: Double
+    public var tabsEnabled: Bool
+    /// Tabs per part.
+    public var tabCount: Int
+    public var tabWidth: Double
+    public var tabHeight: Double
+    /// Ramp into the cut along the path instead of plunging straight down (0 = plunge).
+    public var rampLength: Double
 
     public init(id: UUID = UUID(), name: String, colorHex: String, mode: LayerMode = .line,
                 enabled: Bool = true, passes: Int = 1, speed: Double = 1000, power: Double = 50,
@@ -107,7 +153,9 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
                 fillBidirectional: Bool = true, dither: DitherMode = .floydSteinberg, invertImage: Bool = false,
                 overscan: Double = 2.5, cutSpeed: Int = 20, cutForce: Int = 80, cutDepth: Double = 3,
                 stepDown: Double = 1, toolDiameter: Double = 3.175, millOffset: MillOffset = .onLine,
-                plungeRate: Double = 300, spindleSpeed: Double = 1000) {
+                plungeRate: Double = 300, spindleSpeed: Double = 1000, defaultMillRole: MillRole = .auto,
+                millStyle: MillStyle = .climb, stepover: Double = 0.4, tabsEnabled: Bool = false, tabCount: Int = 4,
+                tabWidth: Double = 5, tabHeight: Double = 1.5, rampLength: Double = 0) {
         self.id = id
         self.name = name
         self.colorHex = colorHex
@@ -132,12 +180,21 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         self.millOffset = millOffset
         self.plungeRate = plungeRate
         self.spindleSpeed = spindleSpeed
+        self.defaultMillRole = defaultMillRole
+        self.millStyle = millStyle
+        self.stepover = stepover
+        self.tabsEnabled = tabsEnabled
+        self.tabCount = tabCount
+        self.tabWidth = tabWidth
+        self.tabHeight = tabHeight
+        self.rampLength = rampLength
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, name, colorHex, mode, enabled, passes, speed, power, powerMin, airAssist, fillInterval, fillAngle,
              fillBidirectional, dither, invertImage, overscan, cutSpeed, cutForce, cutDepth, stepDown, toolDiameter,
-             millOffset, plungeRate, spindleSpeed
+             millOffset, plungeRate, spindleSpeed, defaultMillRole, millStyle, stepover, tabsEnabled, tabCount,
+             tabWidth, tabHeight, rampLength
     }
 
     /// Missing keys fall back to defaults so older project files still open.
@@ -168,6 +225,14 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         millOffset = try c.decodeIfPresent(MillOffset.self, forKey: .millOffset) ?? d.millOffset
         plungeRate = try c.decodeIfPresent(Double.self, forKey: .plungeRate) ?? d.plungeRate
         spindleSpeed = try c.decodeIfPresent(Double.self, forKey: .spindleSpeed) ?? d.spindleSpeed
+        defaultMillRole = try c.decodeIfPresent(MillRole.self, forKey: .defaultMillRole) ?? d.defaultMillRole
+        millStyle = try c.decodeIfPresent(MillStyle.self, forKey: .millStyle) ?? d.millStyle
+        stepover = try c.decodeIfPresent(Double.self, forKey: .stepover) ?? d.stepover
+        tabsEnabled = try c.decodeIfPresent(Bool.self, forKey: .tabsEnabled) ?? d.tabsEnabled
+        tabCount = try c.decodeIfPresent(Int.self, forKey: .tabCount) ?? d.tabCount
+        tabWidth = try c.decodeIfPresent(Double.self, forKey: .tabWidth) ?? d.tabWidth
+        tabHeight = try c.decodeIfPresent(Double.self, forKey: .tabHeight) ?? d.tabHeight
+        rampLength = try c.decodeIfPresent(Double.self, forKey: .rampLength) ?? d.rampLength
     }
 
     /// Default layer colours, in the order new layers take them.
@@ -188,6 +253,31 @@ public struct TextSpec: Codable, Hashable, Sendable {
         self.text = text
         self.fontName = fontName
         self.height = height
+    }
+}
+
+/// Text laid along a guide path. The guide is in the shape's own coordinates, so it moves with the text.
+public struct PathTextSpec: Codable, Hashable, Sendable {
+    /// Points of the guide, in travel order. Letters stand on the left of the direction of travel
+    /// (above the path when it runs left to right).
+    public var guide: [Vec2]
+    public var closed: Bool
+    /// Arc length along the guide where the text starts.
+    public var offset: Double
+    /// Gap between the guide and the text baseline, in mm (negative moves the text across the line).
+    public var gap: Double
+
+    public init(guide: [Vec2], closed: Bool, offset: Double = 0, gap: Double = 1) {
+        self.guide = guide
+        self.closed = closed
+        self.offset = offset
+        self.gap = gap
+    }
+
+    public var length: Double {
+        var total = 0.0
+        for i in guide.indices.dropFirst() { total += guide[i].distance(to: guide[i - 1]) }
+        return total
     }
 }
 
@@ -225,6 +315,10 @@ public struct Artwork: Identifiable, Codable, Hashable, Sendable {
     public var text: TextSpec?
     /// Set for bitmap images; the image fills the bounds of `paths`.
     public var image: RasterImage?
+    /// CNC cut type for this shape; nil uses the layer's default.
+    public var millRole: MillRole?
+    /// Set when `text` is laid along a path, so the text and its position stay editable.
+    public var pathText: PathTextSpec?
 
     public init(id: UUID = UUID(), layerID: UUID, name: String, paths: [Polyline], transform: Affine = .identity,
                 text: TextSpec? = nil, image: RasterImage? = nil) {

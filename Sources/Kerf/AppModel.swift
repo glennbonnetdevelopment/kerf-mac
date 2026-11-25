@@ -48,7 +48,6 @@ final class AppModel: ObservableObject {
     @Published var nestAllowRotation = true
 
     // Text along a path
-    @Published var pathTextOffset = 0.0
     @Published var pathTextFlip = false
 
     // Print and cut: measured machine positions of registration marks 1 and 2
@@ -341,12 +340,27 @@ final class AppModel: ObservableObject {
     /// Rebuilds a text shape's outlines from new settings, keeping its placement, rotation and mirroring.
     func updateText(_ id: UUID, to spec: TextSpec) {
         guard let i = document.shapes.firstIndex(where: { $0.id == id }), document.shapes[i].text != nil else { return }
-        let outlines = TextOutliner.outlines(for: spec)
+        let outlines = document.shapes[i].pathText.map { TextOutliner.alongPath(spec, pathText: $0) } ?? TextOutliner.outlines(for: spec)
         guard !outlines.isEmpty else { return }
         checkpoint()
         document.shapes[i].paths = outlines
         document.shapes[i].text = spec
         document.shapes[i].name = "Text: \(spec.text)"
+    }
+
+    /// Sets the CNC cut type for the selected shapes (nil follows the layer's default).
+    func setMillRole(_ role: MillRole?) {
+        guard !selection.isEmpty else { return }
+        checkpoint()
+        for i in document.shapes.indices where selection.contains(document.shapes[i].id) {
+            document.shapes[i].millRole = role
+        }
+    }
+
+    /// The cut type shared by every selected shape, or nil when they differ or follow the layer.
+    var selectionMillRole: MillRole? {
+        let roles = Set(selectedShapes.map { $0.millRole })
+        return roles.count == 1 ? roles.first! : nil
     }
 
     var selectedShapes: [Artwork] { document.shapes.filter { selection.contains($0.id) } }
@@ -359,6 +373,13 @@ final class AppModel: ObservableObject {
         if recordUndo { checkpoint() }
         for i in document.shapes.indices where selection.contains(document.shapes[i].id) {
             document.shapes[i].transform = document.shapes[i].transform.then(t)
+        }
+    }
+
+    /// Sets each listed shape's transform to its saved `base` followed by `t` (used while dragging handles).
+    func applyTransform(_ t: Affine, toBase base: [UUID: Affine]) {
+        for i in document.shapes.indices {
+            if let b = base[document.shapes[i].id] { document.shapes[i].transform = b.then(t) }
         }
     }
 

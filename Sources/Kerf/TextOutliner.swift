@@ -52,38 +52,17 @@ enum TextOutliner {
         return out
     }
 
-    /// Lays text along a path (design coordinates). Letters stand on the path's left side
-    /// as it is travelled; reverse the path to put them on the other side.
-    static func alongPath(_ spec: TextSpec, path: [Vec2], startOffset: Double, closed: Bool) -> [Polyline] {
-        let laid = Self.glyphs(text: spec.text, fontName: spec.fontName, height: spec.height)
-        guard path.count > 1, !laid.isEmpty else { return [] }
-        var cumulative = [0.0]
-        for i in 1..<path.count { cumulative.append(cumulative[i - 1] + path[i].distance(to: path[i - 1])) }
-        let total = cumulative.last!
-        guard total > 0 else { return [] }
-        var out: [Polyline] = []
-        for g in laid {
-            var s = startOffset + g.x + g.advance / 2
-            if closed {
-                s = s.truncatingRemainder(dividingBy: total)
-                if s < 0 { s += total }
-            } else if s > total {
-                break
-            }
-            // Find the segment containing arc length s.
-            var k = 1
-            while k < cumulative.count - 1, cumulative[k] < s { k += 1 }
-            let a = path[k - 1], b = path[k]
-            let segLen = max(1e-9, cumulative[k] - cumulative[k - 1])
-            let t = (b - a) / segLen
-            let p = a + (b - a) * ((s - cumulative[k - 1]) / segLen)
-            let n = Vec2(-t.y, t.x)
-            let cx = g.x + g.advance / 2
-            for poly in g.paths {
-                out.append(Polyline(poly.points.map { q in p + t * (q.x - cx) + n * q.y }, closed: poly.closed))
-            }
-        }
-        return out
+    /// Text outlines in line coordinates: x along the baseline from the first letter, y down, baseline at 0.
+    static func lineOutlines(for spec: TextSpec) -> (paths: [Polyline], width: Double) {
+        let laid = glyphs(text: spec.text, fontName: spec.fontName, height: spec.height)
+        let paths = laid.flatMap { g in g.paths.transformed(.translation(g.x, 0)) }
+        let width = laid.map { $0.x + $0.advance }.max() ?? 0
+        return (paths, width)
+    }
+
+    /// Text bent along a path, in the path's coordinates.
+    static func alongPath(_ spec: TextSpec, pathText: PathTextSpec) -> [Polyline] {
+        PathText.place(lineOutlines(for: spec).paths, spec: pathText, smoothing: max(0.5, spec.height * 0.3))
     }
 
     /// - Parameter height: approximate capital-letter height in mm.

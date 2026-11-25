@@ -114,10 +114,26 @@ struct LayerSettings: View {
                 number("Plunge (mm/min)", $layer.plungeRate)
                 number("Spindle (S value)", $layer.spindleSpeed)
                 number("Cut depth (mm)", $layer.cutDepth)
-                number("Depth per pass (mm)", $layer.stepDown)
+                number("Pass depth (mm)", $layer.stepDown)
                 number("Tool diameter (mm)", $layer.toolDiameter)
-                Picker("Tool path", selection: $layer.millOffset) {
-                    ForEach(MillOffset.allCases) { Text($0.title).tag($0) }
+                Picker("Default cut", selection: $layer.defaultMillRole) {
+                    ForEach(MillRole.allCases) { Text($0.title).tag($0) }
+                }
+                Text("Auto treats outer shapes as parts (cut outside) and shapes inside them as holes (cut inside). Set a shape's own cut type in Arrange.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Picker("Milling", selection: $layer.millStyle) {
+                    ForEach(MillStyle.allCases) { Text($0.title).tag($0) }
+                }
+                LabeledContent("Pocket stepover \(Int((layer.stepover * 100).rounded()))%") {
+                    Slider(value: $layer.stepover, in: 0.1...0.9, step: 0.05).frame(width: 150)
+                }
+                number("Ramp length (mm)", $layer.rampLength)
+                Toggle("Holding tabs on parts", isOn: $layer.tabsEnabled)
+                if layer.tabsEnabled {
+                    Stepper("Tabs per part: \(layer.tabCount)", value: $layer.tabCount, in: 1...20)
+                    number("Tab width (mm)", $layer.tabWidth)
+                    number("Tab height (mm)", $layer.tabHeight)
                 }
             case .line, .fill, .image:
                 number("Speed (mm/min)", $layer.speed)

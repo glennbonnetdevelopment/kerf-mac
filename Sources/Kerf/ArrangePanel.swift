@@ -51,6 +51,32 @@ struct ArrangePanel: View {
                         TextField("", value: Binding(get: { spec.height }, set: { var n = spec; n.height = max(0.5, $0); model.updateText(shape.id, to: n) }), format: .number)
                             .frame(width: 70)
                     }
+                    if let pt = shape.pathText {
+                        let total = max(0.1, pt.length)
+                        LabeledContent("Position on path") {
+                            Slider(value: Binding(get: { pt.offset }, set: { var n = pt; n.offset = $0; model.updatePathText(shape.id, to: n) }),
+                                   in: (pt.closed ? 0 : -total)...total)
+                                .frame(width: 150)
+                        }
+                        LabeledContent("Gap from path (mm)") {
+                            TextField("", value: Binding(get: { pt.gap }, set: { var n = pt; n.gap = $0; model.updatePathText(shape.id, to: n) }), format: .number)
+                                .frame(width: 70)
+                        }
+                        Button("Move to other side of path") { model.flipPathText(shape.id) }
+                    }
+                }
+            }
+
+            if model.profile.kind == .cncRouter, !model.selection.isEmpty {
+                Section("CNC cut type") {
+                    Picker("Cut", selection: Binding(get: { model.selectionMillRole },
+                                                     set: { model.setMillRole($0) })) {
+                        Text("Layer default").tag(MillRole?.none)
+                        ForEach(MillRole.allCases) { Text($0.title).tag(MillRole?.some($0)) }
+                    }
+                    Text("Part cuts outside the line so the piece keeps its size. Hole cuts inside. On the line follows it exactly.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 
@@ -96,13 +122,10 @@ struct ArrangePanel: View {
             }
 
             Section("Text around a shape") {
-                LabeledContent("Start offset (mm)") {
-                    TextField("", value: $model.pathTextOffset, format: .number).frame(width: 70)
-                }
-                Toggle("Other side / reverse direction", isOn: $model.pathTextFlip)
+                Toggle("Inside the shape", isOn: $model.pathTextFlip)
                 Button("Put text around selected shape") { model.addTextAlongSelection() }
-                    .disabled(model.selection.count != 1)
-                Text("Uses the text, font and height above, laid along the selected shape's outline.")
+                    .disabled(model.selection.count != 1 || model.selectedShapes.first?.pathText != nil)
+                Text("Uses the text, font and height above. The letters bend to follow the outline. Drag the diamond on the canvas to slide the text along the path.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

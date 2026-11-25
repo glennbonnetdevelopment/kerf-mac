@@ -175,20 +175,67 @@ extension AppModel {
     // MARK: - Text on a path
 
     /// Lays the text tool's text along the outline of the selected shape.
+    /// Adds editable text that follows the selected shape's outline. Drag its diamond handle on the
+    /// canvas to slide it along the path.
     func addTextAlongSelection() {
-        guard selection.count == 1, let base = selectedShapes.first, let outline = base.placedPaths.max(by: { $0.length < $1.length }) else {
+        guard selection.count == 1, let base = selectedShapes.first,
+              let outline = base.placedPaths.max(by: { $0.length < $1.length }), outline.points.count > 1 else {
             alertMessage = "Select one shape to put text around."
             return
         }
-        var pts = outline.drawnPoints
-        if pathTextFlip { pts.reverse() }
         let spec = TextSpec(text: textToAdd, fontName: fontName, height: textHeight)
-        let polys = TextOutliner.alongPath(spec, path: pts, startOffset: pathTextOffset, closed: outline.closed)
+        let width = TextOutliner.lineOutlines(for: spec).width
+        var guide: [Vec2]
+        if outline.closed {
+            guide = PathText.outsideGuide(outline)
+        } else {
+            guide = outline.points
+            // Read left to right.
+            if let f = guide.first, let l = guide.last, l.x < f.x { guide.reverse() }
+        }
+        if pathTextFlip { guide.reverse() }
+        var pathText = PathTextSpec(guide: guide, closed: outline.closed, gap: 1)
+        let total = pathText.length
+        // Centre the text at the top of a closed shape (at the bottom, reading upright, when inside),
+        // or in the middle of an open path.
+        if outline.closed {
+            let centre = pathTextFlip ? total / 2 : total
+            pathText.offset = (centre - width / 2).truncatingRemainder(dividingBy: total)
+        } else {
+            pathText.offset = max(0, (total - width) / 2)
+        }
+        let polys = TextOutliner.alongPath(spec, pathText: pathText)
         guard !polys.isEmpty else {
             alertMessage = "The text produced no outlines."
             return
         }
-        addShape(paths: polys, name: "Text on path: \(spec.text)")
+        checkpoint()
+        var shape = Artwork(layerID: ensureCurrentLayer(), name: "Text on path: \(spec.text)", paths: polys, text: spec)
+        shape.pathText = pathText
+        document.shapes.append(shape)
+        selection = [shape.id]
+    }
+
+    /// Changes where text sits on its path (or its gap or side) and rebuilds the letters.
+    func updatePathText(_ id: UUID, to pathText: PathTextSpec, recordUndo: Bool = true) {
+        guard let i = document.shapes.firstIndex(where: { $0.id == id }), let spec = document.shapes[i].text,
+              document.shapes[i].pathText != nil else { return }
+        let polys = TextOutliner.alongPath(spec, pathText: pathText)
+        guard !polys.isEmpty else { return }
+        if recordUndo { checkpoint() }
+        document.shapes[i].pathText = pathText
+        document.shapes[i].paths = polys
+    }
+
+    /// Moves path text to the other side of its path, keeping it in the same place.
+    func flipPathText(_ id: UUID) {
+        guard let shape = document.shapes.first(where: { $0.id == id }), var pt = shape.pathText, let spec = shape.text else { return }
+        let width = TextOutliner.lineOutlines(for: spec).width
+        let total = pt.length
+        pt.guide.reverse()
+        pt.offset = total - pt.offset - width
+        if pt.closed { pt.offset = (pt.offset.truncatingRemainder(dividingBy: total) + total).truncatingRemainder(dividingBy: total) }
+        updatePathText(id, to: pt)
     }
 
     // MARK: - Print and cut

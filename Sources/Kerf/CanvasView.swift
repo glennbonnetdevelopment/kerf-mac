@@ -41,7 +41,17 @@ private enum DragMode {
     case marquee(start: Vec2, current: Vec2)
     case create(start: Vec2, current: Vec2)
     case pan(lastView: CGPoint)
+    /// Dragging a sizing handle: `handle` is the handle's position as fractions of the box (0, 0.5 or 1).
+    case scale(handle: Vec2, startBounds: Rect2, base: [UUID: Affine], moved: Bool)
+    case rotate(center: Vec2, startAngle: Double, base: [UUID: Affine], moved: Bool)
+    /// Sliding text along its path.
+    case slideText(id: UUID, moved: Bool)
 }
+
+/// The eight sizing handles, as fractions of the selection box, starting top-left and going clockwise.
+private let handleFractions: [Vec2] = [Vec2(0, 0), Vec2(0.5, 0), Vec2(1, 0), Vec2(1, 0.5),
+                                       Vec2(1, 1), Vec2(0.5, 1), Vec2(0, 1), Vec2(0, 0.5)]
+private let rotateHandleOffset: CGFloat = 22
 
 struct CanvasView: View {
     @EnvironmentObject var model: AppModel
@@ -170,6 +180,27 @@ struct CanvasView: View {
                 }
                 ctx.stroke(rows, with: .color(Color(hex: l.layer.colorHex).opacity(0.6)), lineWidth: 0.5)
             }
+            for l in model.toolpath.layers where l.layer.mode == .mill {
+                let color = Color(hex: l.layer.colorHex)
+                let width = max(0.5, l.layer.toolDiameter * vp.zoom)
+                for (i, p) in l.paths.enumerated() {
+                    guard let f = p.first else { continue }
+                    let cut = l.cut(at: i)
+                    if cut == .drill || p.count == 1 {
+                        let c = vp.toView(f), rr = max(3, width / 2)
+                        ctx.stroke(Path(ellipseIn: CGRect(x: c.x - rr, y: c.y - rr, width: rr * 2, height: rr * 2)), with: .color(color), lineWidth: 1)
+                        continue
+                    }
+                    var line = Path()
+                    line.move(to: vp.toView(f))
+                    for q in p.dropFirst() { line.addLine(to: vp.toView(q)) }
+                    // Tool-width band underneath, centre line on top.
+                    ctx.stroke(line, with: .color(color.opacity(cut == .pocketClear ? 0.12 : 0.18)),
+                               style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
+                    ctx.stroke(line, with: .color(color.opacity(0.8)),
+                               style: StrokeStyle(lineWidth: 0.6, dash: cut == .pocketClear ? [2, 2] : []))
+                }
+            }
         }
 
         // Selection box.
@@ -177,6 +208,43 @@ struct CanvasView: View {
         if !sb.isEmpty {
             let r = CGRect(origin: vp.toView(sb.origin), size: CGSize(width: sb.width * vp.zoom, height: sb.height * vp.zoom)).insetBy(dx: -4, dy: -4)
             ctx.stroke(Path(r), with: .color(.accentColor), style: StrokeStyle(lineWidth: 1, dash: [5, 3]))
+            if model.tool == .select, case let (shape, pt)? = selectedPathText {
+                // The guide path and a diamond at the start of the text.
+                var guide = Path()
+                for (i, q) in pt.guide.enumerated() {
+                    let v = vp.toView(shape.transform.apply(q))
+                    if i == 0 { guide.move(to: v) } else { guide.addLine(to: v) }
+                }
+                ctx.stroke(guide, with: .color(.accentColor.opacity(0.5)), style: StrokeStyle(lineWidth: 1, dash: [2, 3]))
+                if let start = PathText.point(on: pt, at: pt.offset) {
+                    let c = vp.toView(shape.transform.apply(start))
+                    var d = Path()
+                    d.move(to: CGPoint(x: c.x, y: c.y - 7))
+                    d.addLine(to: CGPoint(x: c.x + 7, y: c.y))
+                    d.addLine(to: CGPoint(x: c.x, y: c.y + 7))
+                    d.addLine(to: CGPoint(x: c.x - 7, y: c.y))
+                    d.closeSubpath()
+                    ctx.fill(d, with: .color(.accentColor))
+                    ctx.stroke(d, with: .color(.white), lineWidth: 1)
+                }
+            }
+            if model.tool == .select {
+                for f in handleFractions {
+                    let c = CGPoint(x: r.minX + r.width * f.x, y: r.minY + r.height * f.y)
+                    let h = CGRect(x: c.x - 4, y: c.y - 4, width: 8, height: 8)
+                    ctx.fill(Path(h), with: .color(Color(nsColor: .textBackgroundColor)))
+                    ctx.stroke(Path(h), with: .color(.accentColor), lineWidth: 1.2)
+                }
+                let top = CGPoint(x: r.midX, y: r.minY)
+                let knob = CGPoint(x: r.midX, y: r.minY - rotateHandleOffset)
+                var stem = Path()
+                stem.move(to: top)
+                stem.addLine(to: knob)
+                ctx.stroke(stem, with: .color(.accentColor), lineWidth: 1)
+                let kr = CGRect(x: knob.x - 5, y: knob.y - 5, width: 10, height: 10)
+                ctx.fill(Path(ellipseIn: kr), with: .color(Color(nsColor: .textBackgroundColor)))
+                ctx.stroke(Path(ellipseIn: kr), with: .color(.accentColor), lineWidth: 1.2)
+            }
         }
 
         // In-progress drag feedback.
@@ -228,6 +296,60 @@ struct CanvasView: View {
         }
     }
 
+    // MARK: - Sizing and rotate handles
+
+    /// The selected shape when it is a single piece of text on a path.
+    private var selectedPathText: (Artwork, PathTextSpec)? {
+        guard model.selection.count == 1, let shape = model.selectedShapes.first, let pt = shape.pathText else { return nil }
+        return (shape, pt)
+    }
+
+    /// Starts a handle drag when the press lands on a sizing or rotate handle of the selection.
+    private func handleDrag(at viewPoint: CGPoint, docStart: Vec2) -> DragMode? {
+        let sb = model.selectionBounds
+        guard !sb.isEmpty else { return nil }
+        let vp = viewport
+        if case let (shape, pt)? = selectedPathText, let start = PathText.point(on: pt, at: pt.offset) {
+            let c = vp.toView(shape.transform.apply(start))
+            if hypot(c.x - viewPoint.x, c.y - viewPoint.y) <= 9 { return .slideText(id: shape.id, moved: false) }
+        }
+        let r = CGRect(origin: vp.toView(sb.origin), size: CGSize(width: sb.width * vp.zoom, height: sb.height * vp.zoom)).insetBy(dx: -4, dy: -4)
+        func near(_ c: CGPoint, _ radius: CGFloat) -> Bool { hypot(c.x - viewPoint.x, c.y - viewPoint.y) <= radius }
+        let base = Dictionary(uniqueKeysWithValues: model.selectedShapes.map { ($0.id, $0.transform) })
+        if near(CGPoint(x: r.midX, y: r.minY - rotateHandleOffset), 8) {
+            let c = sb.center
+            return .rotate(center: c, startAngle: atan2(docStart.y - c.y, docStart.x - c.x), base: base, moved: false)
+        }
+        for f in handleFractions where near(CGPoint(x: r.minX + r.width * f.x, y: r.minY + r.height * f.y), 7) {
+            // A flat selection (a horizontal or vertical line) can only be sized along its length.
+            if sb.width < 1e-6, f.x != 0.5 { continue }
+            if sb.height < 1e-6, f.y != 0.5 { continue }
+            return .scale(handle: f, startBounds: sb, base: base, moved: false)
+        }
+        return nil
+    }
+
+    /// Scales about the handle's opposite side so it follows the pointer. Shift keeps proportions.
+    private func scaleTransform(handle f: Vec2, bounds b: Rect2, to p: Vec2, uniform: Bool) -> Affine {
+        let anchor = Vec2(b.minX + b.width * (1 - f.x), b.minY + b.height * (1 - f.y))
+        let grabbed = Vec2(b.minX + b.width * f.x, b.minY + b.height * f.y)
+        func ratio(_ now: Double, _ was: Double, _ a: Double) -> Double {
+            let d = was - a
+            guard abs(d) > 1e-9 else { return 1 }
+            let s = (now - a) / d
+            return abs(s) < 0.01 ? (s < 0 ? -0.01 : 0.01) : s
+        }
+        var sx = f.x == 0.5 ? 1 : ratio(p.x, grabbed.x, anchor.x)
+        var sy = f.y == 0.5 ? 1 : ratio(p.y, grabbed.y, anchor.y)
+        if uniform {
+            let s: Double
+            if f.x == 0.5 { s = sy } else if f.y == 0.5 { s = sx } else { s = abs(sx) > abs(sy) ? sx : sy }
+            sx = s
+            sy = s
+        }
+        return Affine.translation(-anchor.x, -anchor.y).then(.scale(sx, sy)).then(.translation(anchor.x, anchor.y))
+    }
+
     // MARK: - Gestures
 
     private var dragGesture: some Gesture {
@@ -248,6 +370,10 @@ struct CanvasView: View {
                     case .text:
                         break
                     case .select:
+                        if let mode = handleDrag(at: value.startLocation, docStart: start) {
+                            dragMode = mode
+                            return
+                        }
                         let tolerance = 4 / viewport.zoom
                         if let hit = model.hitTest(start, tolerance: tolerance) {
                             if NSEvent.modifierFlags.contains(.shift) {
@@ -266,6 +392,27 @@ struct CanvasView: View {
                     if !moved { model.checkpoint() }
                     model.moveSelection(by: d, recordUndo: false)
                     dragMode = .move(last: doc, moved: true)
+                case .scale(let handle, let b, let base, let moved):
+                    if !moved { model.checkpoint() }
+                    model.applyTransform(scaleTransform(handle: handle, bounds: b, to: doc,
+                                                        uniform: NSEvent.modifierFlags.contains(.shift)), toBase: base)
+                    dragMode = .scale(handle: handle, startBounds: b, base: base, moved: true)
+                case .slideText(let id, let moved):
+                    guard let shape = model.document.shapes.first(where: { $0.id == id }), var pt = shape.pathText else { return }
+                    let local = shape.transform.inverted.apply(doc)
+                    pt.offset = PathText.nearestOffset(on: pt, to: local)
+                    model.updatePathText(id, to: pt, recordUndo: !moved)
+                    dragMode = .slideText(id: id, moved: true)
+                case .rotate(let c, let a0, let base, let moved):
+                    if !moved { model.checkpoint() }
+                    var angle = atan2(doc.y - c.y, doc.x - c.x) - a0
+                    if NSEvent.modifierFlags.contains(.shift) {
+                        let snap = Double.pi / 12
+                        angle = (angle / snap).rounded() * snap
+                    }
+                    let t = Affine.translation(-c.x, -c.y).then(.rotation(angle)).then(.translation(c.x, c.y))
+                    model.applyTransform(t, toBase: base)
+                    dragMode = .rotate(center: c, startAngle: a0, base: base, moved: true)
                 case .marquee(let s, _):
                     dragMode = .marquee(start: s, current: doc)
                 case .create(let s, _):

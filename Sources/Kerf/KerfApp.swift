@@ -71,7 +71,25 @@ struct KerfApp: App {
                 Button("Put Text Around Selected Shape") { model.addTextAlongSelection() }
                 Button("Add Registration Marks") { model.addRegistrationMarks() }
             }
+            CommandGroup(after: .toolbar) {
+                OpenPreviewButton()
+            }
         }
+
+        Window("Material Preview", id: "material-preview") {
+            MaterialPreviewView()
+                .environmentObject(model)
+        }
+        .defaultSize(width: 820, height: 640)
+    }
+}
+
+/// Opens the wood-look carving preview.
+struct OpenPreviewButton: View {
+    @Environment(\.openWindow) private var openWindow
+    var body: some View {
+        Button("Material Preview") { openWindow(id: "material-preview") }
+            .keyboardShortcut("p", modifiers: [.command, .option])
     }
 }
 
@@ -130,6 +148,9 @@ struct ContentView: View {
                     .help("Import an image to engrave")
                 Toggle(isOn: $model.showToolpath) { Label("Preview", systemImage: "point.topleft.down.to.point.bottomright.curvepath") }
                     .help("Show toolpath order and travel moves")
+                if model.profile.kind == .cncRouter {
+                    MaterialPreviewToolbarButton()
+                }
                 Picker("Device", selection: $model.activeProfileID) {
                     ForEach(model.profiles) { Text($0.name).tag($0.id) }
                 }
@@ -172,5 +193,13 @@ struct ContentView: View {
             Spacer()
         }
         .padding(6)
+    }
+}
+
+struct MaterialPreviewToolbarButton: View {
+    @Environment(\.openWindow) private var openWindow
+    var body: some View {
+        Button { openWindow(id: "material-preview") } label: { Label("Wood preview", systemImage: "cube.transparent") }
+            .help("Show the carving on a block of wood")
     }
 }

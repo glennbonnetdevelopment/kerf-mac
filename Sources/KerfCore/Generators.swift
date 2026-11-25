@@ -100,27 +100,60 @@ public enum GCodeGenerator {
         for tl in tp.layers {
             let layer = tl.layer
             let depth = max(0.01, layer.cutDepth)
-            let step = max(0.05, layer.stepDown)
-            var levels: [Double] = []
-            var d = step
-            while d < depth - 1e-9 { levels.append(d); d += step }
-            levels.append(depth)
-            out.append("; Layer \(layer.name): depth \(fmt(depth)) mm in \(levels.count) passes, tool \(fmt(layer.toolDiameter)) mm")
+            let levels = depthLevels(depth: depth, step: layer.stepDown)
+            let feed = fmt(max(1, layer.speed)), plunge = fmt(max(1, layer.plungeRate))
+            out.append("; Layer \(layer.name): depth \(fmt(depth)) mm in \(levels.count) passes, tool \(fmt(layer.toolDiameter)) mm, \(layer.millStyle.title.lowercased()) milling")
             out.append("M3 S\(fmt(layer.spindleSpeed))")
             out.append("G4 P2")
             for _ in 0..<max(1, layer.passes) {
-                for path in tl.paths where path.count > 1 {
-                    let closed = path.first!.distance(to: path.last!) < 1e-6
-                    let p0 = m(path[0])
+                for (index, designPath) in tl.paths.enumerated() where !designPath.isEmpty {
+                    let cut = tl.cut(at: index)
+                    var path = designPath.map(m)
                     out.append("G0 Z\(safe)")
-                    out.append("G0 X\(fmt(p0.x)) Y\(fmt(p0.y))")
-                    for (k, level) in levels.enumerated() {
-                        // Open paths are cut back and forth so the tool never travels at depth.
-                        let pts = (!closed && k % 2 == 1) ? Array(path.reversed()) : path
-                        out.append("G1 Z\(fmt(-level)) F\(fmt(max(1, layer.plungeRate)))")
-                        for (i, p) in pts.dropFirst().enumerated() {
-                            let q = m(p)
-                            out.append("G1 X\(fmt(q.x)) Y\(fmt(q.y))" + (i == 0 ? " F\(fmt(max(1, layer.speed)))" : ""))
+                    out.append("G0 X\(fmt(path[0].x)) Y\(fmt(path[0].y))")
+
+                    if cut == .drill || path.count == 1 {
+                        // Peck drill: retract to clear chips between pecks.
+                        for level in levels {
+                            out.append("G1 Z\(fmt(-level)) F\(plunge)")
+                            out.append("G0 Z0.5")
+                        }
+                        out.append("G0 Z\(safe)")
+                        continue
+                    }
+
+                    let closed = path.first!.distance(to: path.last!) < 1e-6
+                    if closed, cut == .part || cut == .hole {
+                        // Spindle turns clockwise: climb milling runs clockwise around parts and
+                        // counter-clockwise inside holes; conventional is the reverse.
+                        let area = Polyline(Array(path.dropLast()), closed: true).signedArea
+                        let wantClockwise = (cut == .part) == (layer.millStyle == .climb)
+                        if (area < 0) != wantClockwise {
+                            path.reverse()
+                            out[out.count - 1] = "G0 X\(fmt(path[0].x)) Y\(fmt(path[0].y))"
+                        }
+                        let tabs = (layer.tabsEnabled && cut == .part) ? tabIntervals(path, count: layer.tabCount,
+                                                                                         width: layer.tabWidth + layer.toolDiameter) : []
+                        let tabTop = -(depth - max(0, min(layer.tabHeight, depth)))
+                        var previous = 0.0
+                        for level in levels {
+                            let ramp = max(0, layer.rampLength)
+                            let pass = contourPass(path, zFrom: 0 - previous, zTo: -level, ramp: ramp, tabs: tabs, tabTop: tabTop)
+                            let startZ = ramp > 0 ? 0 - previous : (contains(tabs, 0) ? max(-level, tabTop) : -level)
+                            out.append("G1 Z\(fmt(startZ)) F\(plunge)")
+                            for (k, (p, z)) in pass.enumerated() {
+                                out.append("G1 X\(fmt(p.x)) Y\(fmt(p.y)) Z\(fmt(z))" + (k == 0 ? " F\(feed)" : ""))
+                            }
+                            previous = level
+                        }
+                    } else {
+                        for (k, level) in levels.enumerated() {
+                            // Open paths are cut back and forth so the tool never travels at depth.
+                            let pts = (!closed && k % 2 == 1) ? Array(path.reversed()) : path
+                            out.append("G1 Z\(fmt(-level)) F\(plunge)")
+                            for (i, q) in pts.dropFirst().enumerated() {
+                                out.append("G1 X\(fmt(q.x)) Y\(fmt(q.y))" + (i == 0 ? " F\(feed)" : ""))
+                            }
                         }
                     }
                     out.append("G0 Z\(safe)")
@@ -129,6 +162,91 @@ public enum GCodeGenerator {
         }
         out += ["M5", "G0 Z\(safe)", "G0 X0 Y0"]
         return out
+    }
+
+    static func depthLevels(depth: Double, step: Double) -> [Double] {
+        let s = max(0.05, step)
+        var levels: [Double] = []
+        var d = s
+        while d < depth - 1e-9 {
+            levels.append(d)
+            d += s
+        }
+        levels.append(depth)
+        return levels
+    }
+
+    /// Evenly spaced tab intervals along a closed path, as arc-length ranges.
+    static func tabIntervals(_ path: [Vec2], count: Int, width: Double) -> [ClosedRange<Double>] {
+        var total = 0.0
+        for i in 1..<path.count { total += path[i].distance(to: path[i - 1]) }
+        let n = max(1, count)
+        guard total > Double(n) * width * 2 else { return [] }
+        return (0..<n).map { i in
+            let c = (Double(i) + 0.5) * total / Double(n)
+            return (c - width / 2)...(c + width / 2)
+        }
+    }
+
+    static func contains(_ tabs: [ClosedRange<Double>], _ s: Double) -> Bool {
+        tabs.contains { $0.contains(s) }
+    }
+
+    /// One lap of a closed contour with z for each point: an optional ramp down from `zFrom` over
+    /// the first `ramp` mm (then the ramped stretch is cut again at full depth), and tabs where the
+    /// tool lifts to `tabTop`. Boundaries get two points so the tool steps straight up and down.
+    static func contourPass(_ path: [Vec2], zFrom: Double, zTo: Double, ramp: Double,
+                            tabs: [ClosedRange<Double>], tabTop: Double) -> [(Vec2, Double)] {
+        var cum = [0.0]
+        for i in 1..<path.count { cum.append(cum[i - 1] + path[i].distance(to: path[i - 1])) }
+        let total = cum.last!
+        guard total > 0 else { return [] }
+        let rampEnd = min(max(0, ramp), total)
+
+        func point(at s: Double) -> Vec2 {
+            var k = 1
+            while k < cum.count - 1, cum[k] < s { k += 1 }
+            let seg = max(1e-12, cum[k] - cum[k - 1])
+            return path[k - 1] + (path[k] - path[k - 1]) * ((s - cum[k - 1]) / seg)
+        }
+        func z(_ s: Double, lap: Int) -> Double {
+            var base = zTo
+            if lap == 0, rampEnd > 0, s < rampEnd { base = zFrom + (zTo - zFrom) * (s / rampEnd) }
+            if contains(tabs, s) { base = max(base, tabTop) }
+            return base
+        }
+
+        // Stations along the path: vertices plus ramp end and tab boundaries.
+        var stations: [(Double, Bool)] = cum.dropFirst().map { ($0, false) }
+        if rampEnd > 0 && rampEnd < total { stations.append((rampEnd, false)) }
+        for t in tabs {
+            if t.lowerBound > 0 && t.lowerBound < total { stations.append((t.lowerBound, true)) }
+            if t.upperBound > 0 && t.upperBound < total { stations.append((t.upperBound, true)) }
+        }
+        stations.sort { $0.0 < $1.0 }
+
+        let eps = 1e-6
+        var out: [(Vec2, Double)] = []
+        func emit(_ s: Double, boundary: Bool, lap: Int) {
+            let p = point(at: s)
+            if boundary {
+                out.append((p, z(s - eps, lap: lap)))
+                out.append((p, z(s + eps, lap: lap)))
+            } else {
+                out.append((p, z(s, lap: lap)))
+            }
+        }
+        for (s, b) in stations { emit(s, boundary: b, lap: 0) }
+        if rampEnd > 0 {
+            // Clean up the ramp at full depth.
+            for (s, b) in stations where s <= rampEnd + eps { emit(s, boundary: b, lap: 1) }
+        }
+        // Drop consecutive duplicates.
+        var cleaned: [(Vec2, Double)] = []
+        for e in out where !(cleaned.last.map { $0.0.distance(to: e.0) < 1e-9 && abs($0.1 - e.1) < 1e-9 } ?? false) {
+            cleaned.append(e)
+        }
+        return cleaned
     }
 
     /// Jog commands that trace the job's bounding box with the laser off.

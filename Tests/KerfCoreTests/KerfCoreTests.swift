@@ -300,6 +300,138 @@ final class Phase2Tests: XCTestCase {
         XCTAssertTrue(lines.contains("G1 X0 Y0 F1000"))
     }
 
+    private func square(_ x: Double, _ y: Double, _ size: Double) -> Polyline {
+        Polyline([Vec2(x, y), Vec2(x + size, y), Vec2(x + size, y + size), Vec2(x, y + size)], closed: true)
+    }
+
+    private func cncProfile() -> DeviceProfile {
+        DeviceProfile.presets.first { $0.kind == .cncRouter }!
+    }
+
+    func testCNCAutoPartsAndHolesOffsetByToolRadius() {
+        var doc = KerfDocument()
+        let layer = doc.addLayer(mode: .mill)
+        doc.layers[0].toolDiameter = 4
+        // A 40 mm plate with a 10 mm hole drawn as a separate shape.
+        doc.shapes.append(Artwork(layerID: layer, name: "plate", paths: [square(0, 0, 40)]))
+        doc.shapes.append(Artwork(layerID: layer, name: "hole", paths: [square(15, 15, 10)]))
+        let tl = Planner.plan(doc, for: .cncRouter).layers[0]
+        XCTAssertEqual(tl.cuts, [.hole, .part]) // hole first so the part is still held
+        let hole = Polyline(tl.paths[0], closed: true).bounds, part = Polyline(tl.paths[1], closed: true).bounds
+        XCTAssertEqual(hole.width, 6, accuracy: 1e-6)
+        XCTAssertEqual(part.width, 44, accuracy: 1e-6)
+    }
+
+    func testCNCShapeRoleOverridesAndDrill() {
+        var doc = KerfDocument()
+        let layer = doc.addLayer(mode: .mill)
+        doc.layers[0].toolDiameter = 2
+        var online = Artwork(layerID: layer, name: "a", paths: [square(0, 0, 20)])
+        online.millRole = .onLine
+        var drill = Artwork(layerID: layer, name: "b", paths: [square(50, 50, 4)])
+        drill.millRole = .drill
+        doc.shapes = [online, drill]
+        let tl = Planner.plan(doc, for: .cncRouter).layers[0]
+        XCTAssertEqual(tl.cuts, [.drill, .onLine])
+        XCTAssertEqual(tl.paths[0], [Vec2(52, 52)])
+        XCTAssertEqual(Polyline(tl.paths[1], closed: true).bounds.width, 20, accuracy: 1e-6)
+    }
+
+    /// Signed area of the first closed contour cut in the G-code, in machine coordinates.
+    private func firstContourArea(_ lines: [String]) -> Double {
+        var pts: [Vec2] = []
+        for l in lines where l.hasPrefix("G1 X") && l.contains(" Z") {
+            let w = l.split(separator: " ")
+            let x = Double(w.first { $0.hasPrefix("X") }!.dropFirst())!, y = Double(w.first { $0.hasPrefix("Y") }!.dropFirst())!
+            pts.append(Vec2(x, y))
+            if pts.count > 3, pts.last!.distance(to: pts[0]) < 1e-6 { break }
+        }
+        return Polyline(pts, closed: true).signedArea
+    }
+
+    func testClimbAndConventionalDirection() {
+        var doc = KerfDocument()
+        let layer = doc.addLayer(mode: .mill)
+        doc.layers[0].cutDepth = 1
+        doc.layers[0].stepDown = 1
+        doc.shapes.append(Artwork(layerID: layer, name: "p", paths: [square(10, 10, 20)]))
+        let climb = GCodeGenerator.generate(Planner.plan(doc, for: .cncRouter), profile: cncProfile())
+        XCTAssertLessThan(firstContourArea(climb), 0) // clockwise around a part
+        doc.layers[0].millStyle = .conventional
+        let conventional = GCodeGenerator.generate(Planner.plan(doc, for: .cncRouter), profile: cncProfile())
+        XCTAssertGreaterThan(firstContourArea(conventional), 0)
+    }
+
+    func testTabsLiftToTabHeightOnLastPass() {
+        var doc = KerfDocument()
+        let layer = doc.addLayer(mode: .mill)
+        doc.layers[0].cutDepth = 6
+        doc.layers[0].stepDown = 3
+        doc.layers[0].tabsEnabled = true
+        doc.layers[0].tabCount = 4
+        doc.layers[0].tabHeight = 2
+        doc.shapes.append(Artwork(layerID: layer, name: "p", paths: [square(10, 10, 60)]))
+        let lines = GCodeGenerator.generate(Planner.plan(doc, for: .cncRouter), profile: cncProfile())
+        let tabMoves = lines.filter { $0.hasPrefix("G1 X") && $0.hasSuffix("Z-4") }
+        XCTAssertGreaterThanOrEqual(tabMoves.count, 8) // over and off each of 4 tabs
+        XCTAssertTrue(lines.contains { $0.hasPrefix("G1 X") && $0.contains("Z-6") })
+    }
+
+    func testRampEntryStartsAtPreviousDepth() {
+        var doc = KerfDocument()
+        let layer = doc.addLayer(mode: .mill)
+        doc.layers[0].cutDepth = 2
+        doc.layers[0].stepDown = 2
+        doc.layers[0].rampLength = 10
+        doc.shapes.append(Artwork(layerID: layer, name: "p", paths: [square(10, 10, 30)]))
+        let lines = GCodeGenerator.generate(Planner.plan(doc, for: .cncRouter), profile: cncProfile())
+        XCTAssertTrue(lines.contains("G1 Z0 F300"))
+        XCTAssertFalse(lines.contains("G1 Z-2 F300")) // no straight plunge
+    }
+
+    func testPocketClearsInsideBeforeContour() {
+        var doc = KerfDocument()
+        let layer = doc.addLayer(mode: .mill)
+        doc.layers[0].toolDiameter = 3
+        var pocket = Artwork(layerID: layer, name: "p", paths: [square(0, 0, 30)])
+        pocket.millRole = .pocket
+        doc.shapes = [pocket]
+        let tl = Planner.plan(doc, for: .cncRouter).layers[0]
+        XCTAssertEqual(tl.cuts.last, .hole)
+        XCTAssertTrue(tl.cuts.dropLast().allSatisfy { $0 == .pocketClear })
+        XCTAssertFalse(tl.cuts.dropLast().isEmpty)
+        // Rows stay inside the tool-compensated boundary.
+        for p in tl.paths.dropLast() { for q in p { XCTAssert(q.x >= 1.5 - 1e-6 && q.x <= 28.5 + 1e-6) } }
+    }
+
+    func testMillSimulatorCutsToDepth() {
+        let lines = ["G0 Z5", "; Layer x: tool 4 mm", "G0 X0 Y0", "G1 Z-3 F100", "G1 X20 Y0", "G0 Z5"]
+        let moves = MillSimulator.moves(from: lines)
+        XCTAssertEqual(moves.first { $0.feed }?.toolDiameter, 4)
+        var sim = MillSimulator(moves: moves, margin: 5, maxCells: 400)
+        sim.run(moves)
+        XCTAssertEqual(Double(sim.height(x: 10, y: 0)), -3, accuracy: 1e-6)
+        XCTAssertEqual(Double(sim.height(x: 10, y: 1.5)), -3, accuracy: 1e-6)
+        XCTAssertEqual(Double(sim.height(x: 10, y: 3)), 0, accuracy: 1e-6)
+    }
+
+    func testPathTextFollowsCircle() {
+        let circle = Flatten.ellipse(center: Vec2(0, 0), rx: 50, ry: 50, step: 0.2)
+        let guide = PathText.outsideGuide(circle)
+        XCTAssertEqual(guide[0].y, -50, accuracy: 0.5) // starts at the top
+        var spec = PathTextSpec(guide: guide, closed: true, offset: 0, gap: 0)
+        // A small square standing on the baseline, 4 mm tall, 20 mm along the path.
+        let letter = Polyline([Vec2(20, 0), Vec2(22, 0), Vec2(22, -4), Vec2(20, -4)], closed: true)
+        let placed = PathText.place([letter], spec: spec)[0]
+        for p in placed.points {
+            let r = p.length
+            XCTAssertTrue(r > 50 - 1e-3 && r < 54.1, "radius \(r)") // outside the circle
+        }
+        XCTAssertGreaterThan(placed.points.count, 4) // edges were subdivided so they bend
+        spec.offset = 10
+        XCTAssertEqual(PathText.nearestOffset(on: spec, to: PathText.point(on: spec, at: 30)!), 30, accuracy: 0.05)
+    }
+
     func testNestingFitsRowsAndRejectsOversize() {
         let area = Rect2(minX: 0, minY: 0, maxX: 100, maxY: 100)
         let placed = Nester.pack(sizes: [Vec2(60, 40), Vec2(30, 50), Vec2(200, 10)], in: area, spacing: 2, allowRotation: true)

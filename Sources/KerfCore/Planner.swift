@@ -1,5 +1,10 @@
 import Foundation
 
+/// A resolved CNC path type.
+public enum MillCut: Sendable, Equatable {
+    case part, hole, onLine, pocketClear, drill
+}
+
 /// The moves for one layer, in design space. Each path is an explicit point list
 /// (closed outlines repeat their first point at the end).
 public struct ToolpathLayer: Sendable {
@@ -7,12 +12,17 @@ public struct ToolpathLayer: Sendable {
     public var paths: [[Vec2]]
     /// Image engraving lines (image layers only).
     public var rasters: [RasterRow]
+    /// For CNC layers: what each path is (same order as `paths`).
+    public var cuts: [MillCut]
 
-    public init(layer: Layer, paths: [[Vec2]], rasters: [RasterRow] = []) {
+    public init(layer: Layer, paths: [[Vec2]], rasters: [RasterRow] = [], cuts: [MillCut] = []) {
         self.layer = layer
         self.paths = paths
         self.rasters = rasters
+        self.cuts = cuts
     }
+
+    public func cut(at i: Int) -> MillCut { i < cuts.count ? cuts[i] : .onLine }
 
     public var cutLength: Double {
         let vector = paths.reduce(0) { total, p in
@@ -114,12 +124,15 @@ public enum Planner {
                 layers.append(ToolpathLayer(layer: layer, paths: [], rasters: rows))
                 continue
             }
-            var polys = shapes.filter { $0.image == nil }.flatMap(\.placedPaths).filter { $0.points.count > 1 }
-            guard !polys.isEmpty else { continue }
-            if layer.mode == .mill, layer.millOffset != .onLine {
-                let r = layer.toolDiameter / 2 * (layer.millOffset == .outside ? 1 : -1)
-                polys = polys.map { $0.closed ? PathOffset.offset($0, by: r) : $0 }
+            if layer.mode == .mill {
+                let (paths, cuts) = millPaths(shapes.filter { $0.image == nil }, layer: layer, from: pos)
+                guard !paths.isEmpty else { continue }
+                pos = paths.last?.last ?? pos
+                layers.append(ToolpathLayer(layer: layer, paths: paths, cuts: cuts))
+                continue
             }
+            let polys = shapes.filter { $0.image == nil }.flatMap(\.placedPaths).filter { $0.points.count > 1 }
+            guard !polys.isEmpty else { continue }
             var paths: [[Vec2]]
             if layer.mode == .fill {
                 paths = hatch(polys.filter { $0.closed }, interval: layer.fillInterval, angleDegrees: layer.fillAngle,
@@ -139,6 +152,11 @@ public enum Planner {
     /// Orders outlines to reduce travel. With `innerFirst`, shapes nested inside other
     /// shapes are cut first (so letter counters and holes are cut before the outline frees the part).
     public static func order(_ polys: [Polyline], from start: Vec2, innerFirst: Bool) -> [[Vec2]] {
+        orderIndexed(polys, from: start, innerFirst: innerFirst).map(\.1)
+    }
+
+    /// Like `order`, also returning each path's index in `polys`.
+    public static func orderIndexed(_ polys: [Polyline], from start: Vec2, innerFirst: Bool) -> [(Int, [Vec2])] {
         let bounds = polys.map(\.bounds)
         var depth = [Int](repeating: 0, count: polys.count)
         if innerFirst {
@@ -149,7 +167,7 @@ public enum Planner {
                 }
             }
         }
-        var out: [[Vec2]] = []
+        var out: [(Int, [Vec2])] = []
         var pos = start
         let levels = Set(depth).sorted(by: >)
         for level in levels {
@@ -176,8 +194,134 @@ public enum Planner {
                 var p = polys[idx]
                 if p.closed { p = p.rotatedStart(to: bestVertex) } else if bestReverse { p = p.reversed }
                 let pts = p.drawnPoints
-                out.append(pts)
+                out.append((idx, pts))
                 pos = pts.last ?? pos
+            }
+        }
+        return out
+    }
+
+    // MARK: - CNC
+
+    /// Nesting depth of each closed polyline among `polys` (how many others contain it).
+    static func nestingDepth(_ polys: [Polyline]) -> [Int] {
+        polys.indices.map { i in
+            guard polys[i].closed, let probe = polys[i].points.first else { return 0 }
+            return polys.indices.filter { j in j != i && polys[j].closed && contains(polys[j], probe) }.count
+        }
+    }
+
+    /// Even-odd point-in-polygon test.
+    public static func contains(_ poly: Polyline, _ p: Vec2) -> Bool {
+        let pts = poly.points
+        guard pts.count > 2 else { return false }
+        var inside = false
+        var j = pts.count - 1
+        for i in 0..<pts.count {
+            let a = pts[i], b = pts[j]
+            if (a.y > p.y) != (b.y > p.y), p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x { inside.toggle() }
+            j = i
+        }
+        return inside
+    }
+
+    /// Builds CNC paths: tool-offset contours for parts and holes, centre-line paths, pocket clearing and drill points.
+    static func millPaths(_ shapes: [Artwork], layer: Layer, from start: Vec2) -> ([[Vec2]], [MillCut]) {
+        let r = max(0, layer.toolDiameter / 2)
+        // Auto roles come from nesting across the whole layer, so a hole drawn as a separate shape still counts.
+        let all = shapes.flatMap(\.placedPaths).filter { $0.points.count > 1 }
+        let allDepth = nestingDepth(all)
+        var depthLookup: [Polyline: Int] = [:]
+        for (p, d) in zip(all, allDepth) { depthLookup[p] = d }
+
+        var contours: [Polyline] = []
+        var contourCuts: [MillCut] = []
+        var prefixes: [[[Vec2]]] = [] // pocket clearing that runs before a contour
+        var drills: [Vec2] = []
+
+        for shape in shapes {
+            let role = shape.millRole ?? layer.defaultMillRole
+            let polys = shape.placedPaths.filter { $0.points.count > 1 }
+            switch role {
+            case .drill:
+                let b = polys.bounds
+                if !b.isEmpty { drills.append(b.center) }
+            case .pocket:
+                let depths = nestingDepth(polys)
+                // Outer edges shrink by the tool radius; islands grow.
+                let regions: [(Polyline, Int)] = zip(polys, depths)
+                    .filter { $0.0.closed }
+                    .map { (PathOffset.offset($0.0, by: $0.1 % 2 == 0 ? -r : r), $0.1) }
+                    .filter { abs($0.0.signedArea) > 1e-6 }
+                guard !regions.isEmpty else { continue }
+                let valid = regions.map(\.0)
+                let rows = hatch(valid, interval: max(0.05, layer.toolDiameter * min(max(layer.stepover, 0.05), 1)),
+                                 angleDegrees: 0, bidirectional: true)
+                let clearing = linkRows(rows, inside: valid, maxGap: layer.toolDiameter * 1.5)
+                for (k, region) in regions.enumerated() {
+                    contours.append(region.0)
+                    contourCuts.append(region.1 % 2 == 0 ? .hole : .part)
+                    prefixes.append(k == 0 ? clearing : [])
+                }
+            case .part, .hole, .onLine, .auto:
+                for p in polys {
+                    let cut: MillCut
+                    if !p.closed || role == .onLine {
+                        cut = .onLine
+                    } else if role == .part {
+                        cut = .part
+                    } else if role == .hole {
+                        cut = .hole
+                    } else {
+                        cut = (depthLookup[p] ?? 0) % 2 == 0 ? .part : .hole
+                    }
+                    let path: Polyline
+                    switch cut {
+                    case .part: path = PathOffset.offset(p, by: r)
+                    case .hole: path = PathOffset.offset(p, by: -r)
+                    default: path = p
+                    }
+                    if cut == .hole, abs(path.signedArea) < 1e-6 || path.signedArea * p.signedArea < 0 { continue } // smaller than the tool
+                    contours.append(path)
+                    contourCuts.append(cut)
+                    prefixes.append([])
+                }
+            }
+        }
+
+        var paths: [[Vec2]] = []
+        var cuts: [MillCut] = []
+        var pos = start
+        // Drill first, then contours with holes and pockets before the parts that contain them.
+        for d in drills {
+            paths.append([d])
+            cuts.append(.drill)
+            pos = d
+        }
+        for (idx, pts) in orderIndexed(contours, from: pos, innerFirst: true) {
+            for row in prefixes[idx] {
+                paths.append(row)
+                cuts.append(.pocketClear)
+            }
+            paths.append(pts)
+            cuts.append(contourCuts[idx])
+        }
+        return (paths, cuts)
+    }
+
+    /// Joins consecutive pocket rows into zig-zags where the link stays inside the pocket.
+    static func linkRows(_ rows: [[Vec2]], inside boundaries: [Polyline], maxGap: Double) -> [[Vec2]] {
+        func inPocket(_ p: Vec2) -> Bool {
+            boundaries.filter { contains($0, p) }.count % 2 == 1
+        }
+        var out: [[Vec2]] = []
+        for row in rows {
+            if var last = out.last, let e = last.last, let s = row.first,
+               e.distance(to: s) <= maxGap, inPocket((e + s) / 2) {
+                last += row
+                out[out.count - 1] = last
+            } else {
+                out.append(row)
             }
         }
         return out

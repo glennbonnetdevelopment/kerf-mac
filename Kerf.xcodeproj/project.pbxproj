@@ -15,6 +15,7 @@
 		9E8C6B5A0A66C6F91E61E564 /* KerfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 805FA07ECF5B679F2DD69D3A /* KerfApp.swift */; };
 		03540EBCCEB3A0E12CF3444F /* LayersPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6FF32262A3305C10CDDB8E1 /* LayersPanel.swift */; };
 		D7DF86365E5FB28385587A70 /* MachinePanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51D13BB941F09AC657444588 /* MachinePanels.swift */; };
+		3764C59484CF11E98F376E49 /* MaterialPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3522DAA3190CA08F6200A4 /* MaterialPreview.swift */; };
 		5ACD1CF9EE059B9C2C37E242 /* TextOutliner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26EB6BADCB8646C562A7F59A /* TextOutliner.swift */; };
 		447B7F830C5EAC20CD5BA649 /* DXFImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E50EAD27B27DED670614DD19 /* DXFImporter.swift */; };
 		29C795656B649632CE7E6D71 /* DeviceProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */; };
@@ -22,6 +23,8 @@
 		CB5DF4C92B7D89238618208F /* GRBLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */; };
 		9E1E7C74848252EBA2F98FE3 /* Generators.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA00D3AEA459E1003D3A8E03 /* Generators.swift */; };
 		7F00E4948A3B7EBB96AC2C7A /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F957B3F4575CD538D71D4B0F /* Geometry.swift */; };
+		BB2C4CFE8BFC425AC035C57C /* MillSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30BBBF1F89B105465D349229 /* MillSimulator.swift */; };
+		B906C86C1DACE8F4A562B1DF /* PathText.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA5602941646C375BA84D3A2 /* PathText.swift */; };
 		3E0C57B0DC2557B9CE5B00A4 /* Planner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0723E6676B095D4FE0AB26 /* Planner.swift */; };
 		AEE5E2AB3606C3BB4887F06E /* Raster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64407DC74BC181882DBEEBAF /* Raster.swift */; };
 		62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */; };
@@ -72,6 +75,7 @@
 		805FA07ECF5B679F2DD69D3A /* KerfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfApp.swift; sourceTree = "<group>"; };
 		D6FF32262A3305C10CDDB8E1 /* LayersPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayersPanel.swift; sourceTree = "<group>"; };
 		51D13BB941F09AC657444588 /* MachinePanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachinePanels.swift; sourceTree = "<group>"; };
+		7B3522DAA3190CA08F6200A4 /* MaterialPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialPreview.swift; sourceTree = "<group>"; };
 		26EB6BADCB8646C562A7F59A /* TextOutliner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextOutliner.swift; sourceTree = "<group>"; };
 		E50EAD27B27DED670614DD19 /* DXFImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DXFImporter.swift; sourceTree = "<group>"; };
 		3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceProfile.swift; sourceTree = "<group>"; };
@@ -79,6 +83,8 @@
 		AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRBLProtocol.swift; sourceTree = "<group>"; };
 		FA00D3AEA459E1003D3A8E03 /* Generators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Generators.swift; sourceTree = "<group>"; };
 		F957B3F4575CD538D71D4B0F /* Geometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geometry.swift; sourceTree = "<group>"; };
+		30BBBF1F89B105465D349229 /* MillSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MillSimulator.swift; sourceTree = "<group>"; };
+		FA5602941646C375BA84D3A2 /* PathText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathText.swift; sourceTree = "<group>"; };
 		BB0723E6676B095D4FE0AB26 /* Planner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Planner.swift; sourceTree = "<group>"; };
 		64407DC74BC181882DBEEBAF /* Raster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Raster.swift; sourceTree = "<group>"; };
 		8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SVGImporter.swift; sourceTree = "<group>"; };
@@ -141,6 +147,7 @@
 				805FA07ECF5B679F2DD69D3A /* KerfApp.swift */,
 				D6FF32262A3305C10CDDB8E1 /* LayersPanel.swift */,
 				51D13BB941F09AC657444588 /* MachinePanels.swift */,
+				7B3522DAA3190CA08F6200A4 /* MaterialPreview.swift */,
 				26EB6BADCB8646C562A7F59A /* TextOutliner.swift */,
 			);
 			name = Kerf;
@@ -156,6 +163,8 @@
 				AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */,
 				FA00D3AEA459E1003D3A8E03 /* Generators.swift */,
 				F957B3F4575CD538D71D4B0F /* Geometry.swift */,
+				30BBBF1F89B105465D349229 /* MillSimulator.swift */,
+				FA5602941646C375BA84D3A2 /* PathText.swift */,
 				BB0723E6676B095D4FE0AB26 /* Planner.swift */,
 				64407DC74BC181882DBEEBAF /* Raster.swift */,
 				8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */,
@@ -292,6 +301,7 @@
 				9E8C6B5A0A66C6F91E61E564 /* KerfApp.swift in Sources */,
 				03540EBCCEB3A0E12CF3444F /* LayersPanel.swift in Sources */,
 				D7DF86365E5FB28385587A70 /* MachinePanels.swift in Sources */,
+				3764C59484CF11E98F376E49 /* MaterialPreview.swift in Sources */,
 				5ACD1CF9EE059B9C2C37E242 /* TextOutliner.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -306,6 +316,8 @@
 				CB5DF4C92B7D89238618208F /* GRBLProtocol.swift in Sources */,
 				9E1E7C74848252EBA2F98FE3 /* Generators.swift in Sources */,
 				7F00E4948A3B7EBB96AC2C7A /* Geometry.swift in Sources */,
+				BB2C4CFE8BFC425AC035C57C /* MillSimulator.swift in Sources */,
+				B906C86C1DACE8F4A562B1DF /* PathText.swift in Sources */,
 				3E0C57B0DC2557B9CE5B00A4 /* Planner.swift in Sources */,
 				AEE5E2AB3606C3BB4887F06E /* Raster.swift in Sources */,
 				62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */,
