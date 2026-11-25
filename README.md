@@ -35,14 +35,16 @@ Requires macOS 14 or newer and Xcode 15 or newer.
 ```sh
 swift build
 swift test          # core geometry, import, G-code, HPGL and streaming tests
-swift run Kerf      # launches the app
+swift run KerfKutter   # launches the app
 ```
 
 ### Xcode
 
-Open **`Kerf.xcodeproj`** and run the **Kerf** scheme (⌘R); ⌘U runs the tests. The project has three
-targets: the `Kerf` app, the `KerfCore` framework it embeds, and `KerfCoreTests`. It signs to run
-locally with no team set; pick your team under Signing & Capabilities to distribute it. The app is
+Open **`KerfKutter.xcodeproj`** and run the **KerfKutter** scheme (⌘R); ⌘U runs the tests. The project has three
+targets: the `KerfKutter` app (bundle ID `com.glennbonnetdevelopment.KerfKutter`), the `KerfCore` framework
+it embeds, and `KerfCoreTests`. It signs to run locally with no team set. To sign with your Apple team, put
+your team ID in `scripts/team-id.txt` (git-ignored) and regenerate the project, so the setting survives
+regeneration. The app is
 not sandboxed, because the sandbox blocks access to USB serial ports.
 
 After adding or removing Swift files, regenerate the project with `python3 scripts/generate_xcodeproj.py`

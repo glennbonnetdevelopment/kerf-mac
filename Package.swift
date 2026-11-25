@@ -2,15 +2,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "Kerf",
+    name: "KerfKutter",
     platforms: [.macOS(.v14)],
     products: [
-        .executable(name: "Kerf", targets: ["Kerf"]),
+        .executable(name: "KerfKutter", targets: ["KerfKutter"]),
         .library(name: "KerfCore", targets: ["KerfCore"]),
     ],
     targets: [
         .target(name: "KerfCore"),
-        .executableTarget(name: "Kerf", dependencies: ["KerfCore"]),
+        .executableTarget(name: "KerfKutter", dependencies: ["KerfCore"], path: "Sources/Kerf"),
         .testTarget(name: "KerfCoreTests", dependencies: ["KerfCore"]),
     ]
 )

@@ -3,5 +3,6 @@
 .build/
 .swiftpm/
 DerivedData/
-Kerf.xcodeproj/project.xcworkspace/
-Kerf.xcodeproj/xcuserdata/
+KerfKutter.xcodeproj/project.xcworkspace/
+KerfKutter.xcodeproj/xcuserdata/
+scripts/team-id.txt

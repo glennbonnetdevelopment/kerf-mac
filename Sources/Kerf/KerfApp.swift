@@ -10,7 +10,7 @@ struct KerfApp: App {
     @StateObject private var cutter = CutterSender()
 
     var body: some Scene {
-        WindowGroup("Kerf") {
+        WindowGroup("KerfKutter") {
             ContentView()
                 .environmentObject(model)
                 .environmentObject(laser)
@@ -166,8 +166,8 @@ struct ContentView: View {
                 .frame(width: 220)
             }
         }
-        .navigationTitle(model.fileURL?.lastPathComponent ?? "Kerf")
-        .alert("Kerf", isPresented: Binding(get: { model.alertMessage != nil }, set: { if !$0 { model.alertMessage = nil } })) {
+        .navigationTitle(model.fileURL?.lastPathComponent ?? "KerfKutter")
+        .alert("KerfKutter", isPresented: Binding(get: { model.alertMessage != nil }, set: { if !$0 { model.alertMessage = nil } })) {
             Button("OK") { model.alertMessage = nil }
         } message: {
             Text(model.alertMessage ?? "")
