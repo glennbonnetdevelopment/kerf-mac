@@ -4,7 +4,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 enum Tool: String, CaseIterable, Identifiable {
-    case select, rectangle, ellipse, line, shape, text
+    case select, node, rectangle, ellipse, line, shape, text, measure
 
     var id: String { rawValue }
 
@@ -15,11 +15,39 @@ enum Tool: String, CaseIterable, Identifiable {
         case .ellipse: return "circle"
         case .line: return "line.diagonal"
         case .shape: return "star"
+        case .node: return "point.topleft.down.to.point.bottomright.curvepath"
+        case .measure: return "ruler"
         case .text: return "textformat"
         }
     }
 
-    var title: String { self == .shape ? "Shapes" : rawValue.capitalized }
+    var title: String {
+        switch self {
+        case .shape: return "Shapes"
+        case .node: return "Edit nodes"
+        case .measure: return "Measure"
+        default: return rawValue.capitalized
+        }
+    }
+}
+
+struct NodeRef: Equatable {
+    var shape: UUID
+    var path: Int
+    var point: Int
+}
+
+/// Units shown in the workspace: grid, rulers, measurements and position fields. Files and settings stay in mm.
+enum DisplayUnits: String, CaseIterable, Identifiable {
+    case mm, inch
+    var id: String { rawValue }
+    var title: String { self == .mm ? "mm" : "in" }
+    /// Millimetres per display unit.
+    var mmPerUnit: Double { self == .mm ? 1 : 25.4 }
+    func format(_ mm: Double, digits: Int? = nil) -> String {
+        let d = digits ?? (self == .mm ? 1 : 3)
+        return String(format: "%.\(d)f", mm / mmPerUnit)
+    }
 }
 
 /// Where the job's coordinates are measured from.
@@ -78,8 +106,22 @@ final class AppModel: ObservableObject {
         didSet { cachedToolpath = nil }
     }
     @Published var selection: Set<UUID> = [] {
-        didSet { if selection != oldValue { syncTextFieldsFromSelection() } }
+        didSet {
+            guard selection != oldValue else { return }
+            syncTextFieldsFromSelection()
+            if cutSelectionOnly { cachedToolpath = nil }
+            selectedNode = nil
+        }
     }
+    /// Run, frame and export only the selected shapes instead of the whole design.
+    @Published var cutSelectionOnly = false {
+        didSet { cachedToolpath = nil }
+    }
+    @Published var units: DisplayUnits = DisplayUnits(rawValue: UserDefaults.standard.string(forKey: "units") ?? "") ?? .mm {
+        didSet { UserDefaults.standard.set(units.rawValue, forKey: "units") }
+    }
+    /// The node picked with the node tool: shape, path index and point index.
+    @Published var selectedNode: NodeRef?
     @Published var currentLayerID: UUID?
     @Published var tool: Tool = .select
     @Published var showToolpath = false
@@ -204,7 +246,9 @@ final class AppModel: ObservableObject {
 
     var toolpath: Toolpath {
         if let t = cachedToolpath { return t }
-        let t = Planner.plan(document, for: profile.kind)
+        var doc = document
+        if cutSelectionOnly, !selection.isEmpty { doc.shapes = doc.shapes.filter { selection.contains($0.id) } }
+        let t = Planner.plan(doc, for: profile.kind)
         cachedToolpath = t
         return t
     }

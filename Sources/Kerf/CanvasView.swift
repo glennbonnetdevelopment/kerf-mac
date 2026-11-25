@@ -46,6 +46,10 @@ private enum DragMode {
     case rotate(center: Vec2, startAngle: Double, base: [UUID: Affine], moved: Bool)
     /// Sliding text along its path.
     case slideText(id: UUID, moved: Bool)
+    /// Dragging one node with the node tool.
+    case node(ref: NodeRef, moved: Bool)
+    /// Measuring with the ruler tool.
+    case measure(start: Vec2, current: Vec2)
 }
 
 /// The eight sizing handles, as fractions of the selection box, starting top-left and going clockwise.
@@ -59,6 +63,8 @@ struct CanvasView: View {
     @State private var dragMode = DragMode.none
     @State private var scrollMonitor: Any?
     @State private var magnifyBase: Double?
+    /// The last measurement, kept on screen until the next one.
+    @State private var lastMeasure: (Vec2, Vec2)?
     @FocusState private var focused: Bool
 
     var body: some View {
@@ -73,8 +79,8 @@ struct CanvasView: View {
             .focusable()
             .focusEffectDisabled()
             .focused($focused)
-            .onKeyPress(.delete) { model.deleteSelection(); return .handled }
-            .onKeyPress(.deleteForward) { model.deleteSelection(); return .handled }
+            .onKeyPress(.delete) { deletePressed(); return .handled }
+            .onKeyPress(.deleteForward) { deletePressed(); return .handled }
             .onKeyPress(.escape) {
                 model.selection = []
                 model.tool = .select
@@ -109,6 +115,15 @@ struct CanvasView: View {
         }
     }
 
+    /// Delete removes the picked node in the node tool, otherwise the selection.
+    private func deletePressed() {
+        if model.tool == .node, let ref = model.selectedNode {
+            model.deleteNode(ref)
+        } else {
+            model.deleteSelection()
+        }
+    }
+
     // MARK: - Drawing
 
     private func draw(_ ctx: inout GraphicsContext, size: CGSize) {
@@ -118,19 +133,26 @@ struct CanvasView: View {
                              size: CGSize(width: profile.bedWidth * vp.zoom, height: profile.bedHeight * vp.zoom))
         ctx.fill(Path(bedRect), with: .color(Color(nsColor: .textBackgroundColor)))
 
-        // Grid every 10 mm (100 mm lines stronger).
-        let gridStep = vp.zoom * 10 < 6 ? 50.0 : 10.0
+        // Grid: 10 mm with 100 mm lines stronger, or ¼ inch with whole inches stronger.
+        let inch = model.units == .inch
+        let majorEvery = inch ? 25.4 : 100.0
+        var gridStep = inch ? 6.35 : 10.0
+        if vp.zoom * gridStep < 6 { gridStep = inch ? 25.4 : 50.0 }
         var minor = Path(), major = Path()
+        func isMajor(_ v: Double) -> Bool {
+            let r = v / majorEvery
+            return abs(r - r.rounded()) < 1e-6
+        }
         var x = 0.0
         while x <= profile.bedWidth + 1e-6 {
             let a = vp.toView(Vec2(x, 0)), b = vp.toView(Vec2(x, profile.bedHeight))
-            if Int(x.rounded()) % 100 == 0 { major.move(to: a); major.addLine(to: b) } else { minor.move(to: a); minor.addLine(to: b) }
+            if isMajor(x) { major.move(to: a); major.addLine(to: b) } else { minor.move(to: a); minor.addLine(to: b) }
             x += gridStep
         }
         var y = 0.0
         while y <= profile.bedHeight + 1e-6 {
             let a = vp.toView(Vec2(0, y)), b = vp.toView(Vec2(profile.bedWidth, y))
-            if Int(y.rounded()) % 100 == 0 { major.move(to: a); major.addLine(to: b) } else { minor.move(to: a); minor.addLine(to: b) }
+            if isMajor(y) { major.move(to: a); major.addLine(to: b) } else { minor.move(to: a); minor.addLine(to: b) }
             y += gridStep
         }
         ctx.stroke(minor, with: .color(.gray.opacity(0.15)), lineWidth: 0.5)
@@ -290,6 +312,48 @@ struct CanvasView: View {
             }
         }
 
+        // Nodes of the shape being edited.
+        if model.tool == .node, let shape = model.nodeEditableShape {
+            let all = shape.paths.reduce(0) { $0 + $1.points.count }
+            let size: CGFloat = all > 600 ? 3 : 6
+            var boxes = Path()
+            for poly in shape.paths {
+                for q in poly.points {
+                    let c = vp.toView(shape.transform.apply(q))
+                    boxes.addRect(CGRect(x: c.x - size / 2, y: c.y - size / 2, width: size, height: size))
+                }
+            }
+            ctx.fill(boxes, with: .color(Color(nsColor: .textBackgroundColor)))
+            ctx.stroke(boxes, with: .color(.accentColor), lineWidth: 1)
+            if let ref = model.selectedNode, ref.shape == shape.id, ref.path < shape.paths.count,
+               ref.point < shape.paths[ref.path].points.count {
+                let c = vp.toView(shape.transform.apply(shape.paths[ref.path].points[ref.point]))
+                ctx.fill(Path(CGRect(x: c.x - 4, y: c.y - 4, width: 8, height: 8)), with: .color(.accentColor))
+            }
+        }
+
+        // Measurement.
+        var measuring: (Vec2, Vec2)?
+        if case .measure(let a, let b) = dragMode { measuring = (a, b) } else if model.tool == .measure { measuring = lastMeasure }
+        if case let (a, b)? = measuring, a != b {
+            let pa = vp.toView(a), pb = vp.toView(b)
+            var line = Path()
+            line.move(to: pa)
+            line.addLine(to: pb)
+            ctx.stroke(line, with: .color(.pink), lineWidth: 1.5)
+            for p in [pa, pb] { ctx.stroke(Path(ellipseIn: CGRect(x: p.x - 3, y: p.y - 3, width: 6, height: 6)), with: .color(.pink), lineWidth: 1.5) }
+            let d = b - a
+            let u = model.units
+            let angle = atan2(-d.y, d.x) * 180 / .pi
+            let label = "\(u.format(d.length, digits: u == .mm ? 2 : 3)) \(u.title)   Δx \(u.format(abs(d.x))) Δy \(u.format(abs(d.y)))   \(String(format: "%.1f°", angle))"
+            let mid = CGPoint(x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 - 8)
+            let text = ctx.resolve(Text(label).font(.caption.monospacedDigit()).foregroundColor(.white))
+            let sz = text.measure(in: CGSize(width: 600, height: 40))
+            let bg = CGRect(x: mid.x - sz.width / 2 - 5, y: mid.y - sz.height - 2, width: sz.width + 10, height: sz.height + 4)
+            ctx.fill(Path(roundedRect: bg, cornerRadius: 4), with: .color(.pink.opacity(0.9)))
+            ctx.draw(text, at: CGPoint(x: mid.x, y: mid.y), anchor: .bottom)
+        }
+
         // In-progress drag feedback.
         switch dragMode {
         case .marquee(let s, let c):
@@ -301,6 +365,75 @@ struct CanvasView: View {
         default:
             break
         }
+
+        drawRulers(&ctx, size: size)
+    }
+
+    /// Rulers along the top and left edges, in the chosen units, measured from the bed's top-left.
+    private func drawRulers(_ ctx: inout GraphicsContext, size: CGSize) {
+        let vp = viewport
+        let thick: CGFloat = 18
+        let unit = model.units.mmPerUnit
+        let pxPerUnit = vp.zoom * unit
+        // Labelled step: the smallest "nice" step at least 50 px apart.
+        let nice: [Double] = model.units == .mm ? [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000] : [0.125, 0.25, 0.5, 1, 2, 4, 6, 12, 24, 48]
+        let step = nice.first { $0 * pxPerUnit >= 50 } ?? nice.last!
+        let subdivisions = model.units == .mm ? (step >= 10 ? 10.0 : 5.0) : 4.0
+        let bg = Color(nsColor: .windowBackgroundColor).opacity(0.95)
+        ctx.fill(Path(CGRect(x: 0, y: 0, width: size.width, height: thick)), with: .color(bg))
+        ctx.fill(Path(CGRect(x: 0, y: 0, width: thick, height: size.height)), with: .color(bg))
+        var ticks = Path()
+        let minorStep = step / subdivisions
+
+        // Top ruler.
+        let firstX = (vp.toDoc(CGPoint(x: thick, y: 0)).x / unit / minorStep).rounded(.down) * minorStep
+        var u = firstX
+        while true {
+            let x = vp.toView(Vec2(u * unit, 0)).x
+            if x > size.width { break }
+            if x >= thick {
+                let isLabel = abs((u / step) - (u / step).rounded()) < 1e-6
+                ticks.move(to: CGPoint(x: x, y: thick))
+                ticks.addLine(to: CGPoint(x: x, y: thick - (isLabel ? thick * 0.75 : thick * 0.3)))
+                if isLabel {
+                    ctx.draw(Text(rulerLabel(u)).font(.system(size: 9).monospacedDigit()).foregroundColor(.secondary),
+                             at: CGPoint(x: x + 2, y: 1), anchor: .topLeading)
+                }
+            }
+            u += minorStep
+        }
+        // Left ruler.
+        let firstY = (vp.toDoc(CGPoint(x: 0, y: thick)).y / unit / minorStep).rounded(.down) * minorStep
+        u = firstY
+        while true {
+            let y = vp.toView(Vec2(0, u * unit)).y
+            if y > size.height { break }
+            if y >= thick {
+                let isLabel = abs((u / step) - (u / step).rounded()) < 1e-6
+                ticks.move(to: CGPoint(x: thick, y: y))
+                ticks.addLine(to: CGPoint(x: thick - (isLabel ? thick * 0.75 : thick * 0.3), y: y))
+                if isLabel {
+                    var label = ctx
+                    label.translateBy(x: 1, y: y + 2)
+                    label.rotate(by: .degrees(90))
+                    label.draw(Text(rulerLabel(u)).font(.system(size: 9).monospacedDigit()).foregroundColor(.secondary),
+                               at: .zero, anchor: .bottomLeading)
+                }
+            }
+            u += minorStep
+        }
+        ctx.stroke(ticks, with: .color(.secondary), lineWidth: 0.6)
+        var edges = Path()
+        edges.move(to: CGPoint(x: 0, y: thick)); edges.addLine(to: CGPoint(x: size.width, y: thick))
+        edges.move(to: CGPoint(x: thick, y: 0)); edges.addLine(to: CGPoint(x: thick, y: size.height))
+        ctx.stroke(edges, with: .color(.gray.opacity(0.5)), lineWidth: 1)
+        ctx.fill(Path(CGRect(x: 0, y: 0, width: thick, height: thick)), with: .color(bg))
+        ctx.draw(Text(model.units.title).font(.system(size: 8)).foregroundColor(.secondary), at: CGPoint(x: thick / 2, y: thick / 2))
+    }
+
+    private func rulerLabel(_ v: Double) -> String {
+        let r = (v * 1000).rounded() / 1000
+        return r == r.rounded() ? String(Int(r)) : String(format: "%g", r)
     }
 
     private func viewPath(_ polys: [Polyline]) -> Path {
@@ -410,6 +543,24 @@ struct CanvasView: View {
                         return
                     }
                     switch model.tool {
+                    case .measure:
+                        dragMode = .measure(start: start, current: doc)
+                    case .node:
+                        let tolerance = 6 / viewport.zoom
+                        if let ref = model.nodeHit(at: start, tolerance: tolerance) {
+                            if NSEvent.modifierFlags.contains(.option) {
+                                model.deleteNode(ref)
+                            } else {
+                                model.selectedNode = ref
+                                dragMode = .node(ref: ref, moved: false)
+                            }
+                        } else if NSEvent.modifierFlags.contains(.option), model.insertNode(at: start, tolerance: tolerance) != nil {
+                            // Added a node on the outline.
+                        } else if let hit = model.hitTest(start, tolerance: 4 / viewport.zoom) {
+                            model.selection = [hit]
+                        } else {
+                            model.selection = []
+                        }
                     case .rectangle, .ellipse, .line, .shape:
                         dragMode = .create(start: start, current: doc)
                     case .text:
@@ -442,6 +593,17 @@ struct CanvasView: View {
                     model.applyTransform(scaleTransform(handle: handle, bounds: b, to: doc,
                                                         uniform: NSEvent.modifierFlags.contains(.shift)), toBase: base)
                     dragMode = .scale(handle: handle, startBounds: b, base: base, moved: true)
+                case .node(let ref, let moved):
+                    model.moveNode(ref, to: doc, recordUndo: !moved)
+                    dragMode = .node(ref: ref, moved: true)
+                case .measure(let a, _):
+                    var end = doc
+                    if NSEvent.modifierFlags.contains(.shift) {
+                        // Snap to 45° steps.
+                        let d = doc - a, ang = (atan2(d.y, d.x) / (.pi / 4)).rounded() * (.pi / 4)
+                        end = a + Vec2(cos(ang), sin(ang)) * d.length
+                    }
+                    dragMode = .measure(start: a, current: end)
                 case .slideText(let id, let moved):
                     guard let shape = model.document.shapes.first(where: { $0.id == id }), var pt = shape.pathText else { return }
                     let local = shape.transform.inverted.apply(doc)
@@ -485,6 +647,8 @@ struct CanvasView: View {
                     if max(b.width, b.height) > 0.5 {
                         model.addShape(paths: shape, name: model.tool == .shape ? model.shapeKind.title : model.tool.title)
                     }
+                case .measure(let a, let b):
+                    lastMeasure = (a, b)
                 case .none where model.tool == .text:
                     // Clicking existing text selects it for editing in the toolbar; elsewhere adds new text.
                     if let hit = model.hitTest(doc, tolerance: 4 / viewport.zoom),
@@ -578,7 +742,8 @@ struct CanvasView: View {
                 + (model.document.workpiece.map { String(format: " · workpiece %.0f×%.0f mm", $0.width, $0.height) } ?? "")
                 + (model.shapesOutsideWorkpiece > 0 ? " · \(model.shapesOutsideWorkpiece) outside workpiece" : "")
         } else {
-            text = String(format: "Selection %.1f × %.1f mm at %.1f, %.1f", sb.width, sb.height, sb.minX, sb.minY)
+            let u = model.units
+            text = "Selection \(u.format(sb.width)) × \(u.format(sb.height)) \(u.title) at \(u.format(sb.minX)), \(u.format(sb.minY))"
         }
         return Text(text)
             .font(.caption.monospacedDigit())

@@ -304,6 +304,8 @@ struct CutterPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Form {
+                Toggle("Cut selected shapes only", isOn: $model.cutSelectionOnly)
+                    .help("Send and export only the selected shapes")
                 if model.profile.language == .svgFile {
                     Text("This machine has no live connection. Export an SVG and load it with a USB stick or the maker's app.")
                         .font(.caption)
@@ -567,6 +569,13 @@ struct JobOriginPicker: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
+            Toggle("Cut selected shapes only", isOn: $model.cutSelectionOnly)
+                .help("Start, Frame, export and preview use only the selected shapes")
+            if model.cutSelectionOnly && model.selection.isEmpty {
+                Text("Nothing selected, so the whole design runs.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             Picker("Zero point", selection: $model.jobOrigin) {
                 ForEach(JobOrigin.allCases) { Text($0.title).tag($0) }
             }
@@ -577,13 +586,13 @@ struct JobOriginPicker: View {
                             GridRow {
                                 ForEach(0..<3, id: \.self) { col in
                                     let a = OriginAnchor.allCases[row * 3 + col]
-                                    Button { model.originAnchor = a } label: {
-                                        Circle()
-                                            .strokeBorder(Color.accentColor, lineWidth: 1.5)
-                                            .background(Circle().fill(model.originAnchor == a ? Color.accentColor : .clear))
-                                            .frame(width: 14, height: 14)
-                                    }
-                                    .buttonStyle(.plain)
+                                    Circle()
+                                        .strokeBorder(Color.accentColor, lineWidth: 1.5)
+                                        .background(Circle().fill(model.originAnchor == a ? Color.accentColor : .clear))
+                                        .frame(width: 16, height: 16)
+                                        .padding(2)
+                                        .contentShape(Rectangle())
+                                        .onTapGesture { model.originAnchor = a }
                                     .help(a.title)
                                 }
                             }

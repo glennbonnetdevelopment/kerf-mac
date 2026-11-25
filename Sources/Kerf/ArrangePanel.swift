@@ -15,10 +15,10 @@ struct ArrangePanel: View {
                     Text("Nothing selected. Click a shape, or drag a box around shapes.")
                         .foregroundStyle(.secondary)
                 } else {
-                    numberRow("X (mm)", b.minX) { model.setSelectionFrame(x: $0, keepAspect: keepAspect) }
-                    numberRow("Y (mm)", b.minY) { model.setSelectionFrame(y: $0, keepAspect: keepAspect) }
-                    numberRow("Width (mm)", b.width) { model.setSelectionFrame(width: $0, keepAspect: keepAspect) }
-                    numberRow("Height (mm)", b.height) { model.setSelectionFrame(height: $0, keepAspect: keepAspect) }
+                    numberRow("X (\(model.units.title))", b.minX) { model.setSelectionFrame(x: $0, keepAspect: keepAspect) }
+                    numberRow("Y (\(model.units.title))", b.minY) { model.setSelectionFrame(y: $0, keepAspect: keepAspect) }
+                    numberRow("Width (\(model.units.title))", b.width) { model.setSelectionFrame(width: $0, keepAspect: keepAspect) }
+                    numberRow("Height (\(model.units.title))", b.height) { model.setSelectionFrame(height: $0, keepAspect: keepAspect) }
                     Toggle("Keep proportions", isOn: $keepAspect)
                     HStack {
                         Button { model.rotateSelection(degrees: -90) } label: { Image(systemName: "rotate.left") }
@@ -119,7 +119,8 @@ struct ArrangePanel: View {
 
     private func numberRow(_ title: String, _ value: Double, apply: @escaping (Double) -> Void) -> some View {
         LabeledContent(title) {
-            TextField("", value: Binding(get: { (value * 100).rounded() / 100 }, set: { apply($0) }), format: .number)
+            let k = model.units.mmPerUnit
+            TextField("", value: Binding(get: { (value / k * 1000).rounded() / 1000 }, set: { apply($0 * k) }), format: .number)
                 .frame(width: 90)
         }
     }

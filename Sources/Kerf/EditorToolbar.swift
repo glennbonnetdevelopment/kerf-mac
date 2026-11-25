@@ -9,7 +9,7 @@ struct EditorToolbar: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            ForEach([Tool.select, .rectangle, .ellipse, .line]) { t in
+            ForEach([Tool.select, .node, .measure, .rectangle, .ellipse, .line]) { t in
                 toolButton(t.symbol, help: t.title, active: model.tool == t) { model.tool = t }
             }
             Divider().frame(height: 22)
@@ -51,7 +51,18 @@ struct EditorToolbar: View {
             Toggle("Inside", isOn: $model.pathTextFlip)
                 .toggleStyle(.checkbox)
                 .help("Put the text inside the shape")
+            Divider().frame(height: 22)
+
+            colorSwatches
+
             Spacer(minLength: 0)
+            Picker("Units", selection: $model.units) {
+                ForEach(DisplayUnits.allCases) { Text($0.title).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .frame(width: 80)
+            .help("Units for the grid, rulers, measurements and sizes")
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 5)
@@ -63,6 +74,29 @@ struct EditorToolbar: View {
                 fonts = list
             }
         }
+    }
+
+    /// Click a colour to put the selection on that colour's layer.
+    private var colorSwatches: some View {
+        HStack(spacing: 3) {
+            ForEach(Layer.palette.prefix(8), id: \.self) { hex in
+                Button { model.applyColor(hex) } label: {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color(hex: hex))
+                        .frame(width: 14, height: 14)
+                        .overlay(RoundedRectangle(cornerRadius: 3).stroke(.secondary.opacity(0.5), lineWidth: 0.5))
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help("Put the selection on the \(hex) layer")
+            }
+            ColorPicker("", selection: Binding(
+                get: { model.selectedShapes.first.flatMap { model.document.layer($0.layerID) }.map { Color(hex: $0.colorHex) } ?? .black },
+                set: { model.applyColor($0.hexString) }), supportsOpacity: false)
+                .labelsHidden()
+                .help("Pick any colour for the selection")
+        }
+        .disabled(model.selection.isEmpty)
     }
 
     private func toolButton(_ symbol: String, help: String, active: Bool, action: @escaping () -> Void) -> some View {

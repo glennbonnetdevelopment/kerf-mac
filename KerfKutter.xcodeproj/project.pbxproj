@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */; };
 		4B5337C7D8C8DC122496637E /* AppModel+Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */; };
 		65BE2BA1DCA25DD970B110A0 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0901F3144504604B033DB915 /* AppModel.swift */; };
 		C9FF451122D3BBF29E7BD0BC /* ArrangePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A783A8FF2788BE73410EBCB0 /* ArrangePanel.swift */; };
@@ -69,6 +70,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Nodes.swift"; sourceTree = "<group>"; };
 		065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Tools.swift"; sourceTree = "<group>"; };
 		0901F3144504604B033DB915 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		A783A8FF2788BE73410EBCB0 /* ArrangePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrangePanel.swift; sourceTree = "<group>"; };
@@ -143,6 +145,7 @@
 		4917D8C381AA3D44C43066A2 /* KerfKutter */ = {
 			isa = PBXGroup;
 			children = (
+				D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */,
 				065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */,
 				0901F3144504604B033DB915 /* AppModel.swift */,
 				A783A8FF2788BE73410EBCB0 /* ArrangePanel.swift */,
@@ -299,6 +302,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */,
 				4B5337C7D8C8DC122496637E /* AppModel+Tools.swift in Sources */,
 				65BE2BA1DCA25DD970B110A0 /* AppModel.swift in Sources */,
 				C9FF451122D3BBF29E7BD0BC /* ArrangePanel.swift in Sources */,
