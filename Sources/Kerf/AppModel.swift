@@ -127,6 +127,11 @@ final class AppModel: ObservableObject {
     @Published var showToolpath = false
     @Published var fileURL: URL?
     @Published var alertMessage: String?
+    /// Saved cut settings per material, kept in Application Support (see AppModel+Materials).
+    @Published var materials = MaterialLibrary() {
+        didSet { if materialsLoaded { saveMaterials() } }
+    }
+    var materialsLoaded = false
     @Published var jobOrigin: JobOrigin = .absolute
     @Published var originAnchor: OriginAnchor = .bottomLeft
     @Published var originReference: OriginReference = .job
@@ -192,6 +197,7 @@ final class AppModel: ObservableObject {
         let savedID = UserDefaults.standard.string(forKey: "activeProfile").flatMap(UUID.init(uuidString:))
         activeProfileID = loaded.first { $0.id == savedID }?.id ?? loaded[0].id
         newDocument()
+        loadMaterials()
     }
 
     // MARK: - Profiles

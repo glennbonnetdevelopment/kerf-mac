@@ -146,6 +146,8 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
     public var tabHeight: Double
     /// Ramp into the cut along the path instead of plunging straight down (0 = plunge).
     public var rampLength: Double
+    /// The material library entry these settings came from, if any.
+    public var materialID: UUID?
 
     public init(id: UUID = UUID(), name: String, colorHex: String, mode: LayerMode = .line,
                 enabled: Bool = true, passes: Int = 1, speed: Double = 1000, power: Double = 50,
@@ -194,7 +196,7 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         case id, name, colorHex, mode, enabled, passes, speed, power, powerMin, airAssist, fillInterval, fillAngle,
              fillBidirectional, dither, invertImage, overscan, cutSpeed, cutForce, cutDepth, stepDown, toolDiameter,
              millOffset, plungeRate, spindleSpeed, defaultMillRole, millStyle, stepover, tabsEnabled, tabCount,
-             tabWidth, tabHeight, rampLength
+             tabWidth, tabHeight, rampLength, materialID
     }
 
     /// Missing keys fall back to defaults so older project files still open.
@@ -233,6 +235,7 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         tabWidth = try c.decodeIfPresent(Double.self, forKey: .tabWidth) ?? d.tabWidth
         tabHeight = try c.decodeIfPresent(Double.self, forKey: .tabHeight) ?? d.tabHeight
         rampLength = try c.decodeIfPresent(Double.self, forKey: .rampLength) ?? d.rampLength
+        materialID = try c.decodeIfPresent(UUID.self, forKey: .materialID)
     }
 
     /// Default layer colours, in the order new layers take them.

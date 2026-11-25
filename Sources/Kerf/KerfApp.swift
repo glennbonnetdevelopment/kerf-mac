@@ -82,6 +82,12 @@ struct KerfApp: App {
                 .environmentObject(model)
         }
         .defaultSize(width: 820, height: 640)
+
+        Window("Material Library", id: "material-library") {
+            MaterialLibraryView()
+                .environmentObject(model)
+        }
+        .defaultSize(width: 900, height: 640)
     }
 }
 
@@ -91,6 +97,8 @@ struct OpenPreviewButton: View {
     var body: some View {
         Button("Material Preview") { openWindow(id: "material-preview") }
             .keyboardShortcut("p", modifiers: [.command, .option])
+        Button("Material Library") { openWindow(id: "material-library") }
+            .keyboardShortcut("l", modifiers: [.command, .option])
     }
 }
 

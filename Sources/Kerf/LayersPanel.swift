@@ -80,6 +80,8 @@ private struct LayerRow: View {
 struct LayerSettings: View {
     @Binding var layer: Layer
     let kind: DeviceKind
+    /// False in the material library, where the name, colour and material links don't apply.
+    var showsIdentity = true
 
     private var color: Binding<Color> {
         Binding(get: { Color(hex: layer.colorHex) }, set: { layer.colorHex = $0.hexString })
@@ -87,8 +89,11 @@ struct LayerSettings: View {
 
     var body: some View {
         Form {
-            TextField("Name", text: $layer.name)
-            ColorPicker("Colour", selection: color, supportsOpacity: false)
+            if showsIdentity {
+                TextField("Name", text: $layer.name)
+                ColorPicker("Colour", selection: color, supportsOpacity: false)
+                LayerMaterialRow(layer: layer, kind: kind)
+            }
             Picker("Mode", selection: $layer.mode) {
                 ForEach(LayerMode.allCases) { Text($0.title).tag($0) }
             }
@@ -179,6 +184,103 @@ struct LayerSettings: View {
     private func number(_ title: String, _ value: Binding<Int>) -> some View {
         LabeledContent(title) {
             TextField("", value: value, format: .number).frame(width: 80)
+        }
+    }
+}
+
+/// Shows which material a layer uses, and applies or saves materials.
+private struct LayerMaterialRow: View {
+    @EnvironmentObject var model: AppModel
+    @Environment(\.openWindow) private var openWindow
+    let layer: Layer
+    let kind: DeviceKind
+    @State private var saving = false
+
+    var body: some View {
+        let linked = model.materials.material(layer.materialID)
+        let choices = model.materials.materials(for: kind)
+        LabeledContent("Material") {
+            HStack(spacing: 6) {
+                Menu {
+                    if choices.isEmpty {
+                        Text("No saved materials for a \(kind.title.lowercased()) yet")
+                    }
+                    ForEach(choices) { m in
+                        Button(m.title) { model.applyMaterial(m.id, to: layer.id) }
+                    }
+                    Divider()
+                    Button("Save these settings as a material…") { saving = true }
+                    if let linked {
+                        Button("Update \"\(linked.title)\" with these settings") { model.updateMaterial(linked.id, from: layer.id) }
+                    }
+                    Button("Open Material Library…") { openWindow(id: "material-library") }
+                } label: {
+                    Text(linked.map { $0.title + (model.layerMatchesMaterial(layer) ? "" : " (edited)") } ?? "None")
+                        .lineLimit(1)
+                }
+                .frame(maxWidth: 210)
+                .popover(isPresented: $saving, arrowEdge: .bottom) {
+                    SaveMaterialForm(layerID: layer.id, kind: kind, suggestion: linked) { saving = false }
+                }
+            }
+        }
+    }
+}
+
+/// Name, thickness and operation for a new material.
+struct SaveMaterialForm: View {
+    @EnvironmentObject var model: AppModel
+    let layerID: UUID
+    let kind: DeviceKind
+    let suggestion: Material?
+    let done: () -> Void
+    @State private var name = ""
+    @State private var thickness = 0.0
+    @State private var operation = ""
+    @State private var notes = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Save as material").font(.headline)
+            Text("For a \(kind.title.lowercased()). Saves this layer's mode and all its cut settings.")
+                .font(.caption).foregroundStyle(.secondary)
+            Form {
+                TextField("Material", text: $name, prompt: Text("e.g. Birch plywood"))
+                LabeledContent("Thickness (mm)") {
+                    TextField("", value: $thickness, format: .number.precision(.fractionLength(0...2))).frame(width: 70)
+                }
+                TextField("Operation", text: $operation, prompt: Text("Cut, Score, Engrave…"))
+                TextField("Notes", text: $notes, prompt: Text("Optional"), axis: .vertical)
+                    .lineLimit(2...4)
+            }
+            HStack {
+                Spacer()
+                Button("Cancel", role: .cancel) { done() }
+                Button("Save") {
+                    model.saveLayerAsMaterial(layerID, name: name, thickness: thickness, operation: operation, notes: notes)
+                    done()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+        }
+        .padding(14)
+        .frame(width: 340)
+        .onAppear {
+            if let s = suggestion {
+                name = s.name
+                thickness = s.thickness
+            }
+            if operation.isEmpty, let layer = model.document.layer(layerID) {
+                switch layer.mode {
+                case .line: operation = kind == .grblLaser ? "Cut" : "Line"
+                case .fill: operation = "Engrave"
+                case .image: operation = "Photo engrave"
+                case .cut: operation = "Cut"
+                case .mill: operation = "Profile"
+                case .print: operation = "Print"
+                }
+            }
         }
     }
 }

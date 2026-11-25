@@ -705,4 +705,60 @@ final class Phase2Tests: XCTestCase {
         XCTAssertNil(spec.curve)
         XCTAssertFalse(spec.isCurved)
     }
+
+    // MARK: - Material library
+
+    func testMaterialAppliesSettingsButKeepsLayerIdentity() {
+        var source = Layer(name: "Cut", colorHex: "#E5222D", mode: .line, passes: 3, speed: 300, power: 95)
+        source.airAssist = true
+        var m = Material(name: "Birch plywood", thickness: 3, operation: "Cut", kind: .grblLaser, settings: source)
+        m.capture(source)
+        XCTAssertEqual(m.title, "Birch plywood · 3 mm · Cut")
+
+        var target = Layer(name: "Layer 2", colorHex: "#0050FF", mode: .fill, enabled: false, passes: 1, speed: 3000, power: 20)
+        let id = target.id
+        m.apply(to: &target)
+        XCTAssertEqual(target.id, id)
+        XCTAssertEqual(target.name, "Layer 2")
+        XCTAssertEqual(target.colorHex, "#0050FF")
+        XCTAssertFalse(target.enabled)
+        XCTAssertEqual(target.mode, .line)
+        XCTAssertEqual(target.passes, 3)
+        XCTAssertEqual(target.speed, 300)
+        XCTAssertEqual(target.power, 95)
+        XCTAssertTrue(target.airAssist)
+        XCTAssertEqual(target.materialID, m.id)
+    }
+
+    func testMaterialLibraryFiltersSortsAndRoundTrips() throws {
+        var lib = MaterialLibrary()
+        let layer = Layer(name: "", colorHex: "#000000")
+        lib.upsert(Material(name: "Walnut", thickness: 6, kind: .grblLaser, settings: layer))
+        lib.upsert(Material(name: "acrylic", thickness: 3, kind: .grblLaser, settings: layer))
+        lib.upsert(Material(name: "Acrylic", thickness: 2, kind: .grblLaser, settings: layer))
+        lib.upsert(Material(name: "Oracal 651", kind: .vinylCutter, settings: Layer(name: "", colorHex: "#000000", mode: .cut)))
+        XCTAssertEqual(lib.materials(for: .grblLaser).map(\.thickness), [2, 3, 6])
+        XCTAssertEqual(lib.materials(for: .vinylCutter).count, 1)
+        XCTAssertEqual(lib.materials(for: .cncRouter).count, 0)
+
+        let back = try MaterialLibrary.decode(lib.encoded())
+        XCTAssertEqual(back.materials.count, 4)
+        XCTAssertEqual(back.materials.map(\.id), lib.materials.map(\.id))
+
+        // Merging adds new ones and only replaces older copies.
+        var other = MaterialLibrary()
+        var newer = lib.materials[0]
+        newer.notes = "Mask both sides"
+        newer.modified = lib.materials[0].modified.addingTimeInterval(60)
+        other.upsert(newer)
+        other.upsert(Material(name: "Cardstock", kind: .vinylCutter, settings: layer))
+        XCTAssertEqual(lib.merge(other), 2)
+        XCTAssertEqual(lib.materials.count, 5)
+        XCTAssertEqual(lib.material(newer.id)?.notes, "Mask both sides")
+    }
+
+    func testLayerWithoutMaterialIDStillDecodes() throws {
+        let layer = try JSONDecoder().decode(Layer.self, from: Data(#"{"name":"A","colorHex":"#000000"}"#.utf8))
+        XCTAssertNil(layer.materialID)
+    }
 }
