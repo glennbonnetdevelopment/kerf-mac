@@ -1,5 +1,7 @@
+*.xcodeproj/xcuserdata/
+.DS_Store
 .build/
 .swiftpm/
 DerivedData/
-*.xcodeproj/xcuserdata/
-.DS_Store
+Kerf.xcodeproj/project.xcworkspace/
+Kerf.xcodeproj/xcuserdata/
