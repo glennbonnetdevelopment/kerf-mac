@@ -28,6 +28,11 @@ straight to the machine over USB.
   Check the bed size and origin of each preset against your machine.
 - **Toolpath preview** with travel moves and estimated job time. Export `.gc`, `.plt` or `.svg`.
 
+## KerfSender for older computers
+
+Send-only companion apps for Windows 7/10 and macOS 10.12 live in [`senders/`](senders/README.md).
+Export a job with **File › Export for KerfSender…** and open it there.
+
 ## Build and run
 
 Requires macOS 14 or newer and Xcode 15 or newer.

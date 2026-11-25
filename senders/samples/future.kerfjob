@@ -1,0 +1,21 @@
+{
+  "created" : "2026-11-25T10:00:00Z",
+  "data" : "; KerfKutter job\nG21\nG90\nM4 S0\nG0 X0 Y0\nG1 X20 Y0 S500 F1200\nG1 X20 Y20\nG1 X0 Y20\nG1 X0 Y0\nM5\n(end)\n",
+  "estimatedSeconds" : 14,
+  "format" : "kerfjob",
+  "generator" : "KerfKutter",
+  "lineCount" : 9,
+  "machine" : {
+    "baudRate" : 115200,
+    "bedHeight" : 406,
+    "bedWidth" : 432,
+    "flowControl" : "none",
+    "kind" : "grblLaser",
+    "language" : "gcode",
+    "name" : "xTool D1 Pro",
+    "output" : "serial",
+    "rxBufferSize" : 127
+  },
+  "name" : "laser-square",
+  "version" : 2
+}

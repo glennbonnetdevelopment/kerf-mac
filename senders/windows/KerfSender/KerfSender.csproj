@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    KerfSender for Windows 7 and Windows 10/11.
+    Targets .NET Framework 4.0, which runs on every Windows 7 SP1 machine that has any .NET 4.x
+    installed (4.0 through 4.8) and is built into Windows 10 and 11.
+    Builds with the .NET SDK on Windows, macOS or Linux: dotnet build -c Release
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net40</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <AssemblyName>KerfSender</AssemblyName>
+    <RootNamespace>KerfSender</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>1.0.0</Version>
+    <Product>KerfSender</Product>
+    <Description>Sends KerfKutter jobs to GRBL lasers, GRBL CNC routers and vinyl cutters.</Description>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

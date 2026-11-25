@@ -7,3 +7,6 @@ KerfKutter.xcodeproj/project.xcworkspace/
 KerfKutter.xcodeproj/xcuserdata/
 scripts/team-id.txt
 Config/Signing.local.xcconfig
+senders/windows/*/bin/
+senders/windows/*/obj/
+senders/mac/build/

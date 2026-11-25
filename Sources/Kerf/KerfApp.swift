@@ -36,6 +36,8 @@ struct KerfApp: App {
                     .keyboardShortcut("i", modifiers: [.command, .shift])
                 Button("Export Machine File…") { model.exportMachineFile() }
                     .keyboardShortcut("e")
+                Button("Export for KerfSender…") { model.exportForSender() }
+                    .keyboardShortcut("e", modifiers: [.command, .shift])
                 Button("Export Print PDF…") { model.exportPrintPDF() }
             }
             CommandGroup(replacing: .undoRedo) {
