@@ -38,7 +38,15 @@ swift test          # core geometry, import, G-code, HPGL and streaming tests
 swift run Kerf      # launches the app
 ```
 
-Or open `Package.swift` in Xcode and run the **Kerf** scheme.
+### Xcode
+
+Open **`Kerf.xcodeproj`** and run the **Kerf** scheme (⌘R); ⌘U runs the tests. The project has three
+targets: the `Kerf` app, the `KerfCore` framework it embeds, and `KerfCoreTests`. It signs to run
+locally with no team set; pick your team under Signing & Capabilities to distribute it. The app is
+not sandboxed, because the sandbox blocks access to USB serial ports.
+
+After adding or removing Swift files, regenerate the project with `python3 scripts/generate_xcodeproj.py`
+(the Swift package picks up new files automatically).
 
 ## Layout
 

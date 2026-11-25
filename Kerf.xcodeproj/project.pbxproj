@@ -1,0 +1,535 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7D004675EE75AD81433D1B79 /* AppModel+Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = B384DE2D0766C8DD8167CAFC /* AppModel+Tools.swift */; };
+		AB14879CF1DE60E1790738FA /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD6F148D41B20C91D9E4D29 /* AppModel.swift */; };
+		3F30EA74EC5EE042FF465C02 /* ArrangePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDFE70321ED91848A480243 /* ArrangePanel.swift */; };
+		D0D78988E5EF7BD09583FC7D /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D6891A87FDD3165B12B19C /* CanvasView.swift */; };
+		21A62C174E610C944A8B1138 /* Controllers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32B63525088E10C9B75ADA85 /* Controllers.swift */; };
+		9E8C6B5A0A66C6F91E61E564 /* KerfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 805FA07ECF5B679F2DD69D3A /* KerfApp.swift */; };
+		03540EBCCEB3A0E12CF3444F /* LayersPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6FF32262A3305C10CDDB8E1 /* LayersPanel.swift */; };
+		D7DF86365E5FB28385587A70 /* MachinePanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51D13BB941F09AC657444588 /* MachinePanels.swift */; };
+		5ACD1CF9EE059B9C2C37E242 /* TextOutliner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26EB6BADCB8646C562A7F59A /* TextOutliner.swift */; };
+		447B7F830C5EAC20CD5BA649 /* DXFImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E50EAD27B27DED670614DD19 /* DXFImporter.swift */; };
+		29C795656B649632CE7E6D71 /* DeviceProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */; };
+		80141C005A0395D8E73FC5AE /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81C6A183E1B0D5E30B61251C /* Document.swift */; };
+		CB5DF4C92B7D89238618208F /* GRBLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */; };
+		9E1E7C74848252EBA2F98FE3 /* Generators.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA00D3AEA459E1003D3A8E03 /* Generators.swift */; };
+		7F00E4948A3B7EBB96AC2C7A /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F957B3F4575CD538D71D4B0F /* Geometry.swift */; };
+		3E0C57B0DC2557B9CE5B00A4 /* Planner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0723E6676B095D4FE0AB26 /* Planner.swift */; };
+		AEE5E2AB3606C3BB4887F06E /* Raster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64407DC74BC181882DBEEBAF /* Raster.swift */; };
+		62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */; };
+		97E8D0E03E319B8BB69C1EBA /* SerialPort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */; };
+		C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 125BC4804EAD037CDE428879 /* KerfCoreTests.swift */; };
+		893EF6FE3F847DA65CD969FE /* KerfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; };
+		E1702234442CFA704BA06EFF /* KerfCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		BD54067B074BB2544118BDFD /* KerfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		FC290A170BCBE1E8CE89C3D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 75FF1807223771814B45FFC1;
+			remoteInfo = KerfCore;
+		};
+		FE00A254B4A9E9F4B537683E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 75FF1807223771814B45FFC1;
+			remoteInfo = KerfCore;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CEE661EFA17BB7F054B3B702 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				E1702234442CFA704BA06EFF /* KerfCore.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		B384DE2D0766C8DD8167CAFC /* AppModel+Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel+Tools.swift; sourceTree = "<group>"; };
+		7DD6F148D41B20C91D9E4D29 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		BDDFE70321ED91848A480243 /* ArrangePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrangePanel.swift; sourceTree = "<group>"; };
+		A9D6891A87FDD3165B12B19C /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
+		32B63525088E10C9B75ADA85 /* Controllers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controllers.swift; sourceTree = "<group>"; };
+		805FA07ECF5B679F2DD69D3A /* KerfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfApp.swift; sourceTree = "<group>"; };
+		D6FF32262A3305C10CDDB8E1 /* LayersPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayersPanel.swift; sourceTree = "<group>"; };
+		51D13BB941F09AC657444588 /* MachinePanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachinePanels.swift; sourceTree = "<group>"; };
+		26EB6BADCB8646C562A7F59A /* TextOutliner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextOutliner.swift; sourceTree = "<group>"; };
+		E50EAD27B27DED670614DD19 /* DXFImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DXFImporter.swift; sourceTree = "<group>"; };
+		3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceProfile.swift; sourceTree = "<group>"; };
+		81C6A183E1B0D5E30B61251C /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
+		AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRBLProtocol.swift; sourceTree = "<group>"; };
+		FA00D3AEA459E1003D3A8E03 /* Generators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Generators.swift; sourceTree = "<group>"; };
+		F957B3F4575CD538D71D4B0F /* Geometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geometry.swift; sourceTree = "<group>"; };
+		BB0723E6676B095D4FE0AB26 /* Planner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Planner.swift; sourceTree = "<group>"; };
+		64407DC74BC181882DBEEBAF /* Raster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Raster.swift; sourceTree = "<group>"; };
+		8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SVGImporter.swift; sourceTree = "<group>"; };
+		6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPort.swift; sourceTree = "<group>"; };
+		125BC4804EAD037CDE428879 /* KerfCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfCoreTests.swift; sourceTree = "<group>"; };
+		F91288DB192297DC903FE08C /* Kerf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kerf.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		240CB5B45D2EFCB17ED411CB /* KerfCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = KerfCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D5400806AFA697D620185B72 /* KerfCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KerfCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2D1B4A7191B74A6ED7C450F9 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		6D97051E564AB2BB7366BFDA /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0685A472AFF7080B4E655524 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				893EF6FE3F847DA65CD969FE /* KerfCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C09F4248220CB3A6390810DE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E8850EF6F8195337AD021A91 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BD54067B074BB2544118BDFD /* KerfCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		8D3FC6DB5D0827F168A73277 = {
+			isa = PBXGroup;
+			children = (
+				2D1B4A7191B74A6ED7C450F9 /* README.md */,
+				6D97051E564AB2BB7366BFDA /* Package.swift */,
+				E10350F98393869E8F7EF5C5 /* Kerf */,
+				DC31EEF57A25B0B82E25DFFE /* KerfCore */,
+				57D4214DC5EAAA741489E407 /* KerfCoreTests */,
+				1BADDC1D73C1A20F347483E1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E10350F98393869E8F7EF5C5 /* Kerf */ = {
+			isa = PBXGroup;
+			children = (
+				B384DE2D0766C8DD8167CAFC /* AppModel+Tools.swift */,
+				7DD6F148D41B20C91D9E4D29 /* AppModel.swift */,
+				BDDFE70321ED91848A480243 /* ArrangePanel.swift */,
+				A9D6891A87FDD3165B12B19C /* CanvasView.swift */,
+				32B63525088E10C9B75ADA85 /* Controllers.swift */,
+				805FA07ECF5B679F2DD69D3A /* KerfApp.swift */,
+				D6FF32262A3305C10CDDB8E1 /* LayersPanel.swift */,
+				51D13BB941F09AC657444588 /* MachinePanels.swift */,
+				26EB6BADCB8646C562A7F59A /* TextOutliner.swift */,
+			);
+			name = Kerf;
+			path = Sources/Kerf;
+			sourceTree = "<group>";
+		};
+		DC31EEF57A25B0B82E25DFFE /* KerfCore */ = {
+			isa = PBXGroup;
+			children = (
+				E50EAD27B27DED670614DD19 /* DXFImporter.swift */,
+				3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */,
+				81C6A183E1B0D5E30B61251C /* Document.swift */,
+				AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */,
+				FA00D3AEA459E1003D3A8E03 /* Generators.swift */,
+				F957B3F4575CD538D71D4B0F /* Geometry.swift */,
+				BB0723E6676B095D4FE0AB26 /* Planner.swift */,
+				64407DC74BC181882DBEEBAF /* Raster.swift */,
+				8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */,
+				6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */,
+			);
+			name = KerfCore;
+			path = Sources/KerfCore;
+			sourceTree = "<group>";
+		};
+		57D4214DC5EAAA741489E407 /* KerfCoreTests */ = {
+			isa = PBXGroup;
+			children = (
+				125BC4804EAD037CDE428879 /* KerfCoreTests.swift */,
+			);
+			name = KerfCoreTests;
+			path = Tests/KerfCoreTests;
+			sourceTree = "<group>";
+		};
+		1BADDC1D73C1A20F347483E1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F91288DB192297DC903FE08C /* Kerf.app */,
+				240CB5B45D2EFCB17ED411CB /* KerfCore.framework */,
+				D5400806AFA697D620185B72 /* KerfCoreTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		F28835577F976E48E5D5931B /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		B7584517E8B989A921F99360 /* Kerf */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C527216C49E5241E1B3733ED;
+			buildPhases = (
+				E0CB9717CD7C26A0CF297BC6,
+				0685A472AFF7080B4E655524,
+				CEE661EFA17BB7F054B3B702,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3A5995A1E0FF5E22382C1B78 /* PBXTargetDependency */,
+			);
+			name = Kerf;
+			productName = Kerf;
+			productReference = F91288DB192297DC903FE08C /* Kerf.app */;
+			productType = "com.apple.product-type.application";
+		};
+		75FF1807223771814B45FFC1 /* KerfCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F896B5BBBCFD1A6AA18E1296;
+			buildPhases = (
+				F28835577F976E48E5D5931B,
+				21EF45CED9CAA003046D0A0A,
+				C09F4248220CB3A6390810DE,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KerfCore;
+			productName = KerfCore;
+			productReference = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		3E8CB57DC029DDF8B9F42AEB /* KerfCoreTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4F07BF1369757B2FFBCD5162;
+			buildPhases = (
+				2C83F5286BE5E735E09485DA,
+				E8850EF6F8195337AD021A91,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				464E4B9ED94F5F7A3F1B728E /* PBXTargetDependency */,
+			);
+			name = KerfCoreTests;
+			productName = KerfCoreTests;
+			productReference = D5400806AFA697D620185B72 /* KerfCoreTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		46F86FAA6BBF9AC94A7E4595 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = B61A476A5531CC175278BDCF;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 8D3FC6DB5D0827F168A73277;
+			productRefGroup = 1BADDC1D73C1A20F347483E1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B7584517E8B989A921F99360 /* Kerf */,
+				75FF1807223771814B45FFC1 /* KerfCore */,
+				3E8CB57DC029DDF8B9F42AEB /* KerfCoreTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E0CB9717CD7C26A0CF297BC6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7D004675EE75AD81433D1B79 /* AppModel+Tools.swift in Sources */,
+				AB14879CF1DE60E1790738FA /* AppModel.swift in Sources */,
+				3F30EA74EC5EE042FF465C02 /* ArrangePanel.swift in Sources */,
+				D0D78988E5EF7BD09583FC7D /* CanvasView.swift in Sources */,
+				21A62C174E610C944A8B1138 /* Controllers.swift in Sources */,
+				9E8C6B5A0A66C6F91E61E564 /* KerfApp.swift in Sources */,
+				03540EBCCEB3A0E12CF3444F /* LayersPanel.swift in Sources */,
+				D7DF86365E5FB28385587A70 /* MachinePanels.swift in Sources */,
+				5ACD1CF9EE059B9C2C37E242 /* TextOutliner.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		21EF45CED9CAA003046D0A0A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				447B7F830C5EAC20CD5BA649 /* DXFImporter.swift in Sources */,
+				29C795656B649632CE7E6D71 /* DeviceProfile.swift in Sources */,
+				80141C005A0395D8E73FC5AE /* Document.swift in Sources */,
+				CB5DF4C92B7D89238618208F /* GRBLProtocol.swift in Sources */,
+				9E1E7C74848252EBA2F98FE3 /* Generators.swift in Sources */,
+				7F00E4948A3B7EBB96AC2C7A /* Geometry.swift in Sources */,
+				3E0C57B0DC2557B9CE5B00A4 /* Planner.swift in Sources */,
+				AEE5E2AB3606C3BB4887F06E /* Raster.swift in Sources */,
+				62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */,
+				97E8D0E03E319B8BB69C1EBA /* SerialPort.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2C83F5286BE5E735E09485DA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3A5995A1E0FF5E22382C1B78 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 75FF1807223771814B45FFC1 /* KerfCore */;
+			targetProxy = FC290A170BCBE1E8CE89C3D9 /* PBXContainerItemProxy */;
+		};
+		464E4B9ED94F5F7A3F1B728E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 75FF1807223771814B45FFC1 /* KerfCore */;
+			targetProxy = FE00A254B4A9E9F4B537683E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		80DB6ACE13380ADC3D86D6C5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = "NO";
+				CLANG_ENABLE_MODULES = "YES";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = "Manual";
+				DEBUG_INFORMATION_FORMAT = "dwarf";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_TESTABILITY = "YES";
+				ENABLE_USER_SCRIPT_SANDBOXING = "YES";
+				GCC_OPTIMIZATION_LEVEL = "0";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				ONLY_ACTIVE_ARCH = "YES";
+				SDKROOT = "macosx";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = "5.0";
+			};
+			name = Debug;
+		};
+		08723DE70035A45CE7E33CC1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = "NO";
+				CLANG_ENABLE_MODULES = "YES";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = "Manual";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_USER_SCRIPT_SANDBOXING = "YES";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				SDKROOT = "macosx";
+				SWIFT_COMPILATION_MODE = "wholemodule";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = "5.0";
+			};
+			name = Release;
+		};
+		1F07E4C30399DBB66B00C829 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = "1";
+				ENABLE_APP_SANDBOX = "NO";
+				ENABLE_HARDENED_RUNTIME = "NO";
+				GENERATE_INFOPLIST_FILE = "YES";
+				INFOPLIST_KEY_CFBundleDisplayName = "Kerf";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.graphics-design";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = "0.2";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.kerf.app";
+				PRODUCT_NAME = "Kerf";
+				SWIFT_EMIT_LOC_STRINGS = "YES";
+			};
+			name = Debug;
+		};
+		3ED296517E5AA95D806F9691 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = "1";
+				ENABLE_APP_SANDBOX = "NO";
+				ENABLE_HARDENED_RUNTIME = "NO";
+				GENERATE_INFOPLIST_FILE = "YES";
+				INFOPLIST_KEY_CFBundleDisplayName = "Kerf";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.graphics-design";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = "0.2";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.kerf.app";
+				PRODUCT_NAME = "Kerf";
+				SWIFT_EMIT_LOC_STRINGS = "YES";
+			};
+			name = Release;
+		};
+		82A3EEA3ABB8929E492A13A1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = "1";
+				DEFINES_MODULE = "YES";
+				DYLIB_COMPATIBILITY_VERSION = "1";
+				DYLIB_CURRENT_VERSION = "1";
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = "YES";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = "0.2";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.kerf.core";
+				PRODUCT_NAME = "KerfCore";
+				SKIP_INSTALL = "YES";
+			};
+			name = Debug;
+		};
+		847B58FFC7F0381B0782371E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = "1";
+				DEFINES_MODULE = "YES";
+				DYLIB_COMPATIBILITY_VERSION = "1";
+				DYLIB_CURRENT_VERSION = "1";
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = "YES";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = "0.2";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.kerf.core";
+				PRODUCT_NAME = "KerfCore";
+				SKIP_INSTALL = "YES";
+			};
+			name = Release;
+		};
+		8B71387742DE7C752B38677B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = "YES";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.kerf.core.tests";
+				PRODUCT_NAME = "KerfCoreTests";
+			};
+			name = Debug;
+		};
+		A01E670692988BA6E32CB806 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = "YES";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.kerf.core.tests";
+				PRODUCT_NAME = "KerfCoreTests";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B61A476A5531CC175278BDCF /* Build configuration list */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				80DB6ACE13380ADC3D86D6C5 /* Debug */,
+				08723DE70035A45CE7E33CC1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C527216C49E5241E1B3733ED /* Build configuration list */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1F07E4C30399DBB66B00C829 /* Debug */,
+				3ED296517E5AA95D806F9691 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F896B5BBBCFD1A6AA18E1296 /* Build configuration list */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				82A3EEA3ABB8929E492A13A1 /* Debug */,
+				847B58FFC7F0381B0782371E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4F07BF1369757B2FFBCD5162 /* Build configuration list */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8B71387742DE7C752B38677B /* Debug */,
+				A01E670692988BA6E32CB806 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+}
