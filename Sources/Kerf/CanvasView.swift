@@ -11,6 +11,8 @@ final class Viewport: ObservableObject {
     @Published var pan = CGPoint(x: 40, y: 40)
     var viewSize: CGSize = .zero
     var frameInWindow: CGRect = .zero
+    /// The window the canvas is in. Scroll events from any other window (sheets, popovers, menus) are left alone.
+    weak var window: NSWindow?
 
     func toView(_ p: Vec2) -> CGPoint {
         CGPoint(x: pan.x + p.x * zoom, y: pan.y + p.y * zoom)
@@ -110,6 +112,7 @@ struct CanvasView: View {
                 viewport.viewSize = newSize
                 viewport.frameInWindow = geo.frame(in: .global)
             }
+            .background(WindowReader { viewport.window = $0 })
             .overlay(alignment: .bottomTrailing) { zoomControls }
             .overlay(alignment: .bottomLeading) { statusBar }
         }
@@ -721,6 +724,8 @@ struct CanvasView: View {
             let command = event.modifierFlags.contains(.command)
             let dx = event.scrollingDeltaX, dy = event.scrollingDeltaY
             let handled = MainActor.assumeIsolated { () -> Bool in
+                // Only scrolls aimed at the canvas itself: not other windows, and not while a sheet covers it.
+                guard let canvasWindow = vp.window, window === canvasWindow, canvasWindow.attachedSheet == nil else { return false }
                 let frame = vp.frameInWindow
                 guard frame.contains(p) else { return false }
                 let local = CGPoint(x: p.x - frame.minX, y: p.y - frame.minY)
@@ -784,5 +789,29 @@ struct CanvasView: View {
             .padding(.vertical, 4)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
             .padding(10)
+    }
+}
+
+/// Reports the window that hosts a SwiftUI view.
+private struct WindowReader: NSViewRepresentable {
+    var onWindow: (NSWindow?) -> Void
+
+    func makeNSView(context: Context) -> ReaderView {
+        let v = ReaderView()
+        v.onWindow = onWindow
+        return v
+    }
+
+    func updateNSView(_ nsView: ReaderView, context: Context) {
+        nsView.onWindow = onWindow
+    }
+
+    final class ReaderView: NSView {
+        var onWindow: ((NSWindow?) -> Void)?
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            onWindow?(window)
+        }
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
     }
 }
