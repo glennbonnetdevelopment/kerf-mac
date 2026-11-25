@@ -49,5 +49,8 @@ codesign --force --sign - "$APP" >/dev/null
 (cd "$OUT" && rm -f KerfSender-mac.zip && ditto -c -k --keepParent KerfSender.app KerfSender-mac.zip)
 echo "Built $APP"
 for arch in $ARCHS; do
-  echo "  $arch: minimum macOS $(xcrun vtool -arch "$arch" -show-build "$APP/Contents/MacOS/KerfSender" 2>/dev/null | awk '/minos/ {print $2}')"
+  # The 10.12 slice uses the older LC_VERSION_MIN_MACOSX command ("version"), newer ones LC_BUILD_VERSION ("minos").
+  min=$(xcrun otool -arch "$arch" -l "$APP/Contents/MacOS/KerfSender" |
+        awk '/LC_VERSION_MIN_MACOSX|LC_BUILD_VERSION/ {f=1} f && ($1=="minos" || $1=="version") {print $2; exit}')
+  echo "  $arch: minimum macOS $min"
 done
