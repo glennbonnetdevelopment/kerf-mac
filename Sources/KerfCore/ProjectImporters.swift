@@ -92,15 +92,6 @@ final class XMLNode {
     }
 }
 
-public enum ImportError: Error, LocalizedError {
-    case unreadable(String)
-    public var errorDescription: String? {
-        switch self {
-        case .unreadable(let why): return "The file could not be read (\(why))."
-        }
-    }
-}
-
 // MARK: - LightBurn
 
 /// Reads LightBurn project files (.lbrn2, and the older .lbrn): layers with their settings, vector
