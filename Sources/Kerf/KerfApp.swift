@@ -101,6 +101,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+
+    /// Offer to save unsaved changes when quitting (or closing the window, which quits).
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        MainActor.assumeIsolated {
+            guard let model = AppModel.current else { return .terminateNow }
+            return model.confirmDiscardChanges(action: "quitting") ? .terminateNow : .terminateCancel
+        }
+    }
 }
 
 enum SidebarTab: String, CaseIterable, Identifiable {
@@ -116,6 +124,7 @@ struct ContentView: View {
         HSplitView {
             VStack(spacing: 0) {
                 EditorToolbar()
+                    .background(WindowCloseGuard())
                 Divider()
                 CanvasView()
             }
@@ -185,5 +194,53 @@ struct MaterialPreviewToolbarButton: View {
     var body: some View {
         Button { openWindow(id: "material-preview") } label: { Label("Wood preview", systemImage: "cube.transparent") }
             .help("Show the carving on a block of wood")
+    }
+}
+
+/// Asks to save unsaved changes when the main window's close button is pressed. It sits in front of
+/// SwiftUI's own window delegate and passes everything else through to it.
+struct WindowCloseGuard: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async { [weak view] in
+            guard let window = view?.window, !(window.delegate is CloseGuardDelegate) else { return }
+            let guardDelegate = CloseGuardDelegate(original: window.delegate)
+            context.coordinator.delegate = guardDelegate
+            window.delegate = guardDelegate
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    final class Coordinator {
+        /// Keeps the delegate alive (windows hold their delegate weakly).
+        var delegate: CloseGuardDelegate?
+    }
+}
+
+final class CloseGuardDelegate: NSObject, NSWindowDelegate {
+    weak var original: NSWindowDelegate?
+
+    init(original: NSWindowDelegate?) {
+        self.original = original
+    }
+
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        let ok = MainActor.assumeIsolated { AppModel.current?.confirmDiscardChanges(action: "closing") ?? true }
+        guard ok else { return false }
+        // Changes are saved or discarded, so the quit check that follows won't ask again.
+        MainActor.assumeIsolated { AppModel.current?.savedDocument = AppModel.current?.document ?? KerfDocument() }
+        return original?.windowShouldClose?(sender) ?? true
+    }
+
+    override func responds(to aSelector: Selector!) -> Bool {
+        super.responds(to: aSelector) || (original?.responds(to: aSelector) ?? false)
+    }
+
+    override func forwardingTarget(for aSelector: Selector!) -> Any? {
+        original?.responds(to: aSelector) == true ? original : super.forwardingTarget(for: aSelector)
     }
 }

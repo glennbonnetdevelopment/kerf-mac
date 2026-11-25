@@ -132,6 +132,10 @@ final class AppModel: ObservableObject {
     private var cachedToolpath: Toolpath?
 
     init() {
+        defer {
+            AppModel.current = self
+            savedDocument = document
+        }
         var loaded: [DeviceProfile] = []
         if let data = UserDefaults.standard.data(forKey: "profiles"),
            let decoded = try? JSONDecoder().decode([DeviceProfile].self, from: data), !decoded.isEmpty {
@@ -207,10 +211,39 @@ final class AppModel: ObservableObject {
 
     // MARK: - Files
 
+    /// The document as last saved or opened, to tell whether there are unsaved changes.
+    var savedDocument = KerfDocument()
+    var hasUnsavedChanges: Bool { document != savedDocument && !(document.shapes.isEmpty && fileURL == nil) }
+
+    /// The model behind the main window, for the app delegate's quit check.
+    static weak var current: AppModel?
+
+    /// Asks to save unsaved changes. Returns false if the person cancels.
+    func confirmDiscardChanges(action: String = "closing") -> Bool {
+        guard hasUnsavedChanges else { return true }
+        let alert = NSAlert()
+        alert.messageText = "Save changes to \(fileURL?.lastPathComponent ?? "this design") before \(action)?"
+        alert.informativeText = "Your changes will be lost if you don't save them."
+        alert.addButton(withTitle: "Save")
+        alert.addButton(withTitle: "Cancel")
+        let dontSave = alert.addButton(withTitle: "Don't Save")
+        dontSave.hasDestructiveAction = true
+        switch alert.runModal() {
+        case .alertFirstButtonReturn:
+            return saveProject()
+        case .alertThirdButtonReturn:
+            return true
+        default:
+            return false
+        }
+    }
+
     func newDocument() {
+        guard confirmDiscardChanges(action: "starting a new design") else { return }
         var doc = KerfDocument()
         let id = doc.addLayer(mode: defaultMode)
         document = doc
+        savedDocument = doc
         currentLayerID = id
         selection = []
         fileURL = nil
@@ -258,11 +291,13 @@ final class AppModel: ObservableObject {
     }
 
     func openProject() {
+        guard confirmDiscardChanges(action: "opening another design") else { return }
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [Self.kerfType, .json]
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do {
             document = try KerfDocument.decode(Data(contentsOf: url))
+            savedDocument = document
             fileURL = url
             selection = []
             currentLayerID = document.layers.first?.id
@@ -273,21 +308,26 @@ final class AppModel: ObservableObject {
         }
     }
 
-    func saveProject(saveAs: Bool = false) {
+    /// Saves the design; returns true when it was written.
+    @discardableResult
+    func saveProject(saveAs: Bool = false) -> Bool {
         var url = fileURL
         if url == nil || saveAs {
             let panel = NSSavePanel()
             panel.allowedContentTypes = [Self.kerfType]
             panel.nameFieldStringValue = fileURL?.lastPathComponent ?? "Untitled.kerf"
-            guard panel.runModal() == .OK else { return }
+            guard panel.runModal() == .OK else { return false }
             url = panel.url
         }
-        guard let target = url else { return }
+        guard let target = url else { return false }
         do {
             try document.encoded().write(to: target, options: .atomic)
             fileURL = target
+            savedDocument = document
+            return true
         } catch {
             alertMessage = "Could not save: \(error.localizedDescription)"
+            return false
         }
     }
 
