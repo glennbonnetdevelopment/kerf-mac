@@ -348,9 +348,10 @@ final class CutterSender: ObservableObject {
                     port.close()
                     outcome = error.localizedDescription
                 }
+                let finalMessage = outcome
                 await MainActor.run {
                     self.isSending = false
-                    self.message = outcome
+                    self.message = finalMessage
                 }
             }
         }

@@ -310,23 +310,25 @@ struct CanvasView: View {
         guard scrollMonitor == nil else { return }
         let vp = viewport
         scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
-            MainActor.assumeIsolated { () -> NSEvent? in
             guard let window = event.window, let content = window.contentView else { return event }
             let loc = event.locationInWindow
             let p = CGPoint(x: loc.x, y: content.bounds.height - loc.y)
-            let frame = vp.frameInWindow
-            guard frame.contains(p) else { return event }
-            let local = CGPoint(x: p.x - frame.minX, y: p.y - frame.minY)
-            if event.modifierFlags.contains(.command) || !event.hasPreciseScrollingDeltas {
-                let dy = event.hasPreciseScrollingDeltas ? event.scrollingDeltaY / 100 : event.scrollingDeltaY / 10
-                vp.zoom(by: exp(dy), around: local)
-            } else {
-                vp.pan.x += event.scrollingDeltaX
-                vp.pan.y += event.scrollingDeltaY
+            let precise = event.hasPreciseScrollingDeltas
+            let command = event.modifierFlags.contains(.command)
+            let dx = event.scrollingDeltaX, dy = event.scrollingDeltaY
+            let handled = MainActor.assumeIsolated { () -> Bool in
+                let frame = vp.frameInWindow
+                guard frame.contains(p) else { return false }
+                let local = CGPoint(x: p.x - frame.minX, y: p.y - frame.minY)
+                if command || !precise {
+                    vp.zoom(by: exp(precise ? dy / 100 : dy / 10), around: local)
+                } else {
+                    vp.pan.x += dx
+                    vp.pan.y += dy
+                }
+                return true
             }
-            return nil
-        }
-            }
+            return handled ? nil : event
         }
     }
 
