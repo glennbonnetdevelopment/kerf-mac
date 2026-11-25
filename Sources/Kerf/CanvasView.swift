@@ -235,6 +235,17 @@ struct CanvasView: View {
             }
         }
 
+        // Job zero point.
+        if let z = model.jobZeroPoint {
+            let c = vp.toView(z)
+            var cross = Path()
+            cross.move(to: CGPoint(x: c.x - 10, y: c.y)); cross.addLine(to: CGPoint(x: c.x + 10, y: c.y))
+            cross.move(to: CGPoint(x: c.x, y: c.y - 10)); cross.addLine(to: CGPoint(x: c.x, y: c.y + 10))
+            ctx.stroke(cross, with: .color(.green), lineWidth: 1.5)
+            ctx.stroke(Path(ellipseIn: CGRect(x: c.x - 5, y: c.y - 5, width: 10, height: 10)), with: .color(.green), lineWidth: 1.5)
+            ctx.draw(Text("X0 Y0").font(.caption2).foregroundColor(.green), at: CGPoint(x: c.x + 7, y: c.y + 7), anchor: .topLeading)
+        }
+
         // Selection box.
         let sb = model.selectionBounds
         if !sb.isEmpty {
@@ -475,8 +486,13 @@ struct CanvasView: View {
                         model.addShape(paths: shape, name: model.tool == .shape ? model.shapeKind.title : model.tool.title)
                     }
                 case .none where model.tool == .text:
-                    model.addText(at: doc)
-                    model.tool = .select
+                    // Clicking existing text selects it for editing in the toolbar; elsewhere adds new text.
+                    if let hit = model.hitTest(doc, tolerance: 4 / viewport.zoom),
+                       model.document.shapes.first(where: { $0.id == hit })?.text != nil {
+                        model.selection = [hit]
+                    } else {
+                        model.addText(at: doc)
+                    }
                 default:
                     break
                 }

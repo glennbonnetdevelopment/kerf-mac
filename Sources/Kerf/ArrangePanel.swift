@@ -40,17 +40,8 @@ struct ArrangePanel: View {
                 }
             }
 
-            if model.selection.count == 1, let shape = model.selectedShapes.first, let spec = shape.text {
-                Section("Edit text") {
-                    TextField("Text", text: Binding(get: { spec.text }, set: { var n = spec; n.text = $0; model.updateText(shape.id, to: n) }))
-                    Picker("Font", selection: Binding(get: { spec.fontName }, set: { var n = spec; n.fontName = $0; model.updateText(shape.id, to: n) })) {
-                        if !fonts.contains(spec.fontName) { Text(spec.fontName).tag(spec.fontName) }
-                        ForEach(fonts, id: \.self) { Text($0).tag($0) }
-                    }
-                    LabeledContent("Cap height (mm)") {
-                        TextField("", value: Binding(get: { spec.height }, set: { var n = spec; n.height = max(0.5, $0); model.updateText(shape.id, to: n) }), format: .number)
-                            .frame(width: 70)
-                    }
+            if model.selection.count == 1, let shape = model.selectedShapes.first, shape.text != nil, shape.pathText != nil {
+                Section("Text on path") {
                     if let pt = shape.pathText {
                         let total = max(0.1, pt.length)
                         LabeledContent("Position on path") {
@@ -110,64 +101,8 @@ struct ArrangePanel: View {
                     .foregroundStyle(.secondary)
             }
 
-            Section("Shapes") {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 6), spacing: 6) {
-                    ForEach(ShapeKind.allCases) { kind in
-                        Button {
-                            model.shapeKind = kind
-                            model.tool = .shape
-                        } label: {
-                            Image(systemName: kind.symbol)
-                                .frame(width: 30, height: 26)
-                                .background(model.tool == .shape && model.shapeKind == kind ? Color.accentColor.opacity(0.25) : .clear,
-                                            in: RoundedRectangle(cornerRadius: 5))
-                        }
-                        .buttonStyle(.plain)
-                        .help(kind.title)
-                    }
-                }
-                switch model.shapeKind {
-                case .star, .burst:
-                    Stepper("Points: \(model.shapeOptions.points)", value: $model.shapeOptions.points, in: 3...40)
-                    if model.shapeKind == .star {
-                        LabeledContent("Inner size \(Int(model.shapeOptions.innerRatio * 100))%") {
-                            Slider(value: $model.shapeOptions.innerRatio, in: 0.1...0.9).frame(width: 150)
-                        }
-                    }
-                case .polygon:
-                    Stepper("Sides: \(model.shapeOptions.sides)", value: $model.shapeOptions.sides, in: 3...40)
-                case .roundedRectangle:
-                    LabeledContent("Corner radius (mm)") {
-                        TextField("", value: $model.shapeOptions.cornerRadius, format: .number).frame(width: 70)
-                    }
-                case .gear:
-                    Stepper("Teeth: \(model.shapeOptions.teeth)", value: $model.shapeOptions.teeth, in: 4...80)
-                default:
-                    EmptyView()
-                }
-                Text("Pick a shape, then drag a box on the canvas. Hold Shift for equal width and height.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Section("Text tool") {
-                TextField("Text", text: $model.textToAdd)
-                Picker("Font", selection: $model.fontName) {
-                    ForEach(fonts, id: \.self) { Text($0).tag($0) }
-                }
-                LabeledContent("Cap height (mm)") {
-                    TextField("", value: $model.textHeight, format: .number).frame(width: 70)
-                }
-                Text("Choose the text tool, then click the canvas to place outlined text. Select placed text to edit it.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Section("Text around a shape") {
-                Toggle("Inside the shape", isOn: $model.pathTextFlip)
-                Button("Put text around selected shape") { model.addTextAlongSelection() }
-                    .disabled(model.selection.count != 1 || model.selectedShapes.first?.pathText != nil)
-                Text("Uses the text, font and height above. The letters bend to follow the outline. Drag the diamond on the canvas to slide the text along the path.")
+            Section("Drawing tools") {
+                Text("Shapes, text and text around a shape are on the toolbar above the canvas. Select text and type in the toolbar to change it.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

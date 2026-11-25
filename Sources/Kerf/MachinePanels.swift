@@ -85,9 +85,7 @@ struct LaserPanel: View {
             }
             GroupBox("Job") {
                 VStack(alignment: .leading, spacing: 8) {
-                    Picker("Start from", selection: $model.jobOrigin) {
-                        ForEach(JobOrigin.allCases) { Text($0.title).tag($0) }
-                    }
+                    JobOriginPicker()
                     let tp = model.toolpath
                     Text(tp.isEmpty ? "No enabled layers with shapes." : "Estimated time \(formatDuration(tp.estimatedSeconds(profile: model.profile)))")
                         .font(.caption)
@@ -284,17 +282,13 @@ struct LaserPanel: View {
         command = ""
     }
 
-    /// With "current position", the job's lower-left machine corner starts where the laser is now.
     private func jobOffset() -> Vec2 {
-        guard model.jobOrigin == .currentPosition, let w = laser.workPosition else { return .zero }
-        let mb = model.jobMachineBounds()
-        guard !mb.isEmpty else { return .zero }
-        return w - Vec2(mb.minX, mb.minY)
+        model.jobOffset(head: laser.workPosition)
     }
 
     private func frameLines() -> [String] {
         let tp = model.toolpath
-        let offset = model.useAlignment ? .zero : jobOffset()
+        let offset = jobOffset()
         return GCodeGenerator.frame(tp.bounds, profile: model.profile, offset: offset, alignment: model.alignmentTransform,
                                     feed: model.profile.rapidSpeed)
     }
@@ -562,6 +556,54 @@ struct RegistrationSettings: View {
         }
         LabeledContent("Gap from artwork (mm)") {
             TextField("", value: $model.registrationMargin, format: .number).frame(width: 60)
+        }
+    }
+}
+
+/// Choose where the job's X0 Y0 is: machine home, a work zero you set, or the head's current position,
+/// anchored at one of nine points on the job or the workpiece.
+struct JobOriginPicker: View {
+    @EnvironmentObject var model: AppModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Picker("Zero point", selection: $model.jobOrigin) {
+                ForEach(JobOrigin.allCases) { Text($0.title).tag($0) }
+            }
+            if model.jobOrigin != .absolute {
+                HStack(alignment: .top, spacing: 12) {
+                    Grid(horizontalSpacing: 4, verticalSpacing: 4) {
+                        ForEach(0..<3, id: \.self) { row in
+                            GridRow {
+                                ForEach(0..<3, id: \.self) { col in
+                                    let a = OriginAnchor.allCases[row * 3 + col]
+                                    Button { model.originAnchor = a } label: {
+                                        Circle()
+                                            .strokeBorder(Color.accentColor, lineWidth: 1.5)
+                                            .background(Circle().fill(model.originAnchor == a ? Color.accentColor : .clear))
+                                            .frame(width: 14, height: 14)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .help(a.title)
+                                }
+                            }
+                        }
+                    }
+                    .padding(6)
+                    .background(RoundedRectangle(cornerRadius: 4).stroke(.secondary.opacity(0.5)))
+                    VStack(alignment: .leading, spacing: 4) {
+                        Picker("On", selection: $model.originReference) {
+                            ForEach(OriginReference.allCases) { Text($0.title).tag($0) }
+                        }
+                        .disabled(model.document.workpiece == nil)
+                        Text(model.jobOrigin == .userOrigin
+                             ? "Jog to this spot on the material and press Set origin here. The job runs from that zero."
+                             : "This spot starts wherever the head is when you press Start or Frame.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
         }
     }
 }

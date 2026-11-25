@@ -22,10 +22,53 @@ enum Tool: String, CaseIterable, Identifiable {
     var title: String { self == .shape ? "Shapes" : rawValue.capitalized }
 }
 
+/// Where the job's coordinates are measured from.
 enum JobOrigin: String, CaseIterable, Identifiable {
-    case absolute, currentPosition
+    /// Positions on the canvas are machine positions (from home).
+    case absolute
+    /// The chosen anchor point becomes X0 Y0; set the machine's work zero there ("Set origin here").
+    case userOrigin
+    /// The chosen anchor point starts wherever the head is when you press Start.
+    case currentPosition
     var id: String { rawValue }
-    var title: String { self == .absolute ? "Absolute coordinates" : "Current laser position" }
+    var title: String {
+        switch self {
+        case .absolute: return "Machine home (absolute)"
+        case .userOrigin: return "Work zero (user origin)"
+        case .currentPosition: return "Current head position"
+        }
+    }
+}
+
+/// One of nine points on a box: corners, edge midpoints and centre.
+enum OriginAnchor: String, CaseIterable, Identifiable {
+    case topLeft, top, topRight, left, center, right, bottomLeft, bottom, bottomRight
+    var id: String { rawValue }
+    /// Position as fractions of the box, y down.
+    var fraction: Vec2 {
+        let i = OriginAnchor.allCases.firstIndex(of: self)!
+        return Vec2(Double(i % 3) / 2, Double(i / 3) / 2)
+    }
+    var title: String {
+        switch self {
+        case .topLeft: return "Top left"
+        case .top: return "Top centre"
+        case .topRight: return "Top right"
+        case .left: return "Left centre"
+        case .center: return "Centre"
+        case .right: return "Right centre"
+        case .bottomLeft: return "Bottom left"
+        case .bottom: return "Bottom centre"
+        case .bottomRight: return "Bottom right"
+        }
+    }
+}
+
+/// What the zero anchor is measured on.
+enum OriginReference: String, CaseIterable, Identifiable {
+    case job, workpiece
+    var id: String { rawValue }
+    var title: String { self == .job ? "Job outline" : "Workpiece" }
 }
 
 /// Document, selection, device profiles and editing operations.
@@ -34,13 +77,17 @@ final class AppModel: ObservableObject {
     @Published var document = KerfDocument() {
         didSet { cachedToolpath = nil }
     }
-    @Published var selection: Set<UUID> = []
+    @Published var selection: Set<UUID> = [] {
+        didSet { if selection != oldValue { syncTextFieldsFromSelection() } }
+    }
     @Published var currentLayerID: UUID?
     @Published var tool: Tool = .select
     @Published var showToolpath = false
     @Published var fileURL: URL?
     @Published var alertMessage: String?
     @Published var jobOrigin: JobOrigin = .absolute
+    @Published var originAnchor: OriginAnchor = .bottomLeft
+    @Published var originReference: OriginReference = .job
     @Published var weedBorderEnabled = false
     @Published var weedBorderMargin = 3.0
 
@@ -63,9 +110,12 @@ final class AppModel: ObservableObject {
     @Published var useAlignment = false
 
     // Text tool settings
-    @Published var textToAdd = "Kerf"
-    @Published var fontName = "Helvetica-Bold"
-    @Published var textHeight = 20.0
+    /// Text tool settings. When one text shape is selected they show and edit that text.
+    @Published var textToAdd = "Kerf" { didSet { applyTextFieldsToSelection() } }
+    @Published var fontName = "Helvetica-Bold" { didSet { applyTextFieldsToSelection() } }
+    @Published var textHeight = 20.0 { didSet { applyTextFieldsToSelection() } }
+    private var syncingText = false
+    private var lastTextEdit: (id: UUID, time: Date)?
 
     @Published var profiles: [DeviceProfile] {
         didSet { saveProfiles() }
@@ -263,7 +313,8 @@ final class AppModel: ObservableObject {
         if profile.kind.usesGRBL {
             panel.allowedContentTypes = [UTType(filenameExtension: "gc") ?? .plainText]
             panel.nameFieldStringValue = base + ".gc"
-            text = gcodeLines().joined(separator: "\n") + "\n"
+            // A file can't know where the head will be, so current-position jobs are written from the zero point.
+            text = gcodeLines(offset: jobOffset(head: nil)).joined(separator: "\n") + "\n"
         } else {
             let ext = profile.language.fileExtension
             panel.allowedContentTypes = [UTType(filenameExtension: ext) ?? .plainText]
@@ -344,12 +395,38 @@ final class AppModel: ObservableObject {
         selection = [shape.id]
     }
 
+    /// The single selected text shape, if any.
+    var selectedText: Artwork? {
+        guard selection.count == 1, let shape = selectedShapes.first, shape.text != nil else { return nil }
+        return shape
+    }
+
+    private func syncTextFieldsFromSelection() {
+        guard let spec = selectedText?.text else { return }
+        syncingText = true
+        textToAdd = spec.text
+        fontName = spec.fontName
+        textHeight = spec.height
+        syncingText = false
+    }
+
+    /// Typing in the text tool edits the selected text. Quick successive edits share one undo step.
+    private func applyTextFieldsToSelection() {
+        guard !syncingText, let shape = selectedText, let old = shape.text, !textToAdd.isEmpty else { return }
+        let spec = TextSpec(text: textToAdd, fontName: fontName, height: max(0.5, textHeight))
+        guard spec != old else { return }
+        let now = Date()
+        let coalesce = lastTextEdit.map { $0.id == shape.id && now.timeIntervalSince($0.time) < 1.5 } ?? false
+        updateText(shape.id, to: spec, recordUndo: !coalesce)
+        lastTextEdit = (shape.id, now)
+    }
+
     /// Rebuilds a text shape's outlines from new settings, keeping its placement, rotation and mirroring.
-    func updateText(_ id: UUID, to spec: TextSpec) {
+    func updateText(_ id: UUID, to spec: TextSpec, recordUndo: Bool = true) {
         guard let i = document.shapes.firstIndex(where: { $0.id == id }), document.shapes[i].text != nil else { return }
         let outlines = document.shapes[i].pathText.map { TextOutliner.alongPath(spec, pathText: $0) } ?? TextOutliner.outlines(for: spec)
         guard !outlines.isEmpty else { return }
-        checkpoint()
+        if recordUndo { checkpoint() }
         document.shapes[i].paths = outlines
         document.shapes[i].text = spec
         document.shapes[i].name = "Text: \(spec.text)"
@@ -506,6 +583,31 @@ final class AppModel: ObservableObject {
     }
 
     /// Machine-space bounds of the current job (for framing and offsets).
+    /// The design-space point that becomes the job's zero, or nil for absolute jobs.
+    var jobZeroPoint: Vec2? {
+        guard jobOrigin != .absolute else { return nil }
+        let box: Rect2
+        if originReference == .workpiece, let w = document.workpiece {
+            box = w.rect
+        } else {
+            box = toolpath.bounds
+        }
+        guard !box.isEmpty else { return nil }
+        let f = originAnchor.fraction
+        return Vec2(box.minX + box.width * f.x, box.minY + box.height * f.y)
+    }
+
+    /// Machine offset that puts the job's zero point at work X0 Y0, or at `head` for current-position jobs.
+    func jobOffset(head: Vec2?) -> Vec2 {
+        guard !useAlignment, let zero = jobZeroPoint else { return .zero }
+        let base = profile.toMachine(zero)
+        switch jobOrigin {
+        case .absolute: return .zero
+        case .userOrigin: return Vec2(-base.x, -base.y)
+        case .currentPosition: return (head ?? .zero) - base
+        }
+    }
+
     func jobMachineBounds() -> Rect2 {
         let b = toolpath.bounds
         guard !b.isEmpty else { return .empty }

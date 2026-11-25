@@ -12,6 +12,7 @@
 		3F30EA74EC5EE042FF465C02 /* ArrangePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDFE70321ED91848A480243 /* ArrangePanel.swift */; };
 		D0D78988E5EF7BD09583FC7D /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D6891A87FDD3165B12B19C /* CanvasView.swift */; };
 		21A62C174E610C944A8B1138 /* Controllers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32B63525088E10C9B75ADA85 /* Controllers.swift */; };
+		D7CB896039C2C70FC299E692 /* EditorToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1691080FA83C09393CD98319 /* EditorToolbar.swift */; };
 		9E8C6B5A0A66C6F91E61E564 /* KerfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 805FA07ECF5B679F2DD69D3A /* KerfApp.swift */; };
 		03540EBCCEB3A0E12CF3444F /* LayersPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6FF32262A3305C10CDDB8E1 /* LayersPanel.swift */; };
 		D7DF86365E5FB28385587A70 /* MachinePanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51D13BB941F09AC657444588 /* MachinePanels.swift */; };
@@ -73,6 +74,7 @@
 		BDDFE70321ED91848A480243 /* ArrangePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrangePanel.swift; sourceTree = "<group>"; };
 		A9D6891A87FDD3165B12B19C /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
 		32B63525088E10C9B75ADA85 /* Controllers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controllers.swift; sourceTree = "<group>"; };
+		1691080FA83C09393CD98319 /* EditorToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorToolbar.swift; sourceTree = "<group>"; };
 		805FA07ECF5B679F2DD69D3A /* KerfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfApp.swift; sourceTree = "<group>"; };
 		D6FF32262A3305C10CDDB8E1 /* LayersPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayersPanel.swift; sourceTree = "<group>"; };
 		51D13BB941F09AC657444588 /* MachinePanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachinePanels.swift; sourceTree = "<group>"; };
@@ -146,6 +148,7 @@
 				BDDFE70321ED91848A480243 /* ArrangePanel.swift */,
 				A9D6891A87FDD3165B12B19C /* CanvasView.swift */,
 				32B63525088E10C9B75ADA85 /* Controllers.swift */,
+				1691080FA83C09393CD98319 /* EditorToolbar.swift */,
 				805FA07ECF5B679F2DD69D3A /* KerfApp.swift */,
 				D6FF32262A3305C10CDDB8E1 /* LayersPanel.swift */,
 				51D13BB941F09AC657444588 /* MachinePanels.swift */,
@@ -301,6 +304,7 @@
 				3F30EA74EC5EE042FF465C02 /* ArrangePanel.swift in Sources */,
 				D0D78988E5EF7BD09583FC7D /* CanvasView.swift in Sources */,
 				21A62C174E610C944A8B1138 /* Controllers.swift in Sources */,
+				D7CB896039C2C70FC299E692 /* EditorToolbar.swift in Sources */,
 				9E8C6B5A0A66C6F91E61E564 /* KerfApp.swift in Sources */,
 				03540EBCCEB3A0E12CF3444F /* LayersPanel.swift in Sources */,
 				D7DF86365E5FB28385587A70 /* MachinePanels.swift in Sources */,

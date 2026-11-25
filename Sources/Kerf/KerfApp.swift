@@ -114,8 +114,8 @@ struct ContentView: View {
 
     var body: some View {
         HSplitView {
-            HStack(spacing: 0) {
-                toolStrip
+            VStack(spacing: 0) {
+                EditorToolbar()
                 Divider()
                 CanvasView()
             }
@@ -177,22 +177,6 @@ struct ContentView: View {
             }
             return true
         }
-    }
-
-    private var toolStrip: some View {
-        VStack(spacing: 6) {
-            ForEach(Tool.allCases) { t in
-                Button { model.tool = t } label: {
-                    Image(systemName: t.symbol)
-                        .frame(width: 28, height: 28)
-                        .background(model.tool == t ? Color.accentColor.opacity(0.2) : .clear, in: RoundedRectangle(cornerRadius: 6))
-                }
-                .buttonStyle(.plain)
-                .help(t.title)
-            }
-            Spacer()
-        }
-        .padding(6)
     }
 }
 
