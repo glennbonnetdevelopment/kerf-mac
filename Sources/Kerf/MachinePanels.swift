@@ -10,14 +10,14 @@ struct MachinePanel: View {
             HStack {
                 Picker("Device", selection: $model.activeProfileID) {
                     ForEach(model.profiles) { p in
-                        Label(p.name, systemImage: p.kind == .grblLaser ? "flame" : "scissors").tag(p.id)
+                        Label(p.name, systemImage: p.kind == .grblLaser ? "flame" : (p.kind == .cncRouter ? "gearshape.2" : "scissors")).tag(p.id)
                     }
                 }
                 Button { editingDevices = true } label: { Image(systemName: "gearshape") }
                     .help("Edit devices")
                     .buttonStyle(.borderless)
             }
-            if model.profile.kind == .grblLaser {
+            if model.profile.kind.usesGRBL {
                 ScrollView { LaserPanel().padding(.trailing, 4) }
             } else {
                 CutterPanel()
@@ -65,9 +65,23 @@ struct LaserPanel: View {
                         }
                         Button("Set origin here") { laser.setWorkOrigin() }
                             .help("Make the current position the work origin (G10 L20)")
+                        if isCNC {
+                            HStack {
+                                Button("Z +") { laser.jogZ(jogStep, feed: min(jogFeed, 600)) }
+                                Button("Z −") { laser.jogZ(-jogStep, feed: min(jogFeed, 600)) }
+                                Button("Zero Z") { laser.setWorkZeroZ() }
+                                    .help("Touch the tool to the top of the stock first")
+                            }
+                        }
                     }
                 }
                 .disabled(!laser.isConnected || laser.isRunning)
+            }
+            if model.profile.rotaryEnabled {
+                Label(String(format: "Rotary on (%@): Y scaled ×%.3f", model.profile.rotaryType.title.lowercased(), model.profile.rotaryYScale),
+                      systemImage: "arrow.triangle.2.circlepath")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
             }
             GroupBox("Job") {
                 VStack(alignment: .leading, spacing: 8) {
@@ -105,7 +119,46 @@ struct LaserPanel: View {
                     }
                 }
             }
+            if !isCNC { printAndCut }
             console
+        }
+    }
+
+    private var isCNC: Bool { model.profile.kind == .cncRouter }
+
+    /// Two-point alignment to registration marks on a printed sheet.
+    private var printAndCut: some View {
+        GroupBox("Print and cut") {
+            VStack(alignment: .leading, spacing: 6) {
+                if model.registrationMarkCenters.count < 2 {
+                    Text("Add registration marks (Arrange menu), print the PDF, and place the sheet on the bed.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("Jog the laser dot onto each mark's centre and record it.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    HStack {
+                        Button("Record mark 1") { model.measuredMark1 = laser.workPosition }
+                        Text(model.measuredMark1.map { String(format: "%.2f, %.2f", $0.x, $0.y) } ?? "not set")
+                            .font(.caption.monospacedDigit())
+                    }
+                    HStack {
+                        Button("Record mark 2") { model.measuredMark2 = laser.workPosition }
+                        Text(model.measuredMark2.map { String(format: "%.2f, %.2f", $0.x, $0.y) } ?? "not set")
+                            .font(.caption.monospacedDigit())
+                    }
+                    Toggle("Align job to marks", isOn: $model.useAlignment)
+                        .disabled(model.measuredMark1 == nil || model.measuredMark2 == nil)
+                    if model.useAlignment {
+                        let t = model.alignmentTransform
+                        Text(String(format: "Rotation %.2f°, scale %.4f", t.rotationAngle * 180 / .pi, t.meanScale))
+                            .font(.caption)
+                            .foregroundStyle(abs(t.meanScale - 1) > 0.02 ? .orange : .secondary)
+                    }
+                }
+            }
+            .disabled(!laser.isConnected)
         }
     }
 
@@ -239,7 +292,9 @@ struct LaserPanel: View {
 
     private func frameLines() -> [String] {
         let tp = model.toolpath
-        return GCodeGenerator.frame(tp.bounds, profile: model.profile, offset: jobOffset(), feed: model.profile.rapidSpeed)
+        let offset = model.useAlignment ? .zero : jobOffset()
+        return GCodeGenerator.frame(tp.bounds, profile: model.profile, offset: offset, alignment: model.alignmentTransform,
+                                    feed: model.profile.rapidSpeed)
     }
 }
 
@@ -291,6 +346,13 @@ struct CutterPanel: View {
                     LabeledContent("Overcut (mm)") {
                         TextField("", value: profileBinding(\.overcut), format: .number).frame(width: 70)
                     }
+                }
+                Section("Print and cut") {
+                    Button("Add registration marks") { model.addRegistrationMarks() }
+                    Button("Export print PDF…") { model.exportPrintPDF() }
+                    Text("Print the PDF, then load the sheet with mark 1 at the cutter's origin. Cutters that read marks with an optical sensor use their own alignment routine; Kerf doesn't drive those sensors yet.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 Toggle("Weeding border", isOn: $model.weedBorderEnabled)
                 if model.weedBorderEnabled {
@@ -426,7 +488,38 @@ private struct ProfileForm: View {
                     ForEach(FlowControl.allCases) { Text($0.title).tag($0) }
                 }
             }
-            if profile.kind == .grblLaser {
+            if profile.kind == .cncRouter {
+                Section("CNC") {
+                    LabeledContent("Safe Z (mm)") { TextField("", value: $profile.safeZ, format: .number).frame(width: 80) }
+                }
+            }
+            if profile.kind.usesGRBL {
+                Section("Rotary (Y axis)") {
+                    Toggle("Rotary attachment fitted", isOn: $profile.rotaryEnabled)
+                    if profile.rotaryEnabled {
+                        Picker("Type", selection: $profile.rotaryType) {
+                            ForEach(RotaryType.allCases) { Text($0.title).tag($0) }
+                        }
+                        LabeledContent("Y travel per rotation (mm)") {
+                            TextField("", value: $profile.rotaryMMPerRotation, format: .number).frame(width: 80)
+                        }
+                        if profile.rotaryType == .roller {
+                            LabeledContent("Roller diameter (mm)") {
+                                TextField("", value: $profile.rotaryRollerDiameter, format: .number).frame(width: 80)
+                            }
+                        } else {
+                            LabeledContent("Object diameter (mm)") {
+                                TextField("", value: $profile.rotaryObjectDiameter, format: .number).frame(width: 80)
+                            }
+                            Text(String(format: "One turn of the object is %.1f mm of design height.", profile.rotaryCircumference))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Text("Y travel per rotation is how far the controller thinks Y moved when the rotary turns once. Measure it by jogging Y and counting one full turn.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 Section("GRBL") {
                     LabeledContent("Max S value ($30)") { TextField("", value: $profile.sMax, format: .number).frame(width: 80) }
                     LabeledContent("Rapid speed (mm/min)") { TextField("", value: $profile.rapidSpeed, format: .number).frame(width: 80) }

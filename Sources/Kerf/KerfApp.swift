@@ -32,8 +32,11 @@ struct KerfApp: App {
                 Divider()
                 Button("Import SVG or DXF…") { model.importFiles() }
                     .keyboardShortcut("i")
+                Button("Import Image to Engrave…") { model.importImages() }
+                    .keyboardShortcut("i", modifiers: [.command, .shift])
                 Button("Export Machine File…") { model.exportMachineFile() }
                     .keyboardShortcut("e")
+                Button("Export Print PDF…") { model.exportPrintPDF() }
             }
             CommandGroup(replacing: .undoRedo) {
                 Button("Undo") { model.undo() }
@@ -55,6 +58,18 @@ struct KerfApp: App {
                 Button("Mirror Horizontally") { model.mirrorSelection(horizontal: true) }
                 Button("Mirror Vertically") { model.mirrorSelection(horizontal: false) }
                 Button("Centre on Bed") { model.centerSelectionOnBed() }
+                Divider()
+                Button("Weld") { model.combineSelection(.weld) }
+                    .keyboardShortcut("w", modifiers: [.command, .option])
+                Button("Subtract") { model.combineSelection(.subtract) }
+                Button("Intersect") { model.combineSelection(.intersect) }
+                Button("Join Open Paths") { model.joinSelectedPaths() }
+                    .keyboardShortcut("j")
+                Button("Break Apart") { model.breakApartSelection() }
+                Divider()
+                Button("Nest on Bed") { model.nest() }
+                Button("Put Text Around Selected Shape") { model.addTextAlongSelection() }
+                Button("Add Registration Marks") { model.addRegistrationMarks() }
             }
         }
     }
@@ -111,6 +126,8 @@ struct ContentView: View {
             ToolbarItemGroup {
                 Button { model.importFiles() } label: { Label("Import", systemImage: "square.and.arrow.down") }
                     .help("Import SVG or DXF")
+                Button { model.importImages() } label: { Label("Image", systemImage: "photo") }
+                    .help("Import an image to engrave")
                 Toggle(isOn: $model.showToolpath) { Label("Preview", systemImage: "point.topleft.down.to.point.bottomright.curvepath") }
                     .help("Show toolpath order and travel moves")
                 Picker("Device", selection: $model.activeProfileID) {
@@ -128,8 +145,13 @@ struct ContentView: View {
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             for provider in providers {
                 _ = provider.loadObject(ofClass: URL.self) { url, _ in
-                    guard let url, ["svg", "dxf"].contains(url.pathExtension.lowercased()) else { return }
-                    Task { @MainActor in model.importFile(url) }
+                    guard let url else { return }
+                    let ext = url.pathExtension.lowercased()
+                    if ["svg", "dxf"].contains(ext) {
+                        Task { @MainActor in model.importFile(url) }
+                    } else if ["png", "jpg", "jpeg", "tif", "tiff", "bmp", "gif", "heic"].contains(ext) {
+                        Task { @MainActor in model.importImage(url) }
+                    }
                 }
             }
             return true

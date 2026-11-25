@@ -40,6 +40,48 @@ struct ArrangePanel: View {
                 }
             }
 
+            if model.selection.count == 1, let shape = model.selectedShapes.first, let spec = shape.text {
+                Section("Edit text") {
+                    TextField("Text", text: Binding(get: { spec.text }, set: { var n = spec; n.text = $0; model.updateText(shape.id, to: n) }))
+                    Picker("Font", selection: Binding(get: { spec.fontName }, set: { var n = spec; n.fontName = $0; model.updateText(shape.id, to: n) })) {
+                        if !fonts.contains(spec.fontName) { Text(spec.fontName).tag(spec.fontName) }
+                        ForEach(fonts, id: \.self) { Text($0).tag($0) }
+                    }
+                    LabeledContent("Cap height (mm)") {
+                        TextField("", value: Binding(get: { spec.height }, set: { var n = spec; n.height = max(0.5, $0); model.updateText(shape.id, to: n) }), format: .number)
+                            .frame(width: 70)
+                    }
+                }
+            }
+
+            Section("Combine") {
+                HStack {
+                    ForEach(AppModel.BooleanOp.allCases) { op in
+                        Button(op.title) { model.combineSelection(op) }
+                    }
+                }
+                .disabled(model.selection.count < 2)
+                HStack {
+                    Button("Join open paths") { model.joinSelectedPaths() }
+                    Button("Break apart") { model.breakApartSelection() }
+                }
+                .disabled(model.selection.isEmpty)
+                Text("Weld merges overlapping shapes into one outline. Subtract cuts the later shapes out of the first one.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Nest") {
+                LabeledContent("Spacing (mm)") {
+                    TextField("", value: $model.nestSpacing, format: .number).frame(width: 70)
+                }
+                Toggle("Allow 90° rotation", isOn: $model.nestAllowRotation)
+                Button(model.selection.isEmpty ? "Nest all shapes on the bed" : "Nest selected shapes") { model.nest() }
+                Text("Packs shapes by their bounding boxes, tallest first, to save material.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Text tool") {
                 TextField("Text", text: $model.textToAdd)
                 Picker("Font", selection: $model.fontName) {
@@ -48,7 +90,19 @@ struct ArrangePanel: View {
                 LabeledContent("Cap height (mm)") {
                     TextField("", value: $model.textHeight, format: .number).frame(width: 70)
                 }
-                Text("Choose the text tool, then click the canvas to place outlined text.")
+                Text("Choose the text tool, then click the canvas to place outlined text. Select placed text to edit it.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Text around a shape") {
+                LabeledContent("Start offset (mm)") {
+                    TextField("", value: $model.pathTextOffset, format: .number).frame(width: 70)
+                }
+                Toggle("Other side / reverse direction", isOn: $model.pathTextFlip)
+                Button("Put text around selected shape") { model.addTextAlongSelection() }
+                    .disabled(model.selection.count != 1)
+                Text("Uses the text, font and height above, laid along the selected shape's outline.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

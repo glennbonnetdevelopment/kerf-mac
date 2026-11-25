@@ -234,3 +234,104 @@ final class GRBLTests: XCTestCase {
         XCTAssertEqual(s.errors[0].line, "G1 X2 Y2")
     }
 }
+
+final class Phase2Tests: XCTestCase {
+    func testAffineInverse() {
+        let t = Affine.translation(5, -3).then(.rotation(0.7)).then(.scale(2, 3))
+        let p = Vec2(1.5, -4)
+        let back = t.inverted.apply(t.apply(p))
+        XCTAssertEqual(back.x, p.x, accuracy: 1e-9)
+        XCTAssertEqual(back.y, p.y, accuracy: 1e-9)
+    }
+
+    func testDitherKeepsAverageBrightness() {
+        let gray = [Double](repeating: 0.5, count: 100 * 100)
+        let out = Raster.dither(gray, width: 100, height: 100, mode: .floydSteinberg)
+        let burned = out.filter { $0 == 255 }.count
+        XCTAssertEqual(Double(burned) / Double(out.count), 0.5, accuracy: 0.05)
+        XCTAssertEqual(Raster.dither([0.2, 0.8], width: 2, height: 1, mode: .threshold), [255, 0])
+    }
+
+    func testImageRowsAndGCode() {
+        var doc = KerfDocument()
+        let layerID = doc.layer(forMode: .image, name: "Image", colorHex: "#444444")
+        doc.layers[0].fillInterval = 1
+        doc.layers[0].dither = .threshold
+        doc.layers[0].overscan = 2
+        // 2×2 image: left column black, right column white; 10×10 mm at (5, 5).
+        let img = RasterImage(width: 2, height: 2, pixels: Data([0, 255, 0, 255]))
+        let frame = Polyline([Vec2(0, 0), Vec2(10, 0), Vec2(10, 10), Vec2(0, 10)], closed: true)
+        doc.shapes.append(Artwork(layerID: layerID, name: "img", paths: [frame], transform: .translation(5, 5), image: img))
+        let tp = Planner.plan(doc, for: .grblLaser)
+        XCTAssertEqual(tp.layers.count, 1)
+        let rows = tp.layers[0].rasters
+        XCTAssertEqual(rows.count, 10)
+        XCTAssertEqual(rows[0].x0, 5, accuracy: 1e-9)
+        XCTAssertEqual(rows[0].x1, 10, accuracy: 1e-9)
+        var profile = DeviceProfile.defaultLaser
+        profile.origin = .topLeft
+        let lines = GCodeGenerator.generate(tp, profile: profile)
+        XCTAssertTrue(lines.contains("G0 X3 Y5.5")) // overscan lead-in
+        XCTAssertTrue(lines.contains { $0.hasPrefix("G1 X10 Y5.5 S400") })
+        // Image layers are never sent to a vinyl cutter.
+        XCTAssertTrue(Planner.plan(doc, for: .vinylCutter).isEmpty)
+    }
+
+    func testOffsetGrowsAndShrinksSquare() {
+        let sq = Polyline([Vec2(0, 0), Vec2(10, 0), Vec2(10, 10), Vec2(0, 10)], closed: true)
+        let out = PathOffset.offset(sq, by: 1).bounds
+        XCTAssertEqual(out.width, 12, accuracy: 1e-9)
+        let inner = PathOffset.offset(sq.reversed, by: -1).bounds
+        XCTAssertEqual(inner.width, 8, accuracy: 1e-9)
+    }
+
+    func testCNCStepsDown() {
+        var doc = KerfDocument()
+        let layer = doc.addLayer(mode: .mill)
+        doc.layers[0].cutDepth = 2.5
+        doc.layers[0].stepDown = 1
+        doc.shapes.append(Artwork(layerID: layer, name: "l", paths: [Polyline([Vec2(0, 0), Vec2(10, 0)])]))
+        var profile = DeviceProfile.presets.first { $0.kind == .cncRouter }!
+        profile.origin = .topLeft
+        let lines = GCodeGenerator.generate(Planner.plan(doc, for: .cncRouter), profile: profile)
+        XCTAssertEqual(lines.filter { $0.hasPrefix("G1 Z-") }, ["G1 Z-1 F300", "G1 Z-2 F300", "G1 Z-2.5 F300"])
+        XCTAssertTrue(lines.contains("M3 S1000"))
+        // Second pass of an open path runs back the other way.
+        XCTAssertTrue(lines.contains("G1 X0 Y0 F1000"))
+    }
+
+    func testNestingFitsRowsAndRejectsOversize() {
+        let area = Rect2(minX: 0, minY: 0, maxX: 100, maxY: 100)
+        let placed = Nester.pack(sizes: [Vec2(60, 40), Vec2(30, 50), Vec2(200, 10)], in: area, spacing: 2, allowRotation: true)
+        XCTAssertNotNil(placed[0])
+        XCTAssertNotNil(placed[1])
+        XCTAssertNil(placed[2])
+        XCTAssertEqual(placed[1]!.rotated, true) // 30×50 turned to 50×30
+    }
+
+    func testAlignmentFromTwoPoints() {
+        let t = Registration.alignment(design: Vec2(0, 0), Vec2(100, 0), measured: Vec2(10, 10), Vec2(10, 110))!
+        let p = t.apply(Vec2(50, 0))
+        XCTAssertEqual(p.x, 10, accuracy: 1e-9)
+        XCTAssertEqual(p.y, 60, accuracy: 1e-9)
+    }
+
+    func testRotaryScalesY() {
+        var p = DeviceProfile.defaultLaser
+        p.origin = .topLeft
+        p.rotaryEnabled = true
+        p.rotaryType = .chuck
+        p.rotaryObjectDiameter = 100 / Double.pi
+        p.rotaryMMPerRotation = 50
+        // One turn (100 mm of design height) = 50 mm of controller Y travel.
+        XCTAssertEqual(p.toMachine(Vec2(3, 100)).y, 50, accuracy: 1e-9)
+        XCTAssertEqual(p.fromMachine(Vec2(3, 50)).y, 100, accuracy: 1e-9)
+    }
+
+    func testOldLayerJSONStillDecodes() throws {
+        let json = #"{"id":"6F9619FF-8B86-D011-B42D-00CF4FC964FF","name":"L","colorHex":"#000000","mode":"line","enabled":true,"passes":1,"speed":900,"power":20,"airAssist":false,"fillInterval":0.1,"fillAngle":0,"fillBidirectional":true,"cutSpeed":20,"cutForce":80}"#
+        let layer = try JSONDecoder().decode(Layer.self, from: Data(json.utf8))
+        XCTAssertEqual(layer.speed, 900)
+        XCTAssertEqual(layer.dither, .floydSteinberg)
+    }
+}

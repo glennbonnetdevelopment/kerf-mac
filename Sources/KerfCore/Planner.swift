@@ -5,13 +5,29 @@ import Foundation
 public struct ToolpathLayer: Sendable {
     public var layer: Layer
     public var paths: [[Vec2]]
+    /// Image engraving lines (image layers only).
+    public var rasters: [RasterRow]
+
+    public init(layer: Layer, paths: [[Vec2]], rasters: [RasterRow] = []) {
+        self.layer = layer
+        self.paths = paths
+        self.rasters = rasters
+    }
 
     public var cutLength: Double {
-        paths.reduce(0) { total, p in
+        let vector = paths.reduce(0) { total, p in
             var l = 0.0
             if p.count > 1 { for i in 1..<p.count { l += p[i].distance(to: p[i - 1]) } }
             return total + l
         }
+        let raster = rasters.reduce(0) { $0 + ($1.x1 - $1.x0) + 2 * layer.overscan }
+        return vector + raster
+    }
+
+    /// Number of depth passes for CNC milling.
+    public var depthPasses: Int {
+        guard layer.mode == .mill else { return 1 }
+        return max(1, Int((layer.cutDepth / max(0.05, layer.stepDown)).rounded(.up)))
     }
 }
 
@@ -22,7 +38,13 @@ public struct Toolpath: Sendable {
 
     public var bounds: Rect2 {
         var r = Rect2.empty
-        for l in layers { for p in l.paths { for v in p { r.include(v) } } }
+        for l in layers {
+            for p in l.paths { for v in p { r.include(v) } }
+            for row in l.rasters {
+                r.include(Vec2(row.x0, row.y))
+                r.include(Vec2(row.x1, row.y))
+            }
+        }
         return r
     }
 
@@ -32,7 +54,7 @@ public struct Toolpath: Sendable {
         var pos = Vec2.zero
         var first = true
         for l in layers {
-            for _ in 0..<max(1, l.layer.passes) {
+            for _ in 0..<(max(1, l.layer.passes) * l.depthPasses) {
                 for p in l.paths {
                     guard let s = p.first, let e = p.last else { continue }
                     if !first { out.append((pos, s)) }
@@ -55,7 +77,7 @@ public struct Toolpath: Sendable {
             } else {
                 speedMMs = max(1, l.layer.speed) / 60
             }
-            t += l.cutLength * Double(max(1, l.layer.passes)) / speedMMs
+            t += l.cutLength * Double(max(1, l.layer.passes) * l.depthPasses) / speedMMs
         }
         t += travel / max(1, profile.rapidSpeed / 60)
         return t
@@ -65,14 +87,39 @@ public struct Toolpath: Sendable {
 public enum Planner {
     /// Builds the toolpath for all enabled layers that have shapes. Fill layers run
     /// before line layers so engraving happens before parts are cut free.
+    /// Whether a layer of `mode` produces moves on a machine of `kind`.
+    public static func supports(_ mode: LayerMode, on kind: DeviceKind) -> Bool {
+        switch (mode, kind) {
+        case (.print, _): return false
+        case (.line, _): return true
+        case (.fill, .grblLaser), (.image, .grblLaser): return true
+        case (.cut, .vinylCutter), (.cut, .grblLaser): return true
+        case (.mill, .cncRouter), (.cut, .cncRouter): return true
+        default: return false
+        }
+    }
+
     public static func plan(_ doc: KerfDocument, for kind: DeviceKind) -> Toolpath {
         var layers: [ToolpathLayer] = []
         var pos = Vec2.zero
-        let ordered = doc.layers.filter { $0.mode == .fill } + doc.layers.filter { $0.mode != .fill }
-        for layer in ordered where layer.enabled {
-            if kind == .vinylCutter && layer.mode == .fill { continue }
-            let polys = doc.shapes.filter { $0.layerID == layer.id }.flatMap(\.placedPaths).filter { $0.points.count > 1 }
+        // Engrave before cutting so parts don't move once they are cut free.
+        let rank: (LayerMode) -> Int = { $0 == .image ? 0 : ($0 == .fill ? 1 : 2) }
+        let ordered = doc.layers.enumerated().sorted { (rank($0.element.mode), $0.offset) < (rank($1.element.mode), $1.offset) }.map(\.element)
+        for var layer in ordered where layer.enabled && supports(layer.mode, on: kind) {
+            if kind == .cncRouter { layer.mode = .mill }
+            let shapes = doc.shapes.filter { $0.layerID == layer.id }
+            if layer.mode == .image {
+                let rows = shapes.flatMap { Raster.rows(for: $0, layer: layer) }
+                guard !rows.isEmpty else { continue }
+                layers.append(ToolpathLayer(layer: layer, paths: [], rasters: rows))
+                continue
+            }
+            var polys = shapes.filter { $0.image == nil }.flatMap(\.placedPaths).filter { $0.points.count > 1 }
             guard !polys.isEmpty else { continue }
+            if layer.mode == .mill, layer.millOffset != .onLine {
+                let r = layer.toolDiameter / 2 * (layer.millOffset == .outside ? 1 : -1)
+                polys = polys.map { $0.closed ? PathOffset.offset($0, by: r) : $0 }
+            }
             var paths: [[Vec2]]
             if layer.mode == .fill {
                 paths = hatch(polys.filter { $0.closed }, interval: layer.fillInterval, angleDegrees: layer.fillAngle,

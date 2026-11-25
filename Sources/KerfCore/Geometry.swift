@@ -139,6 +139,17 @@ public struct Affine: Hashable, Codable, Sendable {
     public var meanScale: Double { abs(determinant).squareRoot() }
 
     public var isIdentity: Bool { self == .identity }
+
+    /// The inverse transform, or identity if the transform is degenerate.
+    public var inverted: Affine {
+        let det = determinant
+        guard abs(det) > 1e-12 else { return .identity }
+        let ia = d / det, ib = -b / det, ic = -c / det, id = a / det
+        return Affine(a: ia, b: ib, c: ic, d: id, tx: -(ia * tx + ic * ty), ty: -(ib * tx + id * ty))
+    }
+
+    /// Rotation angle in radians.
+    public var rotationAngle: Double { atan2(b, a) }
 }
 
 /// A flattened path: a list of points, optionally closed (the last point

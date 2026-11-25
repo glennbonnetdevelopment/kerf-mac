@@ -13,11 +13,16 @@ func fmt(_ v: Double) -> String {
 // MARK: - GRBL G-code
 
 public enum GCodeGenerator {
-    /// Generates G-code for a GRBL laser in laser mode ($32=1).
-    /// - Parameter offset: added to every machine coordinate (used to run a job relative to the current position).
-    public static func generate(_ tp: Toolpath, profile: DeviceProfile, offset: Vec2 = .zero) -> [String] {
+    /// Generates G-code for a GRBL laser in laser mode ($32=1) or a GRBL CNC router.
+    /// - Parameters:
+    ///   - alignment: applied to machine coordinates (print-and-cut alignment).
+    ///   - offset: added afterwards (used to run a job relative to the current position).
+    public static func generate(_ tp: Toolpath, profile: DeviceProfile, offset: Vec2 = .zero,
+                                alignment: Affine = .identity) -> [String] {
+        func m(_ p: Vec2) -> Vec2 { alignment.apply(profile.toMachine(p)) + offset }
+        if profile.kind == .cncRouter { return cnc(tp, profile: profile, map: m) }
+
         var out: [String] = ["; Kerf job", "G90", "G21", "M5"]
-        func m(_ p: Vec2) -> Vec2 { profile.toMachine(p) + offset }
         for tl in tp.layers {
             let layer = tl.layer
             let s = max(0, min(100, layer.power)) / 100 * profile.sMax
@@ -39,6 +44,9 @@ public enum GCodeGenerator {
                         }
                     }
                 }
+                if !tl.rasters.isEmpty {
+                    out += raster(tl.rasters, layer: layer, profile: profile, map: m)
+                }
             }
             out.append("M5")
         }
@@ -47,13 +55,90 @@ public enum GCodeGenerator {
         return out
     }
 
+    /// Image lines: run-length encoded power changes along each row, with overscan at both ends.
+    static func raster(_ rows: [RasterRow], layer: Layer, profile: DeviceProfile, map m: (Vec2) -> Vec2) -> [String] {
+        var out: [String] = []
+        let feed = max(1, layer.speed)
+        let lo = max(0, min(100, layer.powerMin)) / 100 * profile.sMax
+        let hi = max(0, min(100, layer.power)) / 100 * profile.sMax
+        func sValue(_ p: UInt8) -> Double {
+            p == 0 ? 0 : (lo + (hi - lo) * Double(p) / 255)
+        }
+        var firstMove = true
+        for row in rows {
+            let n = row.power.count
+            guard n > 0 else { continue }
+            let dir: Double = row.reversed ? -1 : 1
+            let startX = row.reversed ? row.x1 : row.x0
+            let endX = row.reversed ? row.x0 : row.x1
+            let lead = m(Vec2(startX - dir * layer.overscan, row.y))
+            out.append("G0 X\(fmt(lead.x)) Y\(fmt(lead.y))")
+            let start = m(Vec2(startX, row.y))
+            out.append("G1 X\(fmt(start.x)) Y\(fmt(start.y)) S0" + (firstMove ? " F\(fmt(feed))" : ""))
+            firstMove = false
+            var i = 0
+            while i < n {
+                let idx = row.reversed ? n - 1 - i : i
+                let value = row.power[idx]
+                var j = i
+                while j < n, row.power[row.reversed ? n - 1 - j : j] == value { j += 1 }
+                let x = row.reversed ? row.x1 - Double(j) * row.step : row.x0 + Double(j) * row.step
+                let q = m(Vec2(x, row.y))
+                out.append("G1 X\(fmt(q.x)) Y\(fmt(q.y)) S\(fmt(sValue(value)))")
+                i = j
+            }
+            let tail = m(Vec2(endX + dir * layer.overscan, row.y))
+            out.append("G1 X\(fmt(tail.x)) Y\(fmt(tail.y)) S0")
+        }
+        return out
+    }
+
+    /// CNC milling: spindle on, step down to depth along each path, retract between paths.
+    static func cnc(_ tp: Toolpath, profile: DeviceProfile, map m: (Vec2) -> Vec2) -> [String] {
+        let safe = fmt(max(0.5, profile.safeZ))
+        var out: [String] = ["; Kerf CNC job", "G90", "G21", "G0 Z\(safe)"]
+        for tl in tp.layers {
+            let layer = tl.layer
+            let depth = max(0.01, layer.cutDepth)
+            let step = max(0.05, layer.stepDown)
+            var levels: [Double] = []
+            var d = step
+            while d < depth - 1e-9 { levels.append(d); d += step }
+            levels.append(depth)
+            out.append("; Layer \(layer.name): depth \(fmt(depth)) mm in \(levels.count) passes, tool \(fmt(layer.toolDiameter)) mm")
+            out.append("M3 S\(fmt(layer.spindleSpeed))")
+            out.append("G4 P2")
+            for _ in 0..<max(1, layer.passes) {
+                for path in tl.paths where path.count > 1 {
+                    let closed = path.first!.distance(to: path.last!) < 1e-6
+                    let p0 = m(path[0])
+                    out.append("G0 Z\(safe)")
+                    out.append("G0 X\(fmt(p0.x)) Y\(fmt(p0.y))")
+                    for (k, level) in levels.enumerated() {
+                        // Open paths are cut back and forth so the tool never travels at depth.
+                        let pts = (!closed && k % 2 == 1) ? Array(path.reversed()) : path
+                        out.append("G1 Z\(fmt(-level)) F\(fmt(max(1, layer.plungeRate)))")
+                        for (i, p) in pts.dropFirst().enumerated() {
+                            let q = m(p)
+                            out.append("G1 X\(fmt(q.x)) Y\(fmt(q.y))" + (i == 0 ? " F\(fmt(max(1, layer.speed)))" : ""))
+                        }
+                    }
+                    out.append("G0 Z\(safe)")
+                }
+            }
+        }
+        out += ["M5", "G0 Z\(safe)", "G0 X0 Y0"]
+        return out
+    }
+
     /// Jog commands that trace the job's bounding box with the laser off.
-    public static func frame(_ bounds: Rect2, profile: DeviceProfile, offset: Vec2 = .zero, feed: Double) -> [String] {
+    public static func frame(_ bounds: Rect2, profile: DeviceProfile, offset: Vec2 = .zero, alignment: Affine = .identity,
+                             feed: Double) -> [String] {
         guard !bounds.isEmpty else { return [] }
         let corners = [Vec2(bounds.minX, bounds.minY), Vec2(bounds.maxX, bounds.minY),
                        Vec2(bounds.maxX, bounds.maxY), Vec2(bounds.minX, bounds.maxY), Vec2(bounds.minX, bounds.minY)]
         return corners.map {
-            let q = profile.toMachine($0) + offset
+            let q = alignment.apply(profile.toMachine($0)) + offset
             return "$J=G90 G21 X\(fmt(q.x)) Y\(fmt(q.y)) F\(fmt(feed))"
         }
     }
@@ -73,7 +158,7 @@ public struct CutterJobOptions: Sendable {
 public enum PlotterGenerator {
     public static func generate(_ tp: Toolpath, profile: DeviceProfile, options: CutterJobOptions = .init()) -> String {
         var jobs: [(Layer, [[Vec2]])] = []
-        for tl in tp.layers where tl.layer.mode != .fill {
+        for tl in tp.layers where tl.layer.mode != .fill && tl.layer.mode != .image {
             let prepared = tl.paths.map { path -> [Vec2] in
                 var p = path
                 if let f = p.first, let l = p.last, p.count > 2, f.distance(to: l) < 1e-6, profile.overcut > 0 {

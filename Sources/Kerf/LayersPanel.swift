@@ -92,44 +92,77 @@ struct LayerSettings: View {
             Picker("Mode", selection: $layer.mode) {
                 ForEach(LayerMode.allCases) { Text($0.title).tag($0) }
             }
-            Stepper("Passes: \(layer.passes)", value: $layer.passes, in: 1...50)
+            if !Planner.supports(layer.mode, on: kind) {
+                Text("\(layer.mode.title) layers are skipped on a \(kind.title.lowercased()).")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
+            if layer.mode != .print {
+                Stepper("Passes: \(layer.passes)", value: $layer.passes, in: 1...50)
+            }
 
-            if layer.mode == .cut {
-                if kind == .grblLaser {
-                    Text("Cut layers are for vinyl cutters. Switch to Line or Fill for the laser.")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
+            switch layer.mode {
+            case .print:
+                Text("Print-only layers hold registration marks and print artwork. They go into the print PDF and are never cut.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            case .cut:
+                number("Speed (cm/s)", $layer.cutSpeed)
+                number("Force (g)", $layer.cutForce)
+            case .mill:
+                number("Feed (mm/min)", $layer.speed)
+                number("Plunge (mm/min)", $layer.plungeRate)
+                number("Spindle (S value)", $layer.spindleSpeed)
+                number("Cut depth (mm)", $layer.cutDepth)
+                number("Depth per pass (mm)", $layer.stepDown)
+                number("Tool diameter (mm)", $layer.toolDiameter)
+                Picker("Tool path", selection: $layer.millOffset) {
+                    ForEach(MillOffset.allCases) { Text($0.title).tag($0) }
                 }
-                LabeledContent("Speed (cm/s)") {
-                    TextField("", value: $layer.cutSpeed, format: .number).frame(width: 70)
-                }
-                LabeledContent("Force (g)") {
-                    TextField("", value: $layer.cutForce, format: .number).frame(width: 70)
-                }
-            } else {
-                if kind == .vinylCutter && layer.mode == .fill {
-                    Text("Fill layers are skipped when cutting vinyl.")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
-                }
-                LabeledContent("Speed (mm/min)") {
-                    TextField("", value: $layer.speed, format: .number).frame(width: 80)
-                }
-                LabeledContent("Power \(Int(layer.power))%") {
+            case .line, .fill, .image:
+                number("Speed (mm/min)", $layer.speed)
+                LabeledContent(layer.mode == .image ? "Max power \(Int(layer.power))%" : "Power \(Int(layer.power))%") {
                     Slider(value: $layer.power, in: 0...100, step: 1).frame(width: 150)
+                }
+                if layer.mode == .image {
+                    LabeledContent("Min power \(Int(layer.powerMin))%") {
+                        Slider(value: $layer.powerMin, in: 0...100, step: 1).frame(width: 150)
+                    }
+                    Picker("Dither", selection: $layer.dither) {
+                        ForEach(DitherMode.allCases) { Text($0.title).tag($0) }
+                    }
+                    LabeledContent("Line interval (mm)") {
+                        TextField("", value: $layer.fillInterval, format: .number.precision(.fractionLength(0...3))).frame(width: 70)
+                    }
+                    Text(String(format: "%.0f DPI", 25.4 / max(0.01, layer.fillInterval)))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    number("Overscan (mm)", $layer.overscan)
+                    Toggle("Invert", isOn: $layer.invertImage)
+                    Toggle("Bidirectional", isOn: $layer.fillBidirectional)
                 }
                 Toggle("Air assist", isOn: $layer.airAssist)
                 if layer.mode == .fill {
                     LabeledContent("Line interval (mm)") {
                         TextField("", value: $layer.fillInterval, format: .number.precision(.fractionLength(0...3))).frame(width: 70)
                     }
-                    LabeledContent("Angle (°)") {
-                        TextField("", value: $layer.fillAngle, format: .number).frame(width: 70)
-                    }
+                    number("Angle (°)", $layer.fillAngle)
                     Toggle("Bidirectional", isOn: $layer.fillBidirectional)
                 }
             }
         }
         .formStyle(.grouped)
+    }
+
+    private func number(_ title: String, _ value: Binding<Double>) -> some View {
+        LabeledContent(title) {
+            TextField("", value: value, format: .number).frame(width: 80)
+        }
+    }
+
+    private func number(_ title: String, _ value: Binding<Int>) -> some View {
+        LabeledContent(title) {
+            TextField("", value: value, format: .number).frame(width: 80)
+        }
     }
 }

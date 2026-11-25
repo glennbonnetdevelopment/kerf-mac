@@ -43,6 +43,19 @@ final class AppModel: ObservableObject {
     @Published var weedBorderEnabled = false
     @Published var weedBorderMargin = 3.0
 
+    // Nesting
+    @Published var nestSpacing = 3.0
+    @Published var nestAllowRotation = true
+
+    // Text along a path
+    @Published var pathTextOffset = 0.0
+    @Published var pathTextFlip = false
+
+    // Print and cut: measured machine positions of registration marks 1 and 2
+    @Published var measuredMark1: Vec2?
+    @Published var measuredMark2: Vec2?
+    @Published var useAlignment = false
+
     // Text tool settings
     @Published var textToAdd = "Kerf"
     @Published var fontName = "Helvetica-Bold"
@@ -94,7 +107,7 @@ final class AppModel: ObservableObject {
         }
     }
 
-    var defaultMode: LayerMode { profile.kind == .vinylCutter ? .cut : .line }
+    var defaultMode: LayerMode { profile.kind.defaultMode }
 
     // MARK: - Undo
 
@@ -224,7 +237,7 @@ final class AppModel: ObservableObject {
 
     /// G-code for the active laser profile.
     func gcodeLines(offset: Vec2 = .zero) -> [String] {
-        GCodeGenerator.generate(toolpath, profile: profile, offset: offset)
+        GCodeGenerator.generate(toolpath, profile: profile, offset: useAlignment ? .zero : offset, alignment: alignmentTransform)
     }
 
     /// HPGL or GP-GL for the active cutter profile.
@@ -241,7 +254,7 @@ final class AppModel: ObservableObject {
         let panel = NSSavePanel()
         let base = fileURL?.deletingPathExtension().lastPathComponent ?? "job"
         let text: String
-        if profile.kind == .grblLaser {
+        if profile.kind.usesGRBL {
             panel.allowedContentTypes = [UTType(filenameExtension: "gc") ?? .plainText]
             panel.nameFieldStringValue = base + ".gc"
             text = gcodeLines().joined(separator: "\n") + "\n"
@@ -312,14 +325,28 @@ final class AppModel: ObservableObject {
     }
 
     func addText(at point: Vec2) {
-        let outlines = TextOutliner.outlines(text: textToAdd, fontName: fontName, height: textHeight)
+        let spec = TextSpec(text: textToAdd, fontName: fontName, height: textHeight)
+        let outlines = TextOutliner.outlines(for: spec)
         guard !outlines.isEmpty else {
             alertMessage = "The text produced no outlines. Check the font name."
             return
         }
-        let b = outlines.bounds
-        let placed = outlines.transformed(.translation(point.x - b.minX, point.y - b.minY))
-        addShape(paths: placed, name: "Text: \(textToAdd)")
+        checkpoint()
+        let shape = Artwork(layerID: ensureCurrentLayer(), name: "Text: \(spec.text)", paths: outlines,
+                            transform: .translation(point.x, point.y), text: spec)
+        document.shapes.append(shape)
+        selection = [shape.id]
+    }
+
+    /// Rebuilds a text shape's outlines from new settings, keeping its placement, rotation and mirroring.
+    func updateText(_ id: UUID, to spec: TextSpec) {
+        guard let i = document.shapes.firstIndex(where: { $0.id == id }), document.shapes[i].text != nil else { return }
+        let outlines = TextOutliner.outlines(for: spec)
+        guard !outlines.isEmpty else { return }
+        checkpoint()
+        document.shapes[i].paths = outlines
+        document.shapes[i].text = spec
+        document.shapes[i].name = "Text: \(spec.text)"
     }
 
     var selectedShapes: [Artwork] { document.shapes.filter { selection.contains($0.id) } }

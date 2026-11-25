@@ -3,12 +3,26 @@ import Foundation
 public enum DeviceKind: String, Codable, CaseIterable, Sendable, Identifiable {
     case grblLaser
     case vinylCutter
+    case cncRouter
 
     public var id: String { rawValue }
     public var title: String {
         switch self {
         case .grblLaser: return "GRBL laser"
         case .vinylCutter: return "Vinyl cutter"
+        case .cncRouter: return "GRBL CNC router"
+        }
+    }
+
+    /// GRBL lasers and CNC routers share the same controller protocol.
+    public var usesGRBL: Bool { self != .vinylCutter }
+
+    /// The layer mode new artwork gets on this kind of machine.
+    public var defaultMode: LayerMode {
+        switch self {
+        case .grblLaser: return .line
+        case .vinylCutter: return .cut
+        case .cncRouter: return .mill
         }
     }
 }
@@ -60,6 +74,12 @@ public enum FlowControl: String, Codable, CaseIterable, Sendable, Identifiable {
     }
 }
 
+public enum RotaryType: String, Codable, CaseIterable, Sendable, Identifiable {
+    case roller, chuck
+    public var id: String { rawValue }
+    public var title: String { self == .roller ? "Roller" : "Chuck" }
+}
+
 /// A machine the app can drive.
 public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
     public var id: UUID
@@ -96,12 +116,28 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
     /// Send per-layer speed and force commands.
     public var sendSpeedAndForce: Bool
 
+    // CNC router
+    /// Clearance height for rapid moves, mm above the work zero.
+    public var safeZ: Double
+
+    // Rotary attachment on the Y axis
+    public var rotaryEnabled: Bool
+    public var rotaryType: RotaryType
+    /// Y travel (as configured in the controller) that turns the rotary motor one full revolution, mm.
+    public var rotaryMMPerRotation: Double
+    /// Diameter of the roller wheel that drives the object (roller type), mm.
+    public var rotaryRollerDiameter: Double
+    /// Diameter of the object being engraved (chuck type), mm.
+    public var rotaryObjectDiameter: Double
+
     public init(id: UUID = UUID(), name: String, kind: DeviceKind, bedWidth: Double, bedHeight: Double,
                 origin: OriginCorner, swapAxes: Bool = false, baudRate: Int, flowControl: FlowControl = .none,
                 sMax: Double = 1000, rapidSpeed: Double = 3000, rxBufferSize: Int = 127,
                 language: CutterLanguage = .hpgl, unitsPerMM: Double = 40, bladeOffset: Double = 0.25,
                 overcut: Double = 1, output: CutterOutput = .serial, printerQueue: String = "",
-                sendSpeedAndForce: Bool = true) {
+                sendSpeedAndForce: Bool = true, safeZ: Double = 5,
+                rotaryEnabled: Bool = false, rotaryType: RotaryType = .roller, rotaryMMPerRotation: Double = 360,
+                rotaryRollerDiameter: Double = 25, rotaryObjectDiameter: Double = 80) {
         self.id = id
         self.name = name
         self.kind = kind
@@ -121,6 +157,48 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
         self.output = output
         self.printerQueue = printerQueue
         self.sendSpeedAndForce = sendSpeedAndForce
+        self.safeZ = safeZ
+        self.rotaryEnabled = rotaryEnabled
+        self.rotaryType = rotaryType
+        self.rotaryMMPerRotation = rotaryMMPerRotation
+        self.rotaryRollerDiameter = rotaryRollerDiameter
+        self.rotaryObjectDiameter = rotaryObjectDiameter
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, kind, bedWidth, bedHeight, origin, swapAxes, baudRate, flowControl, sMax, rapidSpeed,
+             rxBufferSize, language, unitsPerMM, bladeOffset, overcut, output, printerQueue, sendSpeedAndForce, safeZ,
+             rotaryEnabled, rotaryType, rotaryMMPerRotation, rotaryRollerDiameter, rotaryObjectDiameter
+    }
+
+    /// Missing keys fall back to defaults so saved profiles survive upgrades.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(id: try c.decode(UUID.self, forKey: .id),
+                  name: try c.decode(String.self, forKey: .name),
+                  kind: try c.decode(DeviceKind.self, forKey: .kind),
+                  bedWidth: try c.decode(Double.self, forKey: .bedWidth),
+                  bedHeight: try c.decode(Double.self, forKey: .bedHeight),
+                  origin: try c.decode(OriginCorner.self, forKey: .origin),
+                  swapAxes: try c.decodeIfPresent(Bool.self, forKey: .swapAxes) ?? false,
+                  baudRate: try c.decode(Int.self, forKey: .baudRate),
+                  flowControl: try c.decodeIfPresent(FlowControl.self, forKey: .flowControl) ?? .none,
+                  sMax: try c.decodeIfPresent(Double.self, forKey: .sMax) ?? 1000,
+                  rapidSpeed: try c.decodeIfPresent(Double.self, forKey: .rapidSpeed) ?? 3000,
+                  rxBufferSize: try c.decodeIfPresent(Int.self, forKey: .rxBufferSize) ?? 127,
+                  language: try c.decodeIfPresent(CutterLanguage.self, forKey: .language) ?? .hpgl,
+                  unitsPerMM: try c.decodeIfPresent(Double.self, forKey: .unitsPerMM) ?? 40,
+                  bladeOffset: try c.decodeIfPresent(Double.self, forKey: .bladeOffset) ?? 0.25,
+                  overcut: try c.decodeIfPresent(Double.self, forKey: .overcut) ?? 1,
+                  output: try c.decodeIfPresent(CutterOutput.self, forKey: .output) ?? .serial,
+                  printerQueue: try c.decodeIfPresent(String.self, forKey: .printerQueue) ?? "",
+                  sendSpeedAndForce: try c.decodeIfPresent(Bool.self, forKey: .sendSpeedAndForce) ?? true,
+                  safeZ: try c.decodeIfPresent(Double.self, forKey: .safeZ) ?? 5,
+                  rotaryEnabled: try c.decodeIfPresent(Bool.self, forKey: .rotaryEnabled) ?? false,
+                  rotaryType: try c.decodeIfPresent(RotaryType.self, forKey: .rotaryType) ?? .roller,
+                  rotaryMMPerRotation: try c.decodeIfPresent(Double.self, forKey: .rotaryMMPerRotation) ?? 360,
+                  rotaryRollerDiameter: try c.decodeIfPresent(Double.self, forKey: .rotaryRollerDiameter) ?? 25,
+                  rotaryObjectDiameter: try c.decodeIfPresent(Double.self, forKey: .rotaryObjectDiameter) ?? 80)
     }
 
     public static let defaultLaser = DeviceProfile(name: "GRBL laser 400×400", kind: .grblLaser,
@@ -139,6 +217,8 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
                       origin: .topLeft, baudRate: 115200),
         DeviceProfile(name: "Generic GRBL laser", kind: .grblLaser, bedWidth: 400, bedHeight: 400,
                       origin: .bottomLeft, baudRate: 115200),
+        DeviceProfile(name: "SainSmart Genmitsu 4040 Pro (CNC)", kind: .cncRouter, bedWidth: 400, bedHeight: 400,
+                      origin: .bottomLeft, baudRate: 115200, sMax: 1000, rapidSpeed: 2500, safeZ: 5),
         DeviceProfile(name: "GCC Expert 24", kind: .vinylCutter, bedWidth: 600, bedHeight: 1000,
                       origin: .bottomRight, baudRate: 9600, flowControl: .hardware,
                       language: .hpgl, unitsPerMM: 40, bladeOffset: 0.25, output: .printerQueue),
@@ -159,8 +239,25 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
                       sendSpeedAndForce: false),
     ]
 
+    /// Machine Y units per mm of surface travel on the rotary (1 when the rotary is off).
+    public var rotaryYScale: Double {
+        guard rotaryEnabled, kind.usesGRBL else { return 1 }
+        let d = rotaryType == .roller ? rotaryRollerDiameter : rotaryObjectDiameter
+        guard d > 0, rotaryMMPerRotation > 0 else { return 1 }
+        return rotaryMMPerRotation / (Double.pi * d)
+    }
+
+    /// The design height that wraps once around the object (chuck) — useful as the work area height.
+    public var rotaryCircumference: Double { Double.pi * rotaryObjectDiameter }
+
     /// Converts a point from design space (mm, origin top-left, y down) to machine coordinates.
     public func toMachine(_ p: Vec2) -> Vec2 {
+        let m = toMachineFlat(p)
+        let k = rotaryYScale
+        return k == 1 ? m : Vec2(m.x, m.y * k)
+    }
+
+    private func toMachineFlat(_ p: Vec2) -> Vec2 {
         var q: Vec2
         switch origin {
         case .topLeft: q = p
@@ -173,7 +270,9 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
     }
 
     /// Inverse of `toMachine`.
-    public func fromMachine(_ m: Vec2) -> Vec2 {
+    public func fromMachine(_ machine: Vec2) -> Vec2 {
+        let k = rotaryYScale
+        let m = k == 1 ? machine : Vec2(machine.x, machine.y / k)
         let q = swapAxes ? Vec2(m.y, m.x) : m
         switch origin {
         case .topLeft: return q

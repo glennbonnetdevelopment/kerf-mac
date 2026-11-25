@@ -186,6 +186,12 @@ final class LaserController: ObservableObject {
         send(String(format: "$J=G91 G21 X%.3f Y%.3f F%d", dx, dy, Int(feed)))
     }
 
+    func jogZ(_ dz: Double, feed: Double) {
+        send(String(format: "$J=G91 G21 Z%.3f F%d", dz, Int(feed)))
+    }
+
+    func setWorkZeroZ() { send("G10 L20 P1 Z0") }
+
     func cancelJog() { realtime(.jogCancel) }
 
     func frame(lines: [String]) {

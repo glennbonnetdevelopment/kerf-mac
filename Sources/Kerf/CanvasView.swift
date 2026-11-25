@@ -137,8 +137,18 @@ struct CanvasView: View {
             guard let layer = model.document.layer(shape.layerID) else { continue }
             let path = viewPath(shape.placedPaths)
             let color = Color(hex: layer.colorHex).opacity(layer.enabled ? 1 : 0.3)
-            if layer.mode == .fill {
+            if let img = shape.image, let cg = ImageCache.shared.cgImage(for: shape.id, image: img) {
+                var ictx = ctx
+                let t = shape.transform
+                ictx.concatenate(CGAffineTransform(a: t.a * vp.zoom, b: t.b * vp.zoom, c: t.c * vp.zoom, d: t.d * vp.zoom,
+                                                   tx: vp.pan.x + t.tx * vp.zoom, ty: vp.pan.y + t.ty * vp.zoom))
+                let f = shape.localFrame
+                ictx.opacity = layer.enabled ? 1 : 0.4
+                ictx.draw(Image(decorative: cg, scale: 1), in: CGRect(x: f.minX, y: f.minY, width: f.width, height: f.height))
+            } else if layer.mode == .fill {
                 ctx.fill(path, with: .color(color.opacity(0.18)), style: FillStyle(eoFill: true))
+            } else if layer.mode == .print {
+                ctx.fill(path, with: .color(color.opacity(0.85)), style: FillStyle(eoFill: true))
             }
             ctx.stroke(path, with: .color(color), lineWidth: model.selection.contains(shape.id) ? 1.6 : 1)
         }
