@@ -45,7 +45,9 @@ extension AppModel {
     func deleteNode(_ ref: NodeRef) {
         guard let i = document.shapes.firstIndex(where: { $0.id == ref.shape }), ref.path < document.shapes[i].paths.count else { return }
         let poly = document.shapes[i].paths[ref.path]
-        guard ref.point < poly.points.count, poly.points.count > (poly.closed ? 3 : 2) else { return }
+        let minimum = poly.closed ? 3 : 2
+        guard ref.point < poly.points.count else { return }
+        guard poly.points.count > minimum else { return }
         checkpoint()
         detachText(i)
         document.shapes[i].paths[ref.path].points.remove(at: ref.point)
