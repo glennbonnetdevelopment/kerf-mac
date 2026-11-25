@@ -248,12 +248,18 @@ public struct TextSpec: Codable, Hashable, Sendable {
     public var fontName: String
     /// Capital-letter height in mm.
     public var height: Double
+    /// Bend in degrees: positive arches the text upward, negative bends it into a bowl. Nil or 0 is straight.
+    public var curve: Double?
 
-    public init(text: String, fontName: String, height: Double) {
+    public init(text: String, fontName: String, height: Double, curve: Double? = nil) {
         self.text = text
         self.fontName = fontName
         self.height = height
+        self.curve = curve
     }
+
+    /// True when the text is bent by a noticeable amount.
+    public var isCurved: Bool { abs(curve ?? 0) >= 0.5 }
 }
 
 /// Text laid along a guide path. The guide is in the shape's own coordinates, so it moves with the text.

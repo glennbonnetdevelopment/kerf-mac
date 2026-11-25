@@ -18,6 +18,30 @@ public enum PathText {
         }
     }
 
+    /// A circular guide for curving a line of text `width` mm long by `degrees` of arc.
+    /// Positive arches upward (letters outside the circle), negative bends into a bowl (letters inside).
+    /// The arc is exactly `width` long, with its middle at (width / 2, 0).
+    public static func arcGuide(width: Double, degrees: Double) -> PathTextSpec {
+        let w = max(0.01, width)
+        let theta = min(360, abs(degrees)) * Double.pi / 180
+        guard theta > 1e-4 else { return PathTextSpec(guide: [Vec2(0, 0), Vec2(w, 0)], closed: false, gap: 0) }
+        let r = w / theta
+        let steps = max(24, Int(abs(degrees).rounded(.up)))
+        let pts = (0...steps).map { i -> Vec2 in
+            let f = Double(i) / Double(steps)
+            if degrees > 0 {
+                // Over the top of a circle centred below the text.
+                let a = -Double.pi / 2 - theta / 2 + theta * f
+                return Vec2(w / 2 + r * cos(a), r + r * sin(a))
+            } else {
+                // Along the bottom of a circle centred above the text.
+                let a = Double.pi / 2 + theta / 2 - theta * f
+                return Vec2(w / 2 + r * cos(a), -r + r * sin(a))
+            }
+        }
+        return PathTextSpec(guide: pts, closed: false, gap: 0)
+    }
+
     /// The point on the guide at arc length `s`.
     public static func point(on spec: PathTextSpec, at s: Double) -> Vec2? {
         let guide = Guide(spec.guide, closed: spec.closed)

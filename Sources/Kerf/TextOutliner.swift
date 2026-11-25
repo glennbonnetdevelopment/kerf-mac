@@ -60,6 +60,20 @@ enum TextOutliner {
         return (paths, width)
     }
 
+    /// The outlines for a text shape: along its path, curved, or straight.
+    static func shaped(_ spec: TextSpec, pathText: PathTextSpec?) -> [Polyline] {
+        if let pathText { return alongPath(spec, pathText: pathText) }
+        let straight = outlines(for: spec)
+        guard spec.isCurved, let degrees = spec.curve else { return straight }
+        let line = lineOutlines(for: spec)
+        let guide = PathText.arcGuide(width: line.width, degrees: degrees)
+        let bent = PathText.place(line.paths, spec: guide, smoothing: 0.5)
+        // Keep the curved text centred where the straight text sits, so bending doesn't move it.
+        let a = straight.bounds.center, b = bent.bounds
+        guard !b.isEmpty else { return straight }
+        return bent.transformed(.translation(a.x - b.center.x, a.y - b.center.y))
+    }
+
     /// Text bent along a path, in the path's coordinates.
     static func alongPath(_ spec: TextSpec, pathText: PathTextSpec) -> [Polyline] {
         PathText.place(lineOutlines(for: spec).paths, spec: pathText, smoothing: max(0.5, spec.height * 0.3))

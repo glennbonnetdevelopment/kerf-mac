@@ -145,6 +145,8 @@ final class AppModel: ObservableObject {
     @Published var shapeOptions = ShapeOptions()
     @Published var registrationStyle: RegistrationStyle = .square
     @Published var registrationMarkSize = 5.0
+    /// Distance from the artwork to the contour (shadow) cut line, in mm.
+    @Published var contourOffset = 2.0
     @Published var registrationMarkCount = 3
     @Published var registrationMargin = 8.0
     @Published var measuredMark1: Vec2?
@@ -158,6 +160,7 @@ final class AppModel: ObservableObject {
     @Published var textHeight = 20.0 { didSet { applyTextFieldsToSelection() } }
     private var syncingText = false
     private var lastTextEdit: (id: UUID, time: Date)?
+    private var lastCurveEdit: (id: UUID, time: Date)?
 
     @Published var profiles: [DeviceProfile] {
         didSet { saveProfiles() }
@@ -505,7 +508,7 @@ final class AppModel: ObservableObject {
     /// Typing in the text tool edits the selected text. Quick successive edits share one undo step.
     private func applyTextFieldsToSelection() {
         guard !syncingText, let shape = selectedText, let old = shape.text, !textToAdd.isEmpty else { return }
-        let spec = TextSpec(text: textToAdd, fontName: fontName, height: max(0.5, textHeight))
+        let spec = TextSpec(text: textToAdd, fontName: fontName, height: max(0.5, textHeight), curve: old.curve)
         guard spec != old else { return }
         let now = Date()
         let coalesce = lastTextEdit.map { $0.id == shape.id && now.timeIntervalSince($0.time) < 1.5 } ?? false
@@ -516,12 +519,25 @@ final class AppModel: ObservableObject {
     /// Rebuilds a text shape's outlines from new settings, keeping its placement, rotation and mirroring.
     func updateText(_ id: UUID, to spec: TextSpec, recordUndo: Bool = true) {
         guard let i = document.shapes.firstIndex(where: { $0.id == id }), document.shapes[i].text != nil else { return }
-        let outlines = document.shapes[i].pathText.map { TextOutliner.alongPath(spec, pathText: $0) } ?? TextOutliner.outlines(for: spec)
+        let outlines = TextOutliner.shaped(spec, pathText: document.shapes[i].pathText)
         guard !outlines.isEmpty else { return }
         if recordUndo { checkpoint() }
         document.shapes[i].paths = outlines
         document.shapes[i].text = spec
         document.shapes[i].name = "Text: \(spec.text)"
+    }
+
+    /// Bends selected text into an arch (positive degrees) or a bowl (negative). Dragging the slider
+    /// makes many small changes, which share one undo step.
+    func setTextCurve(_ id: UUID, degrees: Double) {
+        guard let shape = document.shapes.first(where: { $0.id == id }), var spec = shape.text else { return }
+        let value = max(-360, min(360, degrees))
+        spec.curve = abs(value) < 0.5 ? nil : value
+        guard spec != shape.text else { return }
+        let now = Date()
+        let coalesce = lastCurveEdit.map { $0.id == id && now.timeIntervalSince($0.time) < 1.5 } ?? false
+        updateText(id, to: spec, recordUndo: !coalesce)
+        lastCurveEdit = (id, now)
     }
 
     /// Sets the CNC cut type for the selected shapes (nil follows the layer's default).

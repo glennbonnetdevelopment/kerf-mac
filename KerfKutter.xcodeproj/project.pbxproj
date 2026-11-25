@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EA6BE4C36C2FEC4C6A4A2FC9 /* AppModel+Contour.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53471E61CF6162EB73992FF1 /* AppModel+Contour.swift */; };
 		09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */; };
 		4B5337C7D8C8DC122496637E /* AppModel+Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */; };
 		65BE2BA1DCA25DD970B110A0 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0901F3144504604B033DB915 /* AppModel.swift */; };
@@ -19,6 +20,7 @@
 		21B58757E253BC5BABEFE442 /* MachinePanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFDB58AEEFC43DA159C56114 /* MachinePanels.swift */; };
 		4F3B7E4FF0A12F0D9B0DDCEF /* MaterialPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = C314F862A43F8498C325A37A /* MaterialPreview.swift */; };
 		781DFF03E099FAFD930B9A5D /* TextOutliner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39582999A1293C2FF83451F /* TextOutliner.swift */; };
+		6070AFD5C6ADAB1941E6E387 /* Contour.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C254F75332D1142D62D6AC0 /* Contour.swift */; };
 		447B7F830C5EAC20CD5BA649 /* DXFImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E50EAD27B27DED670614DD19 /* DXFImporter.swift */; };
 		29C795656B649632CE7E6D71 /* DeviceProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */; };
 		80141C005A0395D8E73FC5AE /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81C6A183E1B0D5E30B61251C /* Document.swift */; };
@@ -71,6 +73,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		53471E61CF6162EB73992FF1 /* AppModel+Contour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Contour.swift"; sourceTree = "<group>"; };
 		D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Nodes.swift"; sourceTree = "<group>"; };
 		065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Tools.swift"; sourceTree = "<group>"; };
 		0901F3144504604B033DB915 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
@@ -83,6 +86,7 @@
 		FFDB58AEEFC43DA159C56114 /* MachinePanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachinePanels.swift; sourceTree = "<group>"; };
 		C314F862A43F8498C325A37A /* MaterialPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialPreview.swift; sourceTree = "<group>"; };
 		F39582999A1293C2FF83451F /* TextOutliner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextOutliner.swift; sourceTree = "<group>"; };
+		4C254F75332D1142D62D6AC0 /* Contour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contour.swift; sourceTree = "<group>"; };
 		E50EAD27B27DED670614DD19 /* DXFImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DXFImporter.swift; sourceTree = "<group>"; };
 		3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceProfile.swift; sourceTree = "<group>"; };
 		81C6A183E1B0D5E30B61251C /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
@@ -147,6 +151,7 @@
 		4917D8C381AA3D44C43066A2 /* KerfKutter */ = {
 			isa = PBXGroup;
 			children = (
+				53471E61CF6162EB73992FF1 /* AppModel+Contour.swift */,
 				D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */,
 				065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */,
 				0901F3144504604B033DB915 /* AppModel.swift */,
@@ -167,6 +172,7 @@
 		DC31EEF57A25B0B82E25DFFE /* KerfCore */ = {
 			isa = PBXGroup;
 			children = (
+				4C254F75332D1142D62D6AC0 /* Contour.swift */,
 				E50EAD27B27DED670614DD19 /* DXFImporter.swift */,
 				3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */,
 				81C6A183E1B0D5E30B61251C /* Document.swift */,
@@ -305,6 +311,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EA6BE4C36C2FEC4C6A4A2FC9 /* AppModel+Contour.swift in Sources */,
 				09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */,
 				4B5337C7D8C8DC122496637E /* AppModel+Tools.swift in Sources */,
 				65BE2BA1DCA25DD970B110A0 /* AppModel.swift in Sources */,
@@ -324,6 +331,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6070AFD5C6ADAB1941E6E387 /* Contour.swift in Sources */,
 				447B7F830C5EAC20CD5BA649 /* DXFImporter.swift in Sources */,
 				29C795656B649632CE7E6D71 /* DeviceProfile.swift in Sources */,
 				80141C005A0395D8E73FC5AE /* Document.swift in Sources */,

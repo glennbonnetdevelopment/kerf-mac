@@ -70,6 +70,7 @@ struct KerfApp: App {
                 Button("Nest on Bed") { model.nest() }
                 Button("Put Text Around Selected Shape") { model.addTextAlongSelection() }
                 Button("Add Registration Marks") { model.addRegistrationMarks() }
+                Button("Add Contour Cut Around Artwork") { model.addContourCut() }
             }
             CommandGroup(after: .toolbar) {
                 OpenPreviewButton()

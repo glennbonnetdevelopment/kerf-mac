@@ -635,4 +635,74 @@ final class Phase2Tests: XCTestCase {
         XCTAssertEqual(layer.speed, 900)
         XCTAssertEqual(layer.dither, .floydSteinberg)
     }
+
+    // MARK: - Curved text and contour cut
+
+    func testArcGuideArchesUpAndKeepsLength() {
+        let up = PathText.arcGuide(width: 100, degrees: 90)
+        XCTAssertEqual(up.length, 100, accuracy: 0.5)
+        // Middle of the arch is the top (y = 0); the ends drop below it (y down).
+        let mid = PathText.point(on: up, at: 50)!
+        XCTAssertEqual(mid.x, 50, accuracy: 0.1)
+        XCTAssertEqual(mid.y, 0, accuracy: 0.1)
+        XCTAssertGreaterThan(up.guide.first!.y, 5)
+        XCTAssertGreaterThan(up.guide.last!.y, 5)
+
+        let down = PathText.arcGuide(width: 100, degrees: -90)
+        XCTAssertLessThan(down.guide.first!.y, -5)
+        XCTAssertLessThan(down.guide.last!.y, -5)
+        XCTAssertLessThan(down.guide.first!.x, down.guide.last!.x)
+
+        // A letter standing on the arch leans outward: a box above the baseline at the left end
+        // ends up left of and below the middle.
+        let box = Polyline([Vec2(0, -10), Vec2(5, -10), Vec2(5, 0), Vec2(0, 0)], closed: true)
+        let placed = PathText.place([box], spec: up)[0]
+        XCTAssertLessThan(placed.bounds.maxY, 40)
+        XCTAssertLessThan(placed.bounds.minX, 15)
+    }
+
+    func testContourGrowsASquareAndFillsHoles() {
+        // A 20 mm ring-shaped square (with a 10 mm hole) on a 0.5 mm grid.
+        let bounds = Rect2(minX: 0, minY: 0, maxX: 20, maxY: 20)
+        var mask = Contour.grid(for: bounds, margin: 3, maxCells: 400, finest: 0.5)
+        XCTAssertEqual(mask.cell, 0.5, accuracy: 1e-9)
+        for y in 0..<mask.height {
+            for x in 0..<mask.width {
+                let px = mask.origin.x + (Double(x) + 0.5) * mask.cell, py = mask.origin.y + (Double(y) + 0.5) * mask.cell
+                let inOuter = px > 0 && px < 20 && py > 0 && py < 20
+                let inHole = px > 5 && px < 15 && py > 5 && py < 15
+                mask[x, y] = inOuter && !inHole
+            }
+        }
+        let loops = Contour.outline(mask, offset: 2)
+        XCTAssertEqual(loops.count, 1, "the hole is filled, leaving one outer loop")
+        let b = loops[0].bounds
+        XCTAssertEqual(b.minX, -2, accuracy: 0.6)
+        XCTAssertEqual(b.maxX, 22, accuracy: 0.6)
+        XCTAssertEqual(b.minY, -2, accuracy: 0.6)
+        XCTAssertEqual(b.maxY, 22, accuracy: 0.6)
+        // Corners are rounded, so the outline stays inside the grown square's corners.
+        XCTAssertFalse(loops[0].points.contains { $0.distance(to: Vec2(-2, -2)) < 0.3 })
+        XCTAssertLessThan(loops[0].points.count, 200)
+    }
+
+    func testContourKeepsSeparatePiecesApart() {
+        let bounds = Rect2(minX: 0, minY: 0, maxX: 60, maxY: 10)
+        var mask = Contour.grid(for: bounds, margin: 1, maxCells: 400, finest: 0.5)
+        for y in 0..<mask.height {
+            for x in 0..<mask.width {
+                let px = mask.origin.x + (Double(x) + 0.5) * mask.cell, py = mask.origin.y + (Double(y) + 0.5) * mask.cell
+                mask[x, y] = py > 0 && py < 10 && ((px > 0 && px < 10) || (px > 50 && px < 60))
+            }
+        }
+        XCTAssertEqual(Contour.outline(mask, offset: 1).count, 2)
+        XCTAssertEqual(Contour.outline(mask, offset: 25).count, 1, "a large offset merges them")
+    }
+
+    func testCurvedTextSpecDecodesWithoutCurve() throws {
+        let json = #"{"text":"Hi","fontName":"Helvetica","height":10}"#
+        let spec = try JSONDecoder().decode(TextSpec.self, from: Data(json.utf8))
+        XCTAssertNil(spec.curve)
+        XCTAssertFalse(spec.isCurved)
+    }
 }
