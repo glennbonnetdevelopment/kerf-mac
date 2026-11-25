@@ -13,7 +13,7 @@ public enum DXFImporter {
         return try importText(text)
     }
 
-    private struct Pair {
+    struct Pair {
         let code: Int
         let value: String
         var double: Double { Double(value) ?? 0 }
