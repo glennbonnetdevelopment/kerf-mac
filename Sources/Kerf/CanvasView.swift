@@ -361,12 +361,45 @@ struct CanvasView: View {
             ctx.fill(Path(r), with: .color(.accentColor.opacity(0.08)))
             ctx.stroke(Path(r), with: .color(.accentColor), lineWidth: 1)
         case .create(let s, let c):
-            ctx.stroke(viewPath(previewShape(from: s, to: c)), with: .color(.accentColor), lineWidth: 1.2)
+            let preview = previewShape(from: s, to: c)
+            ctx.stroke(viewPath(preview), with: .color(.accentColor), lineWidth: 1.2)
+            let pb = preview.bounds
+            if !pb.isEmpty { sizeTag(&ctx, bounds: pb, extra: nil) }
+        case .scale(_, let start, _, true):
+            let b = model.selectionBounds
+            let pct = start.width > 1e-9 && start.height > 1e-9
+                ? String(format: "%.0f%% × %.0f%%", b.width / start.width * 100, b.height / start.height * 100) : nil
+            sizeTag(&ctx, bounds: b, extra: pct)
+        case .rotate(_, _, _, true):
+            sizeTag(&ctx, bounds: model.selectionBounds, extra: nil)
+        case .move(_, true):
+            let b = model.selectionBounds
+            let u = model.units
+            sizeTag(&ctx, bounds: b, extra: "at \(u.format(b.minX)), \(u.format(b.minY))")
         default:
             break
         }
 
         drawRulers(&ctx, size: size)
+    }
+
+    /// A small label under the box showing its width and height while it is drawn, sized, rotated or moved.
+    private func sizeTag(_ ctx: inout GraphicsContext, bounds b: Rect2, extra: String?) {
+        guard !b.isEmpty else { return }
+        let u = model.units
+        var label = "\(u.format(b.width)) × \(u.format(b.height)) \(u.title)"
+        if let extra { label += "   " + extra }
+        let text = ctx.resolve(Text(label).font(.caption.monospacedDigit()).foregroundColor(.white))
+        let sz = text.measure(in: CGSize(width: 600, height: 40))
+        let below = viewport.toView(Vec2(b.center.x, b.maxY))
+        var center = CGPoint(x: below.x, y: below.y + 14 + sz.height / 2)
+        // Keep it on screen.
+        let vs = viewport.viewSize
+        if center.y + sz.height > vs.height - 30 { center.y = viewport.toView(Vec2(b.center.x, b.minY)).y - 30 - sz.height / 2 }
+        center.x = min(max(center.x, sz.width / 2 + 26), max(sz.width / 2 + 26, vs.width - sz.width / 2 - 8))
+        let bg = CGRect(x: center.x - sz.width / 2 - 6, y: center.y - sz.height / 2 - 3, width: sz.width + 12, height: sz.height + 6)
+        ctx.fill(Path(roundedRect: bg, cornerRadius: 5), with: .color(Color.black.opacity(0.75)))
+        ctx.draw(text, at: center)
     }
 
     /// Rulers along the top and left edges, in the chosen units, measured from the bed's top-left.
