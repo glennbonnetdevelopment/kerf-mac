@@ -307,9 +307,9 @@ final class AppModel: ObservableObject {
         for url in panel.urls { importFile(url) }
     }
 
-    static let projectExtensions = ["lbrn2", "lbrn", "esc5", "scut5"]
+    nonisolated static let projectExtensions = ["lbrn2", "lbrn", "esc5", "scut5"]
     static let projectTypes: [UTType] = projectExtensions.compactMap { UTType(filenameExtension: $0) }
-    static let importExtensions = ["svg", "dxf"] + projectExtensions
+    nonisolated static let importExtensions = ["svg", "dxf"] + projectExtensions
 
     func importFile(_ url: URL) {
         if Self.projectExtensions.contains(url.pathExtension.lowercased()) {
