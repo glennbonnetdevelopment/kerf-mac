@@ -20,6 +20,8 @@ struct MaterialPreviewView: View {
     @State private var showPaths = true
     @State private var busy = false
     @State private var generation = 0
+    /// The workpiece in machine coordinates, when one is set.
+    @State private var stock: Rect2?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -83,8 +85,15 @@ struct MaterialPreviewView: View {
             render = nil
             return
         }
-        let deepestLayer = model.document.layers.filter(\.enabled).map(\.cutDepth).max() ?? 0
-        if thickness < deepestLayer { thickness = max(deepestLayer, 6) }
+        if let w = model.document.workpiece, w.kind == .stock {
+            thickness = w.thickness
+            let a = model.profile.toMachine(Vec2(w.x, w.y)), b = model.profile.toMachine(Vec2(w.x + w.width, w.y + w.height))
+            stock = Rect2(minX: min(a.x, b.x), minY: min(a.y, b.y), maxX: max(a.x, b.x), maxY: max(a.y, b.y))
+        } else {
+            stock = nil
+            let deepestLayer = model.document.layers.filter(\.enabled).map(\.cutDepth).max() ?? 0
+            if thickness < deepestLayer { thickness = max(deepestLayer, 6) }
+        }
         moves = MillSimulator.moves(from: model.gcodeLines())
         rerender()
     }
@@ -94,10 +103,10 @@ struct MaterialPreviewView: View {
         generation += 1
         let token = generation
         let all = moves, count = Int((Double(all.count) * progress).rounded())
-        let stock = max(0.1, thickness), paths = showPaths
+        let depth = max(0.1, thickness), paths = showPaths, region = stock
         busy = true
         Task.detached(priority: .userInitiated) {
-            let result = CarvingRenderer.render(moves: all, upTo: count, thickness: stock, showPaths: paths)
+            let result = CarvingRenderer.render(moves: all, upTo: count, thickness: depth, region: region, showPaths: paths)
             await MainActor.run {
                 guard token == generation else { return }
                 render = result
@@ -108,8 +117,8 @@ struct MaterialPreviewView: View {
 }
 
 private enum CarvingRenderer {
-    static func render(moves: [MillMove], upTo count: Int, thickness: Double, showPaths: Bool) -> CarvingRender? {
-        var sim = MillSimulator(moves: moves)
+    static func render(moves: [MillMove], upTo count: Int, thickness: Double, region: Rect2?, showPaths: Bool) -> CarvingRender? {
+        var sim = region.map { MillSimulator(region: $0) } ?? MillSimulator(moves: moves)
         sim.run(moves.prefix(count))
         let w = sim.columns, h = sim.rows
         var pixels = [UInt8](repeating: 255, count: w * h * 4)

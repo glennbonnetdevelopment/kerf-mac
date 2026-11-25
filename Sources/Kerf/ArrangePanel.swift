@@ -80,6 +80,8 @@ struct ArrangePanel: View {
                 }
             }
 
+            WorkpieceSection()
+
             Section("Combine") {
                 HStack {
                     ForEach(AppModel.BooleanOp.allCases) { op in
@@ -104,6 +106,46 @@ struct ArrangePanel: View {
                 Toggle("Allow 90° rotation", isOn: $model.nestAllowRotation)
                 Button(model.selection.isEmpty ? "Nest all shapes on the bed" : "Nest selected shapes") { model.nest() }
                 Text("Packs shapes by their bounding boxes, tallest first, to save material.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Shapes") {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 6), spacing: 6) {
+                    ForEach(ShapeKind.allCases) { kind in
+                        Button {
+                            model.shapeKind = kind
+                            model.tool = .shape
+                        } label: {
+                            Image(systemName: kind.symbol)
+                                .frame(width: 30, height: 26)
+                                .background(model.tool == .shape && model.shapeKind == kind ? Color.accentColor.opacity(0.25) : .clear,
+                                            in: RoundedRectangle(cornerRadius: 5))
+                        }
+                        .buttonStyle(.plain)
+                        .help(kind.title)
+                    }
+                }
+                switch model.shapeKind {
+                case .star, .burst:
+                    Stepper("Points: \(model.shapeOptions.points)", value: $model.shapeOptions.points, in: 3...40)
+                    if model.shapeKind == .star {
+                        LabeledContent("Inner size \(Int(model.shapeOptions.innerRatio * 100))%") {
+                            Slider(value: $model.shapeOptions.innerRatio, in: 0.1...0.9).frame(width: 150)
+                        }
+                    }
+                case .polygon:
+                    Stepper("Sides: \(model.shapeOptions.sides)", value: $model.shapeOptions.sides, in: 3...40)
+                case .roundedRectangle:
+                    LabeledContent("Corner radius (mm)") {
+                        TextField("", value: $model.shapeOptions.cornerRadius, format: .number).frame(width: 70)
+                    }
+                case .gear:
+                    Stepper("Teeth: \(model.shapeOptions.teeth)", value: $model.shapeOptions.teeth, in: 4...80)
+                default:
+                    EmptyView()
+                }
+                Text("Pick a shape, then drag a box on the canvas. Hold Shift for equal width and height.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -144,6 +186,95 @@ struct ArrangePanel: View {
         LabeledContent(title) {
             TextField("", value: Binding(get: { (value * 100).rounded() / 100 }, set: { apply($0) }), format: .number)
                 .frame(width: 90)
+        }
+    }
+}
+
+/// The material piece (CNC stock or cutter mat) shown on the canvas.
+struct WorkpieceSection: View {
+    @EnvironmentObject var model: AppModel
+
+    var body: some View {
+        Section("Workpiece") {
+            Toggle("Show a workpiece on the bed", isOn: Binding(
+                get: { model.document.workpiece != nil },
+                set: { on in
+                    if on {
+                        let p = model.profile
+                        let preset = p.kind == .vinylCutter ? Workpiece.presets[0] : Workpiece.presets[5]
+                        var w = preset
+                        w.width = min(w.width, p.bedWidth)
+                        w.height = min(w.height, p.bedHeight)
+                        model.setWorkpiece(w)
+                    } else {
+                        model.setWorkpiece(nil)
+                    }
+                }))
+            if let w = model.document.workpiece {
+                Menu("Size preset: \(w.name)") {
+                    ForEach(Workpiece.presets, id: \.name) { preset in
+                        Button(preset.name) {
+                            var n = preset
+                            n.x = w.x
+                            n.y = w.y
+                            model.setWorkpiece(n)
+                        }
+                    }
+                }
+                Picker("Kind", selection: field(\.kind)) {
+                    ForEach(Workpiece.Kind.allCases) { Text($0.title).tag($0) }
+                }
+                number("Width (mm)", \.width)
+                number("Height (mm)", \.height)
+                if w.kind == .stock { number("Thickness (mm)", \.thickness) }
+                number("Left edge X (mm)", \.x)
+                number("Top edge Y (mm)", \.y)
+                HStack {
+                    Button("Move to bed origin") {
+                        var n = w
+                        let o = model.profile.fromMachine(.zero)
+                        n.x = o.x <= model.profile.bedWidth / 2 ? 0 : model.profile.bedWidth - n.width
+                        n.y = o.y <= model.profile.bedHeight / 2 ? 0 : model.profile.bedHeight - n.height
+                        model.setWorkpiece(n)
+                    }
+                    Button("Fit to artwork") {
+                        let b = model.document.shapes.filter { model.document.layer($0.layerID)?.mode != .print }
+                            .reduce(Rect2.empty) { $0.union($1.bounds) }
+                        guard !b.isEmpty else { return }
+                        var n = w
+                        let m = 5.0
+                        n.x = b.minX - m
+                        n.y = b.minY - m
+                        n.width = b.width + 2 * m
+                        n.height = b.height + 2 * m
+                        model.setWorkpiece(n)
+                    }
+                }
+                let outside = model.shapesOutsideWorkpiece
+                if outside > 0 {
+                    Label("\(outside) shape\(outside == 1 ? "" : "s") reach outside the workpiece", systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(.orange)
+                        .font(.caption)
+                }
+                Text("Nest and Centre use the workpiece instead of the whole bed.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func field<T>(_ key: WritableKeyPath<Workpiece, T>) -> Binding<T> {
+        Binding(get: { (model.document.workpiece ?? Workpiece(width: 1, height: 1))[keyPath: key] },
+                set: { v in
+                    guard var w = model.document.workpiece else { return }
+                    w[keyPath: key] = v
+                    model.setWorkpiece(w)
+                })
+    }
+
+    private func number(_ title: String, _ key: WritableKeyPath<Workpiece, Double>) -> some View {
+        LabeledContent(title) {
+            TextField("", value: field(key), format: .number.precision(.fractionLength(0...2))).frame(width: 80)
         }
     }
 }

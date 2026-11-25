@@ -4,7 +4,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 enum Tool: String, CaseIterable, Identifiable {
-    case select, rectangle, ellipse, line, text
+    case select, rectangle, ellipse, line, shape, text
 
     var id: String { rawValue }
 
@@ -14,11 +14,12 @@ enum Tool: String, CaseIterable, Identifiable {
         case .rectangle: return "rectangle"
         case .ellipse: return "circle"
         case .line: return "line.diagonal"
+        case .shape: return "star"
         case .text: return "textformat"
         }
     }
 
-    var title: String { rawValue.capitalized }
+    var title: String { self == .shape ? "Shapes" : rawValue.capitalized }
 }
 
 enum JobOrigin: String, CaseIterable, Identifiable {
@@ -51,6 +52,12 @@ final class AppModel: ObservableObject {
     @Published var pathTextFlip = false
 
     // Print and cut: measured machine positions of registration marks 1 and 2
+    @Published var shapeKind: ShapeKind = .star
+    @Published var shapeOptions = ShapeOptions()
+    @Published var registrationStyle: RegistrationStyle = .square
+    @Published var registrationMarkSize = 5.0
+    @Published var registrationMarkCount = 3
+    @Published var registrationMargin = 8.0
     @Published var measuredMark1: Vec2?
     @Published var measuredMark2: Vec2?
     @Published var useAlignment = false
@@ -414,10 +421,28 @@ final class AppModel: ObservableObject {
         transformSelection(Affine.translation(-c.x, -c.y).then(s).then(.translation(c.x, c.y)))
     }
 
+    /// Centres the selection on the workpiece when there is one, otherwise on the bed.
     func centerSelectionOnBed() {
         let b = selectionBounds
         guard !b.isEmpty else { return }
-        moveSelection(by: Vec2(profile.bedWidth / 2, profile.bedHeight / 2) - b.center)
+        moveSelection(by: workArea.center - b.center)
+    }
+
+    /// The workpiece if one is set, otherwise the whole bed.
+    var workArea: Rect2 {
+        document.workpiece?.rect ?? Rect2(minX: 0, minY: 0, maxX: profile.bedWidth, maxY: profile.bedHeight)
+    }
+
+    func setWorkpiece(_ w: Workpiece?) {
+        guard document.workpiece != w else { return }
+        checkpoint()
+        document.workpiece = w
+    }
+
+    /// Shapes that reach outside the workpiece.
+    var shapesOutsideWorkpiece: Int {
+        guard let r = document.workpiece?.rect else { return 0 }
+        return document.shapes.filter { !r.contains($0.bounds, tolerance: 0.01) && document.layer($0.layerID)?.mode != .print }.count
     }
 
     func deleteSelection() {

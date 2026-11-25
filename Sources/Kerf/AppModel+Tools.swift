@@ -66,7 +66,7 @@ extension AppModel {
         let shapes = document.shapes.filter { targets.contains($0.id) && document.layer($0.layerID)?.mode != .print }
         guard !shapes.isEmpty else { return }
         let sizes = shapes.map { Vec2($0.bounds.width, $0.bounds.height) }
-        let area = Rect2(minX: 0, minY: 0, maxX: profile.bedWidth, maxY: profile.bedHeight).insetBy(nestSpacing)
+        let area = workArea.insetBy(nestSpacing)
         let placements = Nester.pack(sizes: sizes, in: area, spacing: nestSpacing, allowRotation: nestAllowRotation)
         checkpoint()
         var missed = 0
@@ -85,7 +85,7 @@ extension AppModel {
             let b = document.shapes[i].bounds
             document.shapes[i].transform = t.then(.translation(p.origin.x - b.minX, p.origin.y - b.minY))
         }
-        if missed > 0 { alertMessage = "\(missed) shape(s) did not fit on the bed and were left where they were." }
+        if missed > 0 { alertMessage = "\(missed) shape(s) did not fit on the \(document.workpiece == nil ? "bed" : "workpiece") and were left where they were." }
     }
 
     // MARK: - Shape booleans
@@ -240,10 +240,9 @@ extension AppModel {
 
     // MARK: - Print and cut
 
-    static let registrationSize = 5.0
-
-    /// Adds three square registration marks around the selection (or all artwork) on a print-only layer.
-    func addRegistrationMarks(margin: Double = 8) {
+    /// Adds registration marks (3 or 4, in the chosen style) around the selection or all artwork, on a print-only layer.
+    /// Each mark's registration point is its shape's origin, so it survives moving the mark.
+    func addRegistrationMarks() {
         let artwork = (selection.isEmpty ? document.shapes : selectedShapes).filter { document.layer($0.layerID)?.mode != .print }
         let b = artwork.reduce(Rect2.empty) { $0.union($1.bounds) }
         guard !b.isEmpty else {
@@ -251,20 +250,26 @@ extension AppModel {
             return
         }
         checkpoint()
+        let size = max(1, registrationMarkSize)
         let layerID = document.layer(forMode: .print, name: "Registration", colorHex: "#000000")
         document.shapes.removeAll { $0.layerID == layerID && $0.name.hasPrefix("Mark ") }
-        for (i, c) in Registration.markCenters(around: b, margin: margin, size: Self.registrationSize).enumerated() {
-            document.shapes.append(Artwork(layerID: layerID, name: "Mark \(i + 1)", paths: [Registration.mark(at: c, size: Self.registrationSize)]))
+        let centers = Registration.markCenters(around: b, margin: max(0, registrationMargin), size: size, count: registrationMarkCount)
+        for (i, c) in centers.enumerated() {
+            let corner = Vec2(c.x < b.center.x ? -1 : 1, c.y < b.center.y ? -1 : 1)
+            let paths = Registration.mark(style: registrationStyle, size: size, index: i, corner: corner)
+            document.shapes.append(Artwork(layerID: layerID, name: "Mark \(i + 1)", paths: paths, transform: .translation(c.x, c.y)))
         }
         measuredMark1 = nil
         measuredMark2 = nil
         useAlignment = false
     }
 
-    /// Design-space centres of marks 1 and 2, if present.
+    /// Design-space registration points of marks 1 and 2, if present.
     var registrationMarkCenters: [Vec2] {
         ["Mark 1", "Mark 2"].compactMap { name in
-            document.shapes.first { $0.name == name && document.layer($0.layerID)?.mode == .print }?.bounds.center
+            guard let m = document.shapes.first(where: { $0.name == name && document.layer($0.layerID)?.mode == .print }) else { return nil }
+            // New marks are drawn around their own origin; older files have marks placed directly.
+            return m.localFrame.insetBy(-1e-6).contains(.zero) ? m.transform.apply(.zero) : m.bounds.center
         }
     }
 

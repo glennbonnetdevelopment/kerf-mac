@@ -343,9 +343,61 @@ public struct Artwork: Identifiable, Codable, Hashable, Sendable {
 }
 
 /// A design: layers and shapes on a workspace that matches the machine bed.
+/// The piece of material the job goes on: CNC stock or a cutter mat. Shown on the canvas inside the bed.
+public struct Workpiece: Codable, Hashable, Sendable {
+    public enum Kind: String, Codable, CaseIterable, Identifiable, Sendable {
+        case stock, mat, sheet
+        public var id: String { rawValue }
+        public var title: String {
+            switch self {
+            case .stock: return "Material stock"
+            case .mat: return "Cutting mat"
+            case .sheet: return "Sheet or vinyl"
+            }
+        }
+    }
+
+    public var kind: Kind
+    public var name: String
+    /// Top-left corner on the bed, in mm.
+    public var x: Double
+    public var y: Double
+    public var width: Double
+    public var height: Double
+    /// Material thickness in mm (used by the CNC preview).
+    public var thickness: Double
+
+    public init(kind: Kind = .stock, name: String = "Workpiece", x: Double = 0, y: Double = 0,
+                width: Double, height: Double, thickness: Double = 18) {
+        self.kind = kind
+        self.name = name
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.thickness = thickness
+    }
+
+    public var rect: Rect2 { Rect2(minX: x, minY: y, maxX: x + width, maxY: y + height) }
+
+    public static let presets: [Workpiece] = [
+        Workpiece(kind: .mat, name: "12 × 12 in mat", width: 304.8, height: 304.8, thickness: 0.3),
+        Workpiece(kind: .mat, name: "12 × 24 in mat", width: 304.8, height: 609.6, thickness: 0.3),
+        Workpiece(kind: .mat, name: "ScanNCut 12 × 12 mat", width: 305, height: 305, thickness: 0.3),
+        Workpiece(kind: .sheet, name: "Letter sheet", width: 215.9, height: 279.4, thickness: 0.1),
+        Workpiece(kind: .sheet, name: "A4 sheet", width: 210, height: 297, thickness: 0.1),
+        Workpiece(kind: .stock, name: "Plywood 300 × 300 × 18", width: 300, height: 300, thickness: 18),
+        Workpiece(kind: .stock, name: "Plywood 400 × 400 × 12", width: 400, height: 400, thickness: 12),
+        Workpiece(kind: .stock, name: "Board 600 × 150 × 19", width: 600, height: 150, thickness: 19),
+        Workpiece(kind: .stock, name: "Acrylic 300 × 200 × 3", width: 300, height: 200, thickness: 3),
+    ]
+}
+
 public struct KerfDocument: Codable, Hashable, Sendable {
     public var layers: [Layer]
     public var shapes: [Artwork]
+    /// Optional material piece shown on the bed.
+    public var workpiece: Workpiece?
 
     public init(layers: [Layer] = [], shapes: [Artwork] = []) {
         self.layers = layers

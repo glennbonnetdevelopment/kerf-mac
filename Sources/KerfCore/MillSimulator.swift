@@ -84,6 +84,17 @@ public struct MillSimulator: Sendable {
         heights = [Float](repeating: 0, count: columns * rows)
     }
 
+    /// A stock block covering exactly `region` (machine mm).
+    public init(region: Rect2, maxCells: Int = 1400) {
+        let longest = max(region.width, region.height, 1)
+        cell = max(0.05, longest / Double(maxCells))
+        originX = region.minX
+        originY = region.minY
+        columns = max(1, Int((max(region.width, cell) / cell).rounded(.up)))
+        rows = max(1, Int((max(region.height, cell) / cell).rounded(.up)))
+        heights = [Float](repeating: 0, count: columns * rows)
+    }
+
     /// Sweeps the tool along each cutting move. Moves above the stock leave it untouched.
     public mutating func run(_ moves: some Sequence<MillMove>) {
         for m in moves where min(m.from.z, m.to.z) < 0 {

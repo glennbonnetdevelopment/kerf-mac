@@ -137,6 +137,38 @@ struct CanvasView: View {
         ctx.stroke(major, with: .color(.gray.opacity(0.35)), lineWidth: 0.8)
         ctx.stroke(Path(bedRect), with: .color(.gray.opacity(0.6)), lineWidth: 1)
 
+        // Workpiece: the material sitting on the bed.
+        if let w = model.document.workpiece {
+            let r = CGRect(origin: vp.toView(Vec2(w.x, w.y)), size: CGSize(width: w.width * vp.zoom, height: w.height * vp.zoom))
+            let fill: Color, edge: Color
+            switch w.kind {
+            case .stock: fill = Color(red: 0.87, green: 0.72, blue: 0.52).opacity(0.35); edge = Color(red: 0.55, green: 0.36, blue: 0.18)
+            case .mat: fill = Color(red: 0.55, green: 0.78, blue: 0.85).opacity(0.25); edge = Color(red: 0.2, green: 0.45, blue: 0.55)
+            case .sheet: fill = Color.white.opacity(0.6); edge = Color.gray
+            }
+            ctx.fill(Path(r), with: .color(fill))
+            if w.kind == .mat {
+                // Cutting mats carry a 1 inch grid.
+                var g = Path()
+                var gx = 25.4
+                while gx < w.width - 1e-6 {
+                    g.move(to: vp.toView(Vec2(w.x + gx, w.y)))
+                    g.addLine(to: vp.toView(Vec2(w.x + gx, w.y + w.height)))
+                    gx += 25.4
+                }
+                var gy = 25.4
+                while gy < w.height - 1e-6 {
+                    g.move(to: vp.toView(Vec2(w.x, w.y + gy)))
+                    g.addLine(to: vp.toView(Vec2(w.x + w.width, w.y + gy)))
+                    gy += 25.4
+                }
+                ctx.stroke(g, with: .color(edge.opacity(0.25)), lineWidth: 0.6)
+            }
+            ctx.stroke(Path(r), with: .color(edge), lineWidth: 1.5)
+            let label = String(format: "%@ · %.0f × %.0f mm", w.name, w.width, w.height) + (w.kind == .stock ? String(format: " × %.1f", w.thickness) : "")
+            ctx.draw(Text(label).font(.caption2).foregroundColor(edge), at: CGPoint(x: r.minX + 4, y: r.minY - 3), anchor: .bottomLeading)
+        }
+
         // Machine origin marker.
         let originDoc = profile.fromMachine(.zero)
         let o = vp.toView(originDoc)
@@ -291,6 +323,8 @@ struct CanvasView: View {
             return [Flatten.ellipse(center: r.center, rx: r.width / 2, ry: r.height / 2, step: 0.2)]
         case .line:
             return [Polyline([s, c])]
+        case .shape:
+            return ShapeLibrary.make(model.shapeKind, in: r, options: model.shapeOptions)
         default:
             return []
         }
@@ -365,7 +399,7 @@ struct CanvasView: View {
                         return
                     }
                     switch model.tool {
-                    case .rectangle, .ellipse, .line:
+                    case .rectangle, .ellipse, .line, .shape:
                         dragMode = .create(start: start, current: doc)
                     case .text:
                         break
@@ -438,7 +472,7 @@ struct CanvasView: View {
                     let shape = previewShape(from: s, to: doc)
                     let b = shape.bounds
                     if max(b.width, b.height) > 0.5 {
-                        model.addShape(paths: shape, name: model.tool.title)
+                        model.addShape(paths: shape, name: model.tool == .shape ? model.shapeKind.title : model.tool.title)
                     }
                 case .none where model.tool == .text:
                     model.addText(at: doc)
@@ -525,6 +559,8 @@ struct CanvasView: View {
         let text: String
         if sb.isEmpty {
             text = "\(model.document.shapes.count) shapes · \(Int(model.profile.bedWidth))×\(Int(model.profile.bedHeight)) mm bed"
+                + (model.document.workpiece.map { String(format: " · workpiece %.0f×%.0f mm", $0.width, $0.height) } ?? "")
+                + (model.shapesOutsideWorkpiece > 0 ? " · \(model.shapesOutsideWorkpiece) outside workpiece" : "")
         } else {
             text = String(format: "Selection %.1f × %.1f mm at %.1f, %.1f", sb.width, sb.height, sb.minX, sb.minY)
         }

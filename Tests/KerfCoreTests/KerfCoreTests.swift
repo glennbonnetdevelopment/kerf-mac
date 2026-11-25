@@ -432,6 +432,55 @@ final class Phase2Tests: XCTestCase {
         XCTAssertEqual(PathText.nearestOffset(on: spec, to: PathText.point(on: spec, at: 30)!), 30, accuracy: 0.05)
     }
 
+    func testShapeLibraryFillsBox() {
+        let box = Rect2(minX: 10, minY: 20, maxX: 70, maxY: 60)
+        for kind in ShapeKind.allCases {
+            let polys = ShapeLibrary.make(kind, in: box)
+            XCTAssertFalse(polys.isEmpty, kind.title)
+            let b = polys.bounds
+            XCTAssertTrue(box.insetBy(-0.01).contains(b), "\(kind.title) spills out of its box")
+            XCTAssertGreaterThan(b.width, box.width * 0.85, kind.title)
+        }
+        var o = ShapeOptions()
+        o.points = 7
+        XCTAssertEqual(ShapeLibrary.make(.star, in: box, options: o)[0].points.count, 14)
+        o.sides = 8
+        XCTAssertEqual(ShapeLibrary.make(.polygon, in: box, options: o)[0].points.count, 8)
+    }
+
+    func testRegistrationStylesAndFourMarks() {
+        let art = Rect2(minX: 0, minY: 0, maxX: 100, maxY: 50)
+        let centers = Registration.markCenters(around: art, margin: 8, size: 5, count: 4)
+        XCTAssertEqual(centers.count, 4)
+        XCTAssertEqual(centers[3], Vec2(110.5, 60.5))
+        for style in RegistrationStyle.allCases {
+            let m = Registration.mark(style: style, size: 5, index: 1, corner: Vec2(1, -1))
+            XCTAssertFalse(m.isEmpty, style.title)
+            XCTAssertTrue(m.bounds.insetBy(-1e-6).contains(.zero), style.title) // registration point is the origin
+        }
+        // A top-right bracket opens toward the artwork: arms go left and down.
+        let bracket = Registration.mark(style: .corners, size: 5, index: 1, corner: Vec2(1, -1))[0].bounds
+        XCTAssertEqual(bracket.maxX, 0, accuracy: 1e-9)
+        XCTAssertEqual(bracket.minY, 0, accuracy: 1e-9)
+        XCTAssertEqual(bracket.minX, -10, accuracy: 1e-9)
+    }
+
+    func testWorkpieceRoundTripsAndOldFilesLoad() throws {
+        var doc = KerfDocument()
+        doc.workpiece = Workpiece(kind: .mat, name: "Mat", x: 5, y: 6, width: 304.8, height: 609.6, thickness: 0.3)
+        let back = try KerfDocument.decode(doc.encoded())
+        XCTAssertEqual(back.workpiece, doc.workpiece)
+        let old = try KerfDocument.decode(Data(#"{"version":2,"document":{"layers":[],"shapes":[]}}"#.utf8))
+        XCTAssertNil(old.workpiece)
+    }
+
+    func testMillSimulatorRegionMatchesStock() {
+        let sim = MillSimulator(region: Rect2(minX: 0, minY: 0, maxX: 300, maxY: 150), maxCells: 300)
+        XCTAssertEqual(sim.cell, 1, accuracy: 1e-9)
+        XCTAssertEqual(sim.columns, 300)
+        XCTAssertEqual(sim.rows, 150)
+    }
+
     func testNestingFitsRowsAndRejectsOversize() {
         let area = Rect2(minX: 0, minY: 0, maxX: 100, maxY: 100)
         let placed = Nester.pack(sizes: [Vec2(60, 40), Vec2(30, 50), Vec2(200, 10)], in: area, spacing: 2, allowRotation: true)

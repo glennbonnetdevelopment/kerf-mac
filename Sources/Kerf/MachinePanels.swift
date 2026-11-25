@@ -130,8 +130,10 @@ struct LaserPanel: View {
     private var printAndCut: some View {
         GroupBox("Print and cut") {
             VStack(alignment: .leading, spacing: 6) {
+                RegistrationSettings()
+                Button("Add registration marks") { model.addRegistrationMarks() }
                 if model.registrationMarkCenters.count < 2 {
-                    Text("Add registration marks (Arrange menu), print the PDF, and place the sheet on the bed.")
+                    Text("Add registration marks, print the PDF, and place the sheet on the bed.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {
@@ -348,6 +350,7 @@ struct CutterPanel: View {
                     }
                 }
                 Section("Print and cut") {
+                    RegistrationSettings()
                     Button("Add registration marks") { model.addRegistrationMarks() }
                     Button("Export print PDF…") { model.exportPrintPDF() }
                     Text("Print the PDF, then load the sheet with mark 1 at the cutter's origin. Cutters that read marks with an optical sensor use their own alignment routine; Kerf doesn't drive those sensors yet.")
@@ -538,5 +541,27 @@ private struct ProfileForm: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+/// Style, size, count and margin for new registration marks.
+struct RegistrationSettings: View {
+    @EnvironmentObject var model: AppModel
+
+    var body: some View {
+        Picker("Mark style", selection: $model.registrationStyle) {
+            ForEach(RegistrationStyle.allCases) { Text($0.title).tag($0) }
+        }
+        Picker("Marks", selection: $model.registrationMarkCount) {
+            Text("3 corners").tag(3)
+            Text("4 corners").tag(4)
+        }
+        .pickerStyle(.segmented)
+        LabeledContent("Mark size (mm)") {
+            TextField("", value: $model.registrationMarkSize, format: .number).frame(width: 60)
+        }
+        LabeledContent("Gap from artwork (mm)") {
+            TextField("", value: $model.registrationMargin, format: .number).frame(width: 60)
+        }
     }
 }

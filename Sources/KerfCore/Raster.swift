@@ -165,6 +165,22 @@ public enum Nester {
 
 // MARK: - Print and cut
 
+/// How registration marks look when printed.
+public enum RegistrationStyle: String, Codable, CaseIterable, Identifiable, Sendable {
+    case square, circle, crosshair, target, corners, squareAndCorners
+    public var id: String { rawValue }
+    public var title: String {
+        switch self {
+        case .square: return "Solid square"
+        case .circle: return "Solid circle"
+        case .crosshair: return "Crosshair"
+        case .target: return "Target (ring and dot)"
+        case .corners: return "Corner brackets"
+        case .squareAndCorners: return "Square plus corner brackets"
+        }
+    }
+}
+
 public enum Registration {
     /// Centres of three registration marks (top-left, top-right, bottom-left) around `bounds`.
     public static func markCenters(around bounds: Rect2, margin: Double, size: Double) -> [Vec2] {
@@ -172,10 +188,59 @@ public enum Registration {
         return [Vec2(r.minX, r.minY), Vec2(r.maxX, r.minY), Vec2(r.minX, r.maxY)]
     }
 
+    /// Centres of `count` (3 or 4) marks: top-left, top-right, bottom-left, then bottom-right.
+    public static func markCenters(around bounds: Rect2, margin: Double, size: Double, count: Int) -> [Vec2] {
+        var c = markCenters(around: bounds, margin: margin, size: size)
+        if count >= 4 {
+            let r = bounds.insetBy(-(margin + size / 2))
+            c.append(Vec2(r.maxX, r.maxY))
+        }
+        return c
+    }
+
     /// A filled-square registration mark outline.
     public static func mark(at c: Vec2, size: Double) -> Polyline {
         let h = size / 2
         return Polyline([Vec2(c.x - h, c.y - h), Vec2(c.x + h, c.y - h), Vec2(c.x + h, c.y + h), Vec2(c.x - h, c.y + h)], closed: true)
+    }
+
+    /// Outlines for one mark centred on (0, 0), filled even-odd when printed.
+    /// `corner` says which corner of the job the mark sits at (x and y are -1 or +1), so
+    /// corner brackets open toward the artwork.
+    public static func mark(style: RegistrationStyle, size: Double, index: Int, corner: Vec2) -> [Polyline] {
+        let h = size / 2
+        let line = max(0.3, size * 0.12)
+        switch style {
+        case .square:
+            return [mark(at: .zero, size: size)]
+        case .circle:
+            return [Flatten.ellipse(center: .zero, rx: h, ry: h, step: 0.05)]
+        case .crosshair:
+            return [plus(arm: h, width: line)]
+        case .target:
+            return [Flatten.ellipse(center: .zero, rx: h, ry: h, step: 0.05),
+                    Flatten.ellipse(center: .zero, rx: h - line, ry: h - line, step: 0.05),
+                    Flatten.ellipse(center: .zero, rx: h * 0.3, ry: h * 0.3, step: 0.05)]
+        case .corners:
+            return [bracket(arm: size * 2, width: max(0.5, size * 0.2), corner: corner)]
+        case .squareAndCorners:
+            // A solid square on mark 1 tells the cutter which way round the sheet is.
+            return index == 0 ? [mark(at: .zero, size: size)] : [bracket(arm: size * 2, width: max(0.5, size * 0.2), corner: corner)]
+        }
+    }
+
+    /// A plus sign as one outline, so it prints solid.
+    static func plus(arm a: Double, width w: Double) -> Polyline {
+        let t = w / 2
+        return Polyline([Vec2(-t, -a), Vec2(t, -a), Vec2(t, -t), Vec2(a, -t), Vec2(a, t), Vec2(t, t),
+                         Vec2(t, a), Vec2(-t, a), Vec2(-t, t), Vec2(-a, t), Vec2(-a, -t), Vec2(-t, -t)], closed: true)
+    }
+
+    /// An L bracket whose outside corner is at (0, 0), with arms running toward the artwork.
+    static func bracket(arm a: Double, width w: Double, corner: Vec2) -> Polyline {
+        let sx = corner.x < 0 ? 1.0 : -1.0, sy = corner.y < 0 ? 1.0 : -1.0
+        let pts = [Vec2(0, 0), Vec2(a, 0), Vec2(a, w), Vec2(w, w), Vec2(w, a), Vec2(0, a)]
+        return Polyline(pts.map { Vec2($0.x * sx, $0.y * sy) }, closed: true)
     }
 
     /// The similarity transform (rotate, scale, move) taking two design points onto two measured points.
