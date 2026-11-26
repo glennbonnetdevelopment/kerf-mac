@@ -136,6 +136,8 @@ final class AppModel: ObservableObject {
     @Published var originAnchor: OriginAnchor = .bottomLeft
     @Published var originReference: OriginReference = .job
     @Published var weedBorderEnabled = false
+    /// Shows the embroidery export sheet (see EmbroideryExportView).
+    @Published var showEmbroideryExport = false
     @Published var weedBorderMargin = 3.0
 
     // Nesting
