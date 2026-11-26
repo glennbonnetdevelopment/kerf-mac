@@ -170,6 +170,7 @@ struct CanvasView: View {
             case .stock: fill = Color(red: 0.87, green: 0.72, blue: 0.52).opacity(0.35); edge = Color(red: 0.55, green: 0.36, blue: 0.18)
             case .mat: fill = Color(red: 0.55, green: 0.78, blue: 0.85).opacity(0.25); edge = Color(red: 0.2, green: 0.45, blue: 0.55)
             case .sheet: fill = Color.white.opacity(0.6); edge = Color.gray
+            case .hoop: fill = Color.white.opacity(0.35); edge = Color(red: 0.45, green: 0.3, blue: 0.6)
             }
             ctx.fill(Path(r), with: .color(fill))
             if w.kind == .mat {
@@ -188,6 +189,15 @@ struct CanvasView: View {
                     gy += 25.4
                 }
                 ctx.stroke(g, with: .color(edge.opacity(0.25)), lineWidth: 0.6)
+            }
+            if w.kind == .hoop {
+                // Hoop centre: embroidery machines sew the design centred here.
+                var g = Path()
+                g.move(to: CGPoint(x: r.midX, y: r.minY))
+                g.addLine(to: CGPoint(x: r.midX, y: r.maxY))
+                g.move(to: CGPoint(x: r.minX, y: r.midY))
+                g.addLine(to: CGPoint(x: r.maxX, y: r.midY))
+                ctx.stroke(g, with: .color(edge.opacity(0.3)), style: StrokeStyle(lineWidth: 0.6, dash: [4, 4]))
             }
             ctx.stroke(Path(r), with: .color(edge), lineWidth: 1.5)
             let label = String(format: "%@ · %.0f × %.0f mm", w.name, w.width, w.height) + (w.kind == .stock ? String(format: " × %.1f", w.thickness) : "")

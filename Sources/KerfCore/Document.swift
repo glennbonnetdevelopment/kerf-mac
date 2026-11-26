@@ -148,6 +148,8 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
     public var rampLength: Double
     /// The material library entry these settings came from, if any.
     public var materialID: UUID?
+    /// Embroidery machine settings; nil uses the defaults for the layer's mode (see `embroiderySettings`).
+    public var embroidery: EmbroiderySettings?
 
     public init(id: UUID = UUID(), name: String, colorHex: String, mode: LayerMode = .line,
                 enabled: Bool = true, passes: Int = 1, speed: Double = 1000, power: Double = 50,
@@ -196,7 +198,7 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         case id, name, colorHex, mode, enabled, passes, speed, power, powerMin, airAssist, fillInterval, fillAngle,
              fillBidirectional, dither, invertImage, overscan, cutSpeed, cutForce, cutDepth, stepDown, toolDiameter,
              millOffset, plungeRate, spindleSpeed, defaultMillRole, millStyle, stepover, tabsEnabled, tabCount,
-             tabWidth, tabHeight, rampLength, materialID
+             tabWidth, tabHeight, rampLength, materialID, embroidery
     }
 
     /// Missing keys fall back to defaults so older project files still open.
@@ -236,6 +238,7 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         tabHeight = try c.decodeIfPresent(Double.self, forKey: .tabHeight) ?? d.tabHeight
         rampLength = try c.decodeIfPresent(Double.self, forKey: .rampLength) ?? d.rampLength
         materialID = try c.decodeIfPresent(UUID.self, forKey: .materialID)
+        embroidery = try c.decodeIfPresent(EmbroiderySettings.self, forKey: .embroidery)
     }
 
     /// Default layer colours, in the order new layers take them.
@@ -328,6 +331,14 @@ public struct Artwork: Identifiable, Codable, Hashable, Sendable {
     public var millRole: MillRole?
     /// Set when `text` is laid along a path, so the text and its position stay editable.
     public var pathText: PathTextSpec?
+    /// Line width in mm when the source file drew this shape as a stroke with no fill (nil when filled or unknown).
+    /// Auto embroidery sews such shapes along the line instead of filling them.
+    public var strokeWidth: Double?
+    /// Embroidery settings for this shape alone; nil uses its layer's.
+    public var embroidery: EmbroiderySettings?
+    /// Hand-edited stitches in the shape's own coordinates. When set they are sewn exactly as they are
+    /// instead of digitizing the outline.
+    public var stitches: [[Vec2]]?
 
     public init(id: UUID = UUID(), layerID: UUID, name: String, paths: [Polyline], transform: Affine = .identity,
                 text: TextSpec? = nil, image: RasterImage? = nil) {
@@ -355,13 +366,14 @@ public struct Artwork: Identifiable, Codable, Hashable, Sendable {
 /// The piece of material the job goes on: CNC stock or a cutter mat. Shown on the canvas inside the bed.
 public struct Workpiece: Codable, Hashable, Sendable {
     public enum Kind: String, Codable, CaseIterable, Identifiable, Sendable {
-        case stock, mat, sheet
+        case stock, mat, sheet, hoop
         public var id: String { rawValue }
         public var title: String {
             switch self {
             case .stock: return "Material stock"
             case .mat: return "Cutting mat"
             case .sheet: return "Sheet or vinyl"
+            case .hoop: return "Embroidery hoop"
             }
         }
     }
@@ -399,7 +411,7 @@ public struct Workpiece: Codable, Hashable, Sendable {
         Workpiece(kind: .stock, name: "Plywood 400 × 400 × 12", width: 400, height: 400, thickness: 12),
         Workpiece(kind: .stock, name: "Board 600 × 150 × 19", width: 600, height: 150, thickness: 19),
         Workpiece(kind: .stock, name: "Acrylic 300 × 200 × 3", width: 300, height: 200, thickness: 3),
-    ]
+    ] + EmbroideryHoop.all.map { Workpiece(kind: .hoop, name: $0.name, width: $0.width, height: $0.height, thickness: 1) }
 }
 
 public struct KerfDocument: Codable, Hashable, Sendable {

@@ -37,6 +37,8 @@ struct KerfApp: App {
                 Button("Export Machine File…") { model.exportMachineFile() }
                     .keyboardShortcut("e")
                 Button("Export Print PDF…") { model.exportPrintPDF() }
+                Button("Export Embroidery (PES, JEF, DST)…") { model.showEmbroideryExport = true }
+                    .keyboardShortcut("e", modifiers: [.command, .option])
             }
             CommandGroup(replacing: .undoRedo) {
                 Button("Undo") { model.undo() }
@@ -88,6 +90,14 @@ struct KerfApp: App {
                 .environmentObject(model)
         }
         .defaultSize(width: 900, height: 640)
+
+        WindowGroup("Edit Stitches", id: "stitch-editor", for: UUID.self) { $shapeID in
+            if let shapeID {
+                StitchEditorView(shapeID: shapeID)
+                    .environmentObject(model)
+            }
+        }
+        .defaultSize(width: 900, height: 700)
     }
 }
 
@@ -176,6 +186,10 @@ struct ContentView: View {
             }
         }
         .navigationTitle(model.fileURL?.lastPathComponent ?? "KerfKutter")
+        .sheet(isPresented: $model.showEmbroideryExport) {
+            EmbroideryExportView()
+                .environmentObject(model)
+        }
         .alert("KerfKutter", isPresented: Binding(get: { model.alertMessage != nil }, set: { if !$0 { model.alertMessage = nil } })) {
             Button("OK") { model.alertMessage = nil }
         } message: {

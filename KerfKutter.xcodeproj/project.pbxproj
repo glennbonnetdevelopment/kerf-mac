@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		EA6BE4C36C2FEC4C6A4A2FC9 /* AppModel+Contour.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53471E61CF6162EB73992FF1 /* AppModel+Contour.swift */; };
+		B793E089DD67FCD724764323 /* AppModel+Embroidery.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0695B6768F238B4B5489063 /* AppModel+Embroidery.swift */; };
 		4D237E70D004B46A9AF04A4D /* AppModel+Materials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */; };
 		09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */; };
 		4B5337C7D8C8DC122496637E /* AppModel+Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */; };
@@ -16,16 +17,20 @@
 		7E3B1F7332CCEEF365F950CD /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51DB124BE61587A19422F6A7 /* CanvasView.swift */; };
 		B12ED4004339E4B720120F88 /* Controllers.swift in Sources */ = {isa = PBXBuildFile; fileRef = F512B833B6C4ED207825841A /* Controllers.swift */; };
 		3323F1499BE7F746372F7BE9 /* EditorToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33FC064B1DD0BFD770D4D564 /* EditorToolbar.swift */; };
+		110039EF1FDAF2859B3A91B9 /* EmbroideryExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AA9517618CA6235A7E4E09E /* EmbroideryExportView.swift */; };
 		E65D3FCA10468CBC245A8161 /* KerfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3252AF6C1D40D7FD1888A3B2 /* KerfApp.swift */; };
 		83F4F3EE03EC93A586F6D149 /* LayersPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9066F35D7FA64AD292915B81 /* LayersPanel.swift */; };
 		21B58757E253BC5BABEFE442 /* MachinePanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFDB58AEEFC43DA159C56114 /* MachinePanels.swift */; };
 		59B48F3495E1625031C3362A /* MaterialLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */; };
 		4F3B7E4FF0A12F0D9B0DDCEF /* MaterialPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = C314F862A43F8498C325A37A /* MaterialPreview.swift */; };
+		BA3AE8E421587C01568F3F3E /* StitchEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */; };
 		781DFF03E099FAFD930B9A5D /* TextOutliner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39582999A1293C2FF83451F /* TextOutliner.swift */; };
 		6070AFD5C6ADAB1941E6E387 /* Contour.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C254F75332D1142D62D6AC0 /* Contour.swift */; };
 		447B7F830C5EAC20CD5BA649 /* DXFImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E50EAD27B27DED670614DD19 /* DXFImporter.swift */; };
 		29C795656B649632CE7E6D71 /* DeviceProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */; };
 		80141C005A0395D8E73FC5AE /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81C6A183E1B0D5E30B61251C /* Document.swift */; };
+		13B3985D3122CBC310AF3941 /* Embroidery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A09A4573DE0FA2583AC705D8 /* Embroidery.swift */; };
+		D9AA76938F0F95FB82E8129F /* EmbroideryFormats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E6BF1284A98FC05B2B0A8FD /* EmbroideryFormats.swift */; };
 		CB5DF4C92B7D89238618208F /* GRBLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */; };
 		9E1E7C74848252EBA2F98FE3 /* Generators.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA00D3AEA459E1003D3A8E03 /* Generators.swift */; };
 		7F00E4948A3B7EBB96AC2C7A /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F957B3F4575CD538D71D4B0F /* Geometry.swift */; };
@@ -36,9 +41,11 @@
 		4B605E8FAE1FC75646BD0640 /* ProjectImporters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BCB080CAF16C7A02A6870BE /* ProjectImporters.swift */; };
 		AEE5E2AB3606C3BB4887F06E /* Raster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64407DC74BC181882DBEEBAF /* Raster.swift */; };
 		62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */; };
+		2706ED034AAE2711CF2A72E4 /* SatinColumns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6228BF706D25036A4E831890 /* SatinColumns.swift */; };
 		97E8D0E03E319B8BB69C1EBA /* SerialPort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */; };
 		173B8B79F880460B7E279E1F /* ShapeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */; };
 		93BF49C7874653269D9A6F99 /* StarterMaterials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5241C9D95C51B5B841046D27 /* StarterMaterials.swift */; };
+		0B543ACA72299A7B43F62D75 /* EmbroideryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */; };
 		C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 125BC4804EAD037CDE428879 /* KerfCoreTests.swift */; };
 		893EF6FE3F847DA65CD969FE /* KerfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; };
 		E1702234442CFA704BA06EFF /* KerfCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -79,6 +86,7 @@
 
 /* Begin PBXFileReference section */
 		53471E61CF6162EB73992FF1 /* AppModel+Contour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Contour.swift"; sourceTree = "<group>"; };
+		C0695B6768F238B4B5489063 /* AppModel+Embroidery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Embroidery.swift"; sourceTree = "<group>"; };
 		113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Materials.swift"; sourceTree = "<group>"; };
 		D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Nodes.swift"; sourceTree = "<group>"; };
 		065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Tools.swift"; sourceTree = "<group>"; };
@@ -87,16 +95,20 @@
 		51DB124BE61587A19422F6A7 /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
 		F512B833B6C4ED207825841A /* Controllers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controllers.swift; sourceTree = "<group>"; };
 		33FC064B1DD0BFD770D4D564 /* EditorToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorToolbar.swift; sourceTree = "<group>"; };
+		5AA9517618CA6235A7E4E09E /* EmbroideryExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryExportView.swift; sourceTree = "<group>"; };
 		3252AF6C1D40D7FD1888A3B2 /* KerfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfApp.swift; sourceTree = "<group>"; };
 		9066F35D7FA64AD292915B81 /* LayersPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayersPanel.swift; sourceTree = "<group>"; };
 		FFDB58AEEFC43DA159C56114 /* MachinePanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachinePanels.swift; sourceTree = "<group>"; };
 		4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialLibraryView.swift; sourceTree = "<group>"; };
 		C314F862A43F8498C325A37A /* MaterialPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialPreview.swift; sourceTree = "<group>"; };
+		823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StitchEditorView.swift; sourceTree = "<group>"; };
 		F39582999A1293C2FF83451F /* TextOutliner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextOutliner.swift; sourceTree = "<group>"; };
 		4C254F75332D1142D62D6AC0 /* Contour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contour.swift; sourceTree = "<group>"; };
 		E50EAD27B27DED670614DD19 /* DXFImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DXFImporter.swift; sourceTree = "<group>"; };
 		3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceProfile.swift; sourceTree = "<group>"; };
 		81C6A183E1B0D5E30B61251C /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
+		A09A4573DE0FA2583AC705D8 /* Embroidery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Embroidery.swift; sourceTree = "<group>"; };
+		0E6BF1284A98FC05B2B0A8FD /* EmbroideryFormats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryFormats.swift; sourceTree = "<group>"; };
 		AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRBLProtocol.swift; sourceTree = "<group>"; };
 		FA00D3AEA459E1003D3A8E03 /* Generators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Generators.swift; sourceTree = "<group>"; };
 		F957B3F4575CD538D71D4B0F /* Geometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geometry.swift; sourceTree = "<group>"; };
@@ -107,9 +119,11 @@
 		0BCB080CAF16C7A02A6870BE /* ProjectImporters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectImporters.swift; sourceTree = "<group>"; };
 		64407DC74BC181882DBEEBAF /* Raster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Raster.swift; sourceTree = "<group>"; };
 		8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SVGImporter.swift; sourceTree = "<group>"; };
+		6228BF706D25036A4E831890 /* SatinColumns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SatinColumns.swift; sourceTree = "<group>"; };
 		6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPort.swift; sourceTree = "<group>"; };
 		7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeLibrary.swift; sourceTree = "<group>"; };
 		5241C9D95C51B5B841046D27 /* StarterMaterials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterMaterials.swift; sourceTree = "<group>"; };
+		23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryTests.swift; sourceTree = "<group>"; };
 		125BC4804EAD037CDE428879 /* KerfCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfCoreTests.swift; sourceTree = "<group>"; };
 		F91288DB192297DC903FE08C /* KerfKutter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KerfKutter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		240CB5B45D2EFCB17ED411CB /* KerfCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = KerfCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -183,6 +197,7 @@
 			isa = PBXGroup;
 			children = (
 				53471E61CF6162EB73992FF1 /* AppModel+Contour.swift */,
+				C0695B6768F238B4B5489063 /* AppModel+Embroidery.swift */,
 				113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */,
 				D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */,
 				065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */,
@@ -191,11 +206,13 @@
 				51DB124BE61587A19422F6A7 /* CanvasView.swift */,
 				F512B833B6C4ED207825841A /* Controllers.swift */,
 				33FC064B1DD0BFD770D4D564 /* EditorToolbar.swift */,
+				5AA9517618CA6235A7E4E09E /* EmbroideryExportView.swift */,
 				3252AF6C1D40D7FD1888A3B2 /* KerfApp.swift */,
 				9066F35D7FA64AD292915B81 /* LayersPanel.swift */,
 				FFDB58AEEFC43DA159C56114 /* MachinePanels.swift */,
 				4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */,
 				C314F862A43F8498C325A37A /* MaterialPreview.swift */,
+				823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */,
 				F39582999A1293C2FF83451F /* TextOutliner.swift */,
 			);
 			name = KerfKutter;
@@ -209,6 +226,8 @@
 				E50EAD27B27DED670614DD19 /* DXFImporter.swift */,
 				3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */,
 				81C6A183E1B0D5E30B61251C /* Document.swift */,
+				A09A4573DE0FA2583AC705D8 /* Embroidery.swift */,
+				0E6BF1284A98FC05B2B0A8FD /* EmbroideryFormats.swift */,
 				AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */,
 				FA00D3AEA459E1003D3A8E03 /* Generators.swift */,
 				F957B3F4575CD538D71D4B0F /* Geometry.swift */,
@@ -219,6 +238,7 @@
 				0BCB080CAF16C7A02A6870BE /* ProjectImporters.swift */,
 				64407DC74BC181882DBEEBAF /* Raster.swift */,
 				8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */,
+				6228BF706D25036A4E831890 /* SatinColumns.swift */,
 				6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */,
 				7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */,
 				5241C9D95C51B5B841046D27 /* StarterMaterials.swift */,
@@ -230,6 +250,7 @@
 		57D4214DC5EAAA741489E407 /* KerfCoreTests */ = {
 			isa = PBXGroup;
 			children = (
+				23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */,
 				125BC4804EAD037CDE428879 /* KerfCoreTests.swift */,
 			);
 			name = KerfCoreTests;
@@ -359,6 +380,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EA6BE4C36C2FEC4C6A4A2FC9 /* AppModel+Contour.swift in Sources */,
+				B793E089DD67FCD724764323 /* AppModel+Embroidery.swift in Sources */,
 				4D237E70D004B46A9AF04A4D /* AppModel+Materials.swift in Sources */,
 				09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */,
 				4B5337C7D8C8DC122496637E /* AppModel+Tools.swift in Sources */,
@@ -367,11 +389,13 @@
 				7E3B1F7332CCEEF365F950CD /* CanvasView.swift in Sources */,
 				B12ED4004339E4B720120F88 /* Controllers.swift in Sources */,
 				3323F1499BE7F746372F7BE9 /* EditorToolbar.swift in Sources */,
+				110039EF1FDAF2859B3A91B9 /* EmbroideryExportView.swift in Sources */,
 				E65D3FCA10468CBC245A8161 /* KerfApp.swift in Sources */,
 				83F4F3EE03EC93A586F6D149 /* LayersPanel.swift in Sources */,
 				21B58757E253BC5BABEFE442 /* MachinePanels.swift in Sources */,
 				59B48F3495E1625031C3362A /* MaterialLibraryView.swift in Sources */,
 				4F3B7E4FF0A12F0D9B0DDCEF /* MaterialPreview.swift in Sources */,
+				BA3AE8E421587C01568F3F3E /* StitchEditorView.swift in Sources */,
 				781DFF03E099FAFD930B9A5D /* TextOutliner.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -384,6 +408,8 @@
 				447B7F830C5EAC20CD5BA649 /* DXFImporter.swift in Sources */,
 				29C795656B649632CE7E6D71 /* DeviceProfile.swift in Sources */,
 				80141C005A0395D8E73FC5AE /* Document.swift in Sources */,
+				13B3985D3122CBC310AF3941 /* Embroidery.swift in Sources */,
+				D9AA76938F0F95FB82E8129F /* EmbroideryFormats.swift in Sources */,
 				CB5DF4C92B7D89238618208F /* GRBLProtocol.swift in Sources */,
 				9E1E7C74848252EBA2F98FE3 /* Generators.swift in Sources */,
 				7F00E4948A3B7EBB96AC2C7A /* Geometry.swift in Sources */,
@@ -394,6 +420,7 @@
 				4B605E8FAE1FC75646BD0640 /* ProjectImporters.swift in Sources */,
 				AEE5E2AB3606C3BB4887F06E /* Raster.swift in Sources */,
 				62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */,
+				2706ED034AAE2711CF2A72E4 /* SatinColumns.swift in Sources */,
 				97E8D0E03E319B8BB69C1EBA /* SerialPort.swift in Sources */,
 				173B8B79F880460B7E279E1F /* ShapeLibrary.swift in Sources */,
 				93BF49C7874653269D9A6F99 /* StarterMaterials.swift in Sources */,
@@ -404,6 +431,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0B543ACA72299A7B43F62D75 /* EmbroideryTests.swift in Sources */,
 				C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

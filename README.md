@@ -27,6 +27,20 @@ straight to the machine over USB.
   Redsail, EasyCut-class cutters, Janome Artistic Edge (experimental), Brother ScanNCut mats.
   Check the bed size and origin of each preset against your machine.
 - **Toolpath preview** with travel moves and estimated job time. Export `.gc`, `.plt` or `.svg`.
+- **Embroidery machines** (File > Export Embroidery, ⌥⌘E): turns the design into stitches and writes
+  Brother/Baby Lock `.pes`, Janome `.jef` or Tajima `.dst`. Each layer is a thread colour. **Auto
+  (digitize)**, the default, picks per shape: narrow parts of filled shapes become satin columns
+  that turn with each stroke (good for lettering), wide parts get tatami fill, and SVG strokes are
+  sewn by their width (satin from 1.2 mm, triple from 0.6 mm, otherwise running). Areas are sewn
+  before lines, nearest first, and layers of the same colour are grouped when nothing in between
+  overlaps them. Layers can also be set to running, triple (bean), satin border, satin columns or
+  fill, with underlay, pull compensation, tie stitches and trims. Colours are matched to the Brother
+  and Janome thread charts; the preview shows the stitches in the chosen hoop. Hoop sizes are also
+  workpiece presets so you can lay out in the hoop.
+  **Hand tweaking**: give any shape its own stitch type, density, angle and underlay (Arrange >
+  Embroidery), set the sewing order yourself (turn off "Optimize order" in the export window), and
+  edit stitches point by point in the stitch editor (move, add, delete, nudge with arrow keys, split
+  or join runs). Edited stitches are saved with the shape and sewn exactly as edited.
 
 ## Build and run
 
