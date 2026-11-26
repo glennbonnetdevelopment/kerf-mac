@@ -71,6 +71,10 @@ struct ArrangePanel: View {
                 }
             }
 
+            if model.selection.count == 1, let shape = model.selectedShapes.first, shape.image == nil {
+                ShapeEmbroiderySection(shapeID: shape.id)
+            }
+
             WorkpieceSection()
 
             Section("Combine") {
@@ -211,6 +215,37 @@ struct WorkpieceSection: View {
     private func number(_ title: String, _ key: WritableKeyPath<Workpiece, Double>) -> some View {
         LabeledContent(title) {
             TextField("", value: field(key), format: .number.precision(.fractionLength(0...2))).frame(width: 80)
+        }
+    }
+}
+
+/// Embroidery settings for one shape, and the way into the stitch editor.
+private struct ShapeEmbroiderySection: View {
+    @EnvironmentObject var model: AppModel
+    @Environment(\.openWindow) private var openWindow
+    let shapeID: UUID
+
+    var body: some View {
+        if let shape = model.shape(shapeID) {
+            Section("Embroidery") {
+                Toggle("Own stitch settings", isOn: Binding(get: { shape.embroidery != nil },
+                                                            set: { model.setOwnEmbroidery(shapeID, $0) }))
+                    .help("Sew this shape differently from the rest of its layer")
+                if let binding = model.shapeEmbroideryBinding(shapeID) {
+                    EmbroiderySettingsFields(settings: binding)
+                }
+                HStack {
+                    Button("Edit stitches…") { openWindow(id: "stitch-editor", value: shapeID) }
+                    if shape.stitches != nil {
+                        Button("Discard hand edits") { model.setEditedStitches(shapeID, nil) }
+                    }
+                }
+                if shape.stitches != nil {
+                    Text("This shape sews its hand-edited stitches. They move and scale with the shape, but changing its outline or settings won't update them until you discard the edits.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
     }
 }

@@ -139,7 +139,8 @@ final class AppModel: ObservableObject {
     /// Shows the embroidery export sheet (see EmbroideryExportView).
     @Published var showEmbroideryExport = false
     /// The last embroidery pattern and what it was made from, so the export sheet doesn't redigitize on every redraw.
-    var embroideryCache: (document: KerfDocument, shapes: Set<UUID>?, groupColors: Bool, name: String, pattern: StitchPattern)?
+    var embroideryCache: (document: KerfDocument, shapes: Set<UUID>?, groupColors: Bool, optimizeOrder: Bool, name: String,
+                          pattern: StitchPattern)?
     @Published var weedBorderMargin = 3.0
 
     // Nesting

@@ -187,7 +187,11 @@ public enum EmbroideryPlanner {
     /// Stitches for every enabled, sewable layer, in layer order. Layers next to each other with the same colour
     /// share a thread. With `groupColors`, a layer also joins an earlier layer of its colour when nothing sewn in
     /// between overlaps it, so the look is unchanged and there are fewer thread changes.
-    public static func plan(_ doc: KerfDocument, shapeIDs: Set<UUID>? = nil, groupColors: Bool = true) -> EmbroideryPlan {
+    ///
+    /// With `optimizeOrder`, shapes with the same settings are digitized together and sewn nearest first; without it,
+    /// shapes are sewn one by one in the order they are listed in the document.
+    public static func plan(_ doc: KerfDocument, shapeIDs: Set<UUID>? = nil, groupColors: Bool = true,
+                            optimizeOrder: Bool = true) -> EmbroideryPlan {
         var blocks: [StitchBlock] = []
         var cursor = Vec2.zero
         var started = false
@@ -200,7 +204,7 @@ public enum EmbroideryPlanner {
                 cursor = Vec2(first.minX, first.minY)
                 started = true
             }
-            let runs = layerRuns(shapes, settings: layer.embroiderySettings.sanitized, cursor: &cursor)
+            let runs = shapeRuns(shapes, layer: layer, optimizeOrder: optimizeOrder, cursor: &cursor)
             guard !runs.isEmpty else { continue }
             let block = StitchBlock(color: ThreadColor(hex: layer.colorHex), name: layer.name, runs: runs)
             let box = block.bounds
@@ -219,6 +223,63 @@ public enum EmbroideryPlanner {
             }
         }
         return EmbroideryPlan(blocks: blocks)
+    }
+
+    /// Stitches for a layer's shapes, honouring each shape's own settings and hand-edited stitches.
+    static func shapeRuns(_ shapes: [Artwork], layer: Layer, optimizeOrder: Bool, cursor: inout Vec2) -> [[Vec2]] {
+        enum Item {
+            case digitize(EmbroiderySettings, [Artwork])
+            case fixed(Artwork)
+        }
+        func settings(_ a: Artwork) -> EmbroiderySettings { (a.embroidery ?? layer.embroiderySettings).sanitized }
+        var items: [Item] = []
+        if optimizeOrder {
+            var index: [EmbroiderySettings: Int] = [:]
+            for shape in shapes {
+                if shape.stitches != nil {
+                    items.append(.fixed(shape))
+                    continue
+                }
+                let s = settings(shape)
+                if let i = index[s], case .digitize(let same, let list) = items[i] {
+                    items[i] = .digitize(same, list + [shape])
+                } else {
+                    index[s] = items.count
+                    items.append(.digitize(s, [shape]))
+                }
+            }
+        } else {
+            items = shapes.map { $0.stitches != nil ? .fixed($0) : .digitize(settings($0), [$0]) }
+        }
+        var runs: [[Vec2]] = []
+        for item in items {
+            switch item {
+            case .fixed(let shape):
+                let r = fixedRuns(shape)
+                runs += r
+                if let last = r.last?.last { cursor = last }
+            case .digitize(let s, let list):
+                runs += layerRuns(list, settings: s, cursor: &cursor)
+            }
+        }
+        return runs
+    }
+
+    /// A shape's hand-edited stitches, placed on the bed.
+    public static func fixedRuns(_ shape: Artwork) -> [[Vec2]] {
+        (shape.stitches ?? []).map { $0.map(shape.transform.apply) }.filter { $0.count >= 2 }
+    }
+
+    /// Digitizes one shape with its own (or its layer's) settings, in the shape's own coordinates, as a starting
+    /// point for editing stitches by hand.
+    public static func editableStitches(for shape: Artwork, layer: Layer) -> [[Vec2]] {
+        var copy = shape
+        copy.stitches = nil
+        let b = copy.bounds
+        var cursor = b.isEmpty ? Vec2.zero : Vec2(b.minX, b.minY)
+        let runs = layerRuns([copy], settings: (shape.embroidery ?? layer.embroiderySettings).sanitized, cursor: &cursor)
+        let back = shape.transform.inverted
+        return runs.map { $0.map(back.apply) }
     }
 
     static func layerRuns(_ shapes: [Artwork], settings s: EmbroiderySettings, cursor: inout Vec2) -> [[Vec2]] {

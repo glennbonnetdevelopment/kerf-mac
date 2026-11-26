@@ -8,6 +8,7 @@ struct EmbroideryExportView: View {
     @AppStorage("embroideryFormat") private var formatRaw = EmbroideryFormat.pes.rawValue
     @AppStorage("embroideryHoop") private var hoopName = EmbroideryHoop.brother[1].name
     @AppStorage("embroideryGroupColors") private var groupColors = true
+    @AppStorage("embroideryOptimizeOrder") private var optimizeOrder = true
 
     private var format: EmbroideryFormat { EmbroideryFormat(rawValue: formatRaw) ?? .pes }
 
@@ -17,7 +18,7 @@ struct EmbroideryExportView: View {
     }
 
     var body: some View {
-        let pattern = model.embroideryPattern(groupColors: groupColors)
+        let pattern = model.embroideryPattern(groupColors: groupColors, optimizeOrder: optimizeOrder)
         VStack(alignment: .leading, spacing: 12) {
             Text("Export Embroidery").font(.title3.bold())
             HStack(alignment: .top, spacing: 16) {
@@ -49,6 +50,17 @@ struct EmbroideryExportView: View {
                         }
                         ForEach(layers) { layer in
                             EmbroideryLayerSettings(layerID: layer.id)
+                        }
+                    }
+                    Section("Sewing order") {
+                        Toggle("Optimize order", isOn: $optimizeOrder)
+                            .help("Sew shapes with the same settings together, nearest first. Turn off to sew shapes in your own order.")
+                        if !optimizeOrder {
+                            SewingOrderList()
+                        } else {
+                            Text("Turn this off to set the order shapes are sewn in yourself.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -147,55 +159,100 @@ private struct EmbroideryLayerSettings: View {
                     RoundedRectangle(cornerRadius: 3).fill(Color(hex: layer.colorHex)).frame(width: 14, height: 14)
                     Text(layer.name).bold()
                 }
-                Picker("Stitch", selection: s.stitchType) {
-                    ForEach(StitchType.allCases) { Text($0.title).tag($0) }
-                }
-                switch s.wrappedValue.stitchType {
-                case .running, .bean:
-                    number("Stitch length (mm)", s.stitchLength)
-                case .satin:
-                    number("Column width (mm)", s.satinWidth)
-                    number("Density (mm between stitches)", s.density)
-                    number("Pull compensation (mm)", s.pullCompensation)
-                    Toggle("Centre-run underlay", isOn: s.underlay)
-                case .auto:
-                    number("Satin and fill density (mm)", s.density)
-                    number("Widest satin column (mm)", s.maxColumnWidth)
-                    number("Line stitch length (mm)", s.stitchLength)
-                    number("Fill angle (°)", s.fillAngle)
-                    number("Pull compensation (mm)", s.pullCompensation)
-                    Toggle("Underlay", isOn: s.underlay)
-                    Text("Narrow parts of filled shapes become satin columns that turn with the stroke, wide parts are filled, and lines are sewn by their width from the SVG (satin, triple or running). Areas are sewn first, lines on top.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                case .satinColumns:
-                    number("Density (mm between stitches)", s.density)
-                    number("Widest column (mm)", s.maxColumnWidth)
-                    number("Pull compensation (mm)", s.pullCompensation)
-                    Toggle("Centre-run underlay", isOn: s.underlay)
-                    number("Fill angle for wide parts (°)", s.fillAngle)
-                    Text("Satin stitches cross each stroke and turn with it. Parts wider than the widest column are filled. Open lines on this layer are skipped.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                case .fill:
-                    number("Row spacing (mm)", s.density)
-                    number("Angle (°)", s.fillAngle)
-                    number("Stitch length (mm)", s.fillStitchLength)
-                    number("Pull compensation (mm)", s.pullCompensation)
-                    Toggle("Underlay", isOn: s.underlay)
-                    Text("Fill sews the inside of closed shapes. Open lines on this layer are skipped.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                EmbroiderySettingsFields(settings: s)
             }
             .padding(.vertical, 2)
         }
+    }
+}
+
+/// Stitch type and the settings that go with it, for a layer or a single shape.
+struct EmbroiderySettingsFields: View {
+    @Binding var settings: EmbroiderySettings
+
+    var body: some View {
+        let s = $settings
+        Picker("Stitch", selection: s.stitchType) {
+            ForEach(StitchType.allCases) { Text($0.title).tag($0) }
+        }
+        switch settings.stitchType {
+        case .running, .bean:
+            number("Stitch length (mm)", s.stitchLength)
+        case .satin:
+            number("Column width (mm)", s.satinWidth)
+            number("Density (mm between stitches)", s.density)
+            number("Pull compensation (mm)", s.pullCompensation)
+            Toggle("Centre-run underlay", isOn: s.underlay)
+        case .auto:
+            number("Satin and fill density (mm)", s.density)
+            number("Widest satin column (mm)", s.maxColumnWidth)
+            number("Line stitch length (mm)", s.stitchLength)
+            number("Fill angle (°)", s.fillAngle)
+            number("Pull compensation (mm)", s.pullCompensation)
+            Toggle("Underlay", isOn: s.underlay)
+            caption("Narrow parts of filled shapes become satin columns that turn with the stroke, wide parts are filled, and lines are sewn by their width from the SVG (satin, triple or running). Areas are sewn first, lines on top.")
+        case .satinColumns:
+            number("Density (mm between stitches)", s.density)
+            number("Widest column (mm)", s.maxColumnWidth)
+            number("Pull compensation (mm)", s.pullCompensation)
+            Toggle("Centre-run underlay", isOn: s.underlay)
+            number("Fill angle for wide parts (°)", s.fillAngle)
+            caption("Satin stitches cross each stroke and turn with it. Parts wider than the widest column are filled. Open lines are skipped.")
+        case .fill:
+            number("Row spacing (mm)", s.density)
+            number("Angle (°)", s.fillAngle)
+            number("Stitch length (mm)", s.fillStitchLength)
+            number("Pull compensation (mm)", s.pullCompensation)
+            Toggle("Underlay", isOn: s.underlay)
+            caption("Fill sews the inside of closed shapes. Open lines are skipped.")
+        }
+    }
+
+    private func caption(_ text: String) -> some View {
+        Text(text).font(.caption).foregroundStyle(.secondary)
     }
 
     private func number(_ title: String, _ value: Binding<Double>) -> some View {
         LabeledContent(title) {
             TextField("", value: value, format: .number.precision(.fractionLength(0...2))).frame(width: 70)
         }
+    }
+}
+
+/// The shapes in the order they are sewn, with buttons to move them and to edit their stitches.
+private struct SewingOrderList: View {
+    @EnvironmentObject var model: AppModel
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        ForEach(model.embroideredLayers) { layer in
+            let shapes = model.embroideryShapes(in: layer.id)
+            ForEach(Array(shapes.enumerated()), id: \.element.id) { i, shape in
+                HStack(spacing: 6) {
+                    RoundedRectangle(cornerRadius: 2).fill(Color(hex: layer.colorHex)).frame(width: 10, height: 10)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(shape.name).lineLimit(1)
+                        Text(shape.stitches != nil ? "Hand-edited stitches"
+                             : (shape.embroidery ?? layer.embroiderySettings).stitchType.title + (shape.embroidery != nil ? " (own settings)" : ""))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button { model.moveInSewingOrder(shape.id, by: -1) } label: { Image(systemName: "chevron.up") }
+                        .disabled(i == 0)
+                        .help("Sew earlier")
+                    Button { model.moveInSewingOrder(shape.id, by: 1) } label: { Image(systemName: "chevron.down") }
+                        .disabled(i == shapes.count - 1)
+                        .help("Sew later")
+                    Button { openWindow(id: "stitch-editor", value: shape.id) } label: { Image(systemName: "pencil.and.outline") }
+                        .help("Edit this shape's stitches by hand")
+                }
+                .buttonStyle(.borderless)
+            }
+        }
+        Text("Layers sew top to bottom (reorder them in the Layers panel). Shapes sew in this order within their layer.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
     }
 }
 

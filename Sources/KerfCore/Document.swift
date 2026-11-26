@@ -334,6 +334,11 @@ public struct Artwork: Identifiable, Codable, Hashable, Sendable {
     /// Line width in mm when the source file drew this shape as a stroke with no fill (nil when filled or unknown).
     /// Auto embroidery sews such shapes along the line instead of filling them.
     public var strokeWidth: Double?
+    /// Embroidery settings for this shape alone; nil uses its layer's.
+    public var embroidery: EmbroiderySettings?
+    /// Hand-edited stitches in the shape's own coordinates. When set they are sewn exactly as they are
+    /// instead of digitizing the outline.
+    public var stitches: [[Vec2]]?
 
     public init(id: UUID = UUID(), layerID: UUID, name: String, paths: [Polyline], transform: Affine = .identity,
                 text: TextSpec? = nil, image: RasterImage? = nil) {

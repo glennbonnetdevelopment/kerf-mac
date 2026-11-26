@@ -186,6 +186,51 @@ final class EmbroideryTests: XCTestCase {
         XCTAssertTrue(thin.allSatisfy { abs($0.y - 90) < 1e-6 })
     }
 
+    // MARK: Hand tweaking
+
+    private func box(_ x: Double) -> Polyline {
+        Polyline([Vec2(x, 0), Vec2(x + 5, 0), Vec2(x + 5, 5), Vec2(x, 5)], closed: true)
+    }
+
+    func testShapeSettingsOverrideTheLayer() {
+        var d = doc([("#FF0000", .running, [box(0)])])
+        var filled = Artwork(layerID: d.layers[0].id, name: "f", paths: [box(20)])
+        filled.embroidery = EmbroiderySettings(stitchType: .fill, underlay: false)
+        d.shapes.append(filled)
+        let runs = EmbroideryPlanner.plan(d).blocks[0].runs
+        let inFilled = runs.flatMap { $0 }.filter { $0.x > 19 }
+        // Fill rows 0.4 mm apart across a 5 mm box: far more points than a running outline.
+        XCTAssertGreaterThan(inFilled.count, 30)
+        XCTAssertTrue(inFilled.contains { $0.x > 21 && $0.x < 24 && $0.y > 1 && $0.y < 4 })
+    }
+
+    func testHandEditedStitchesAreSewnAsTheyAre() {
+        var d = doc([("#FF0000", .running, [box(0)])])
+        d.shapes[0].transform = .translation(10, 0)
+        d.shapes[0].stitches = [[Vec2(0, 0), Vec2(1, 0), Vec2(1, 1)]]
+        let runs = EmbroideryPlanner.plan(d).blocks[0].runs
+        XCTAssertEqual(runs, [[Vec2(10, 0), Vec2(11, 0), Vec2(11, 1)]])
+    }
+
+    func testEditableStitchesAreInShapeCoordinates() {
+        var d = doc([("#FF0000", .running, [box(0)])])
+        d.shapes[0].transform = .translation(50, 0)
+        let local = EmbroideryPlanner.editableStitches(for: d.shapes[0], layer: d.layers[0])
+        let pts = local.flatMap { $0 }
+        XCTAssertFalse(pts.isEmpty)
+        XCTAssertTrue(pts.allSatisfy { $0.x > -0.01 && $0.x < 5.01 })
+    }
+
+    func testOwnOrderKeepsDocumentOrder() {
+        var d = doc([("#FF0000", .running, [box(0)])])
+        for x in [100.0, 10.0] { d.shapes.append(Artwork(layerID: d.layers[0].id, name: "b", paths: [box(x)])) }
+        func starts(_ plan: EmbroideryPlan) -> [Double] { plan.blocks[0].runs.compactMap { $0.first?.x } }
+        let optimized = starts(EmbroideryPlanner.plan(d))
+        XCTAssertLessThan(optimized[1], 50) // nearest first: the box at 10 before the one at 100
+        let own = starts(EmbroideryPlanner.plan(d, optimizeOrder: false))
+        XCTAssertGreaterThan(own[1], 50) // as listed: the box at 100 second
+    }
+
     func testPrintAndImageLayersAreNotSewn() {
         var d = doc([("#FF0000", .running, [square])])
         d.layers[0].mode = .print

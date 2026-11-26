@@ -37,6 +37,10 @@ straight to the machine over USB.
   fill, with underlay, pull compensation, tie stitches and trims. Colours are matched to the Brother
   and Janome thread charts; the preview shows the stitches in the chosen hoop. Hoop sizes are also
   workpiece presets so you can lay out in the hoop.
+  **Hand tweaking**: give any shape its own stitch type, density, angle and underlay (Arrange >
+  Embroidery), set the sewing order yourself (turn off "Optimize order" in the export window), and
+  edit stitches point by point in the stitch editor (move, add, delete, nudge with arrow keys, split
+  or join runs). Edited stitches are saved with the shape and sewn exactly as edited.
 
 ## Build and run
 

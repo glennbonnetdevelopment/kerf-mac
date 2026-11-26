@@ -90,6 +90,14 @@ struct KerfApp: App {
                 .environmentObject(model)
         }
         .defaultSize(width: 900, height: 640)
+
+        WindowGroup("Edit Stitches", id: "stitch-editor", for: UUID.self) { $shapeID in
+            if let shapeID {
+                StitchEditorView(shapeID: shapeID)
+                    .environmentObject(model)
+            }
+        }
+        .defaultSize(width: 900, height: 700)
     }
 }
 
