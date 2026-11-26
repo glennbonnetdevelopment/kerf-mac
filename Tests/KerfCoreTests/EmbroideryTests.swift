@@ -404,7 +404,7 @@ final class EmbroideryTests: XCTestCase {
         XCTAssertEqual(back.layers[0].embroidery?.stitchType, .satin)
         XCTAssertEqual(back.layers[0].embroidery?.satinWidth, 5)
 
-        let old = #"{"version":2,"document":{"layers":[{"name":"Old","colorHex":"#000000","mode":"line"}],"shapes":[]}}"#
+        let old = ##"{"version":2,"document":{"layers":[{"name":"Old","colorHex":"#000000","mode":"line"}],"shapes":[]}}"##
         let opened = try KerfDocument.decode(Data(old.utf8))
         XCTAssertNil(opened.layers[0].embroidery)
         XCTAssertEqual(opened.layers[0].embroiderySettings.stitchType, .auto)
