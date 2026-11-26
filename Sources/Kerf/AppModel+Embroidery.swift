@@ -10,9 +10,15 @@ extension AppModel {
 
     var embroideryDesignName: String { fileURL?.deletingPathExtension().lastPathComponent ?? "Design" }
 
-    func embroideryPattern() -> StitchPattern {
-        let plan = EmbroideryPlanner.plan(document, shapeIDs: embroideryShapeIDs)
-        return StitchPattern(plan: plan, name: embroideryDesignName)
+    func embroideryPattern(groupColors: Bool = true) -> StitchPattern {
+        let ids = embroideryShapeIDs, name = embroideryDesignName
+        if let c = embroideryCache, c.groupColors == groupColors, c.shapes == ids, c.name == name, c.document == document {
+            return c.pattern
+        }
+        let plan = EmbroideryPlanner.plan(document, shapeIDs: ids, groupColors: groupColors)
+        let pattern = StitchPattern(plan: plan, name: name)
+        embroideryCache = (document, ids, groupColors, name, pattern)
+        return pattern
     }
 
     /// Layers that will be sewn, with at least one shape in the export.

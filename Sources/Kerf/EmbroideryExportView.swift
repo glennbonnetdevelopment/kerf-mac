@@ -7,6 +7,7 @@ struct EmbroideryExportView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("embroideryFormat") private var formatRaw = EmbroideryFormat.pes.rawValue
     @AppStorage("embroideryHoop") private var hoopName = EmbroideryHoop.brother[1].name
+    @AppStorage("embroideryGroupColors") private var groupColors = true
 
     private var format: EmbroideryFormat { EmbroideryFormat(rawValue: formatRaw) ?? .pes }
 
@@ -16,7 +17,7 @@ struct EmbroideryExportView: View {
     }
 
     var body: some View {
-        let pattern = model.embroideryPattern()
+        let pattern = model.embroideryPattern(groupColors: groupColors)
         VStack(alignment: .leading, spacing: 12) {
             Text("Export Embroidery").font(.title3.bold())
             HStack(alignment: .top, spacing: 16) {
@@ -37,6 +38,8 @@ struct EmbroideryExportView: View {
                         if !model.selection.isEmpty {
                             Toggle("Selected shapes only", isOn: $model.cutSelectionOnly)
                         }
+                        Toggle("Group same colours", isOn: $groupColors)
+                            .help("Sew a layer with an earlier layer of the same thread when nothing in between overlaps it, for fewer thread changes")
                     }
                     Section("Layers") {
                         let layers = model.embroideredLayers
@@ -155,6 +158,25 @@ private struct EmbroideryLayerSettings: View {
                     number("Density (mm between stitches)", s.density)
                     number("Pull compensation (mm)", s.pullCompensation)
                     Toggle("Centre-run underlay", isOn: s.underlay)
+                case .auto:
+                    number("Satin and fill density (mm)", s.density)
+                    number("Widest satin column (mm)", s.maxColumnWidth)
+                    number("Line stitch length (mm)", s.stitchLength)
+                    number("Fill angle (°)", s.fillAngle)
+                    number("Pull compensation (mm)", s.pullCompensation)
+                    Toggle("Underlay", isOn: s.underlay)
+                    Text("Narrow parts of filled shapes become satin columns that turn with the stroke, wide parts are filled, and lines are sewn by their width from the SVG (satin, triple or running). Areas are sewn first, lines on top.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                case .satinColumns:
+                    number("Density (mm between stitches)", s.density)
+                    number("Widest column (mm)", s.maxColumnWidth)
+                    number("Pull compensation (mm)", s.pullCompensation)
+                    Toggle("Centre-run underlay", isOn: s.underlay)
+                    number("Fill angle for wide parts (°)", s.fillAngle)
+                    Text("Satin stitches cross each stroke and turn with it. Parts wider than the widest column are filled. Open lines on this layer are skipped.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 case .fill:
                     number("Row spacing (mm)", s.density)
                     number("Angle (°)", s.fillAngle)

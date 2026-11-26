@@ -77,6 +77,10 @@ public struct Rect2: Hashable, Codable, Sendable {
             r.minY >= minY - tolerance && r.maxY <= maxY + tolerance
     }
 
+    public func intersects(_ o: Rect2) -> Bool {
+        !isEmpty && !o.isEmpty && minX <= o.maxX && o.minX <= maxX && minY <= o.maxY && o.minY <= maxY
+    }
+
     public func insetBy(_ d: Double) -> Rect2 {
         Rect2(minX: minX + d, minY: minY + d, maxX: maxX - d, maxY: maxY - d)
     }

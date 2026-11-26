@@ -331,6 +331,9 @@ public struct Artwork: Identifiable, Codable, Hashable, Sendable {
     public var millRole: MillRole?
     /// Set when `text` is laid along a path, so the text and its position stay editable.
     public var pathText: PathTextSpec?
+    /// Line width in mm when the source file drew this shape as a stroke with no fill (nil when filled or unknown).
+    /// Auto embroidery sews such shapes along the line instead of filling them.
+    public var strokeWidth: Double?
 
     public init(id: UUID = UUID(), layerID: UUID, name: String, paths: [Polyline], transform: Affine = .identity,
                 text: TextSpec? = nil, image: RasterImage? = nil) {

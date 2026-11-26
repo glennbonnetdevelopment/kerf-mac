@@ -7,10 +7,13 @@ import FoundationXML
 public struct ImportedGroup: Sendable {
     public var colorHex: String
     public var paths: [Polyline]
+    /// Line width in mm when the paths were drawn as strokes with no fill; nil for filled shapes.
+    public var strokeWidth: Double?
 
-    public init(colorHex: String, paths: [Polyline]) {
+    public init(colorHex: String, paths: [Polyline], strokeWidth: Double? = nil) {
         self.colorHex = colorHex
         self.paths = paths
+        self.strokeWidth = strokeWidth
     }
 }
 
@@ -147,6 +150,8 @@ public enum SVGImporter {
         var transform = Affine.identity
         var stroke: String?
         var fill: String? = "#000000" // SVG default fill is black
+        /// In user units; SVG's default is 1.
+        var strokeWidth = 1.0
         var hidden = false
     }
 
@@ -162,7 +167,8 @@ public enum SVGImporter {
         func orderedGroups() -> [ImportedGroup] {
             order.compactMap { key in
                 guard let p = groups[key], !p.isEmpty else { return nil }
-                return ImportedGroup(colorHex: key, paths: p)
+                let parts = key.split(separator: "|", maxSplits: 1).map(String.init)
+                return ImportedGroup(colorHex: parts[0], paths: p, strokeWidth: parts.count > 1 ? Double(parts[1]) : nil)
             }
         }
 
@@ -183,6 +189,7 @@ public enum SVGImporter {
             }
             if let s = SVGImporter.parseColor(props["stroke"]) { style.stroke = s }
             if let f = SVGImporter.parseColor(props["fill"]) { style.fill = f }
+            if let w = props["stroke-width"].flatMap({ SVGImporter.numbers($0).first }), w >= 0 { style.strokeWidth = w }
             if props["display"] == "none" || props["visibility"] == "hidden" { style.hidden = true }
 
             var local = Affine.identity
@@ -234,8 +241,13 @@ public enum SVGImporter {
             else if let f = style.fill, f != "none" { color = f }
             else { color = "#000000" }
             let placed = paths.transformed(style.transform).filter { $0.points.count > 1 }
-            if groups[color] == nil { order.append(color) }
-            groups[color, default: []].append(contentsOf: placed)
+            // Outlines drawn only as a stroke keep their line width (in mm), so embroidery can sew them as lines.
+            let strokeOnly = (style.stroke.map { $0 != "none" } ?? false) && (style.fill == nil || style.fill == "none")
+            let key = strokeOnly
+                ? color + String(format: "|%.2f", style.strokeWidth * style.transform.meanScale)
+                : color
+            if groups[key] == nil { order.append(key) }
+            groups[key, default: []].append(contentsOf: placed)
         }
 
         func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {

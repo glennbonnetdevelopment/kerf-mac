@@ -138,6 +138,8 @@ final class AppModel: ObservableObject {
     @Published var weedBorderEnabled = false
     /// Shows the embroidery export sheet (see EmbroideryExportView).
     @Published var showEmbroideryExport = false
+    /// The last embroidery pattern and what it was made from, so the export sheet doesn't redigitize on every redraw.
+    var embroideryCache: (document: KerfDocument, shapes: Set<UUID>?, groupColors: Bool, name: String, pattern: StitchPattern)?
     @Published var weedBorderMargin = 3.0
 
     // Nesting
@@ -340,7 +342,8 @@ final class AppModel: ObservableObject {
             var added: Set<UUID> = []
             for g in groups {
                 let layerID = document.layer(forColor: g.colorHex, defaultMode: defaultMode)
-                let shape = Artwork(layerID: layerID, name: url.deletingPathExtension().lastPathComponent, paths: g.paths)
+                var shape = Artwork(layerID: layerID, name: url.deletingPathExtension().lastPathComponent, paths: g.paths)
+                shape.strokeWidth = g.strokeWidth
                 document.shapes.append(shape)
                 added.insert(shape.id)
             }

@@ -28,11 +28,15 @@ straight to the machine over USB.
   Check the bed size and origin of each preset against your machine.
 - **Toolpath preview** with travel moves and estimated job time. Export `.gc`, `.plt` or `.svg`.
 - **Embroidery machines** (File > Export Embroidery, ⌥⌘E): turns the design into stitches and writes
-  Brother/Baby Lock `.pes`, Janome `.jef` or Tajima `.dst`. Each layer is a thread colour, sewn as
-  running, triple (bean), satin border or tatami fill, with underlay, pull compensation, tie stitches
-  and trims. Colours are matched to the Brother and Janome thread charts; the preview shows the
-  stitches in the chosen hoop. Hoop sizes are also workpiece presets so you can lay out in the hoop.
-  Satin borders follow outlines at a fixed width; true satin columns for lettering need a digitizer.
+  Brother/Baby Lock `.pes`, Janome `.jef` or Tajima `.dst`. Each layer is a thread colour. **Auto
+  (digitize)**, the default, picks per shape: narrow parts of filled shapes become satin columns
+  that turn with each stroke (good for lettering), wide parts get tatami fill, and SVG strokes are
+  sewn by their width (satin from 1.2 mm, triple from 0.6 mm, otherwise running). Areas are sewn
+  before lines, nearest first, and layers of the same colour are grouped when nothing in between
+  overlaps them. Layers can also be set to running, triple (bean), satin border, satin columns or
+  fill, with underlay, pull compensation, tie stitches and trims. Colours are matched to the Brother
+  and Janome thread charts; the preview shows the stitches in the chosen hoop. Hoop sizes are also
+  workpiece presets so you can lay out in the hoop.
 
 ## Build and run
 

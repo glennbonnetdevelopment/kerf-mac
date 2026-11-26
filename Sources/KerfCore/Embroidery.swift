@@ -4,6 +4,9 @@ import Foundation
 
 /// How a layer's shapes are sewn on an embroidery machine.
 public enum StitchType: String, Codable, CaseIterable, Sendable, Identifiable {
+    /// Picks per shape: satin columns for narrow filled parts, tatami fill for wide ones, and running, triple
+    /// or satin lines for strokes depending on their width. Filled areas are sewn first, lines on top.
+    case auto
     /// A single line of stitches along the outline.
     case running
     /// Each stitch sewn three times (forward, back, forward) for a bold line.
@@ -12,15 +15,20 @@ public enum StitchType: String, Codable, CaseIterable, Sendable, Identifiable {
     case satin
     /// Rows of stitches filling the inside of closed shapes (tatami).
     case fill
+    /// Satin columns across each stroke of closed shapes, turning with the stroke (for lettering).
+    /// Parts wider than the maximum column width are filled instead.
+    case satinColumns
 
     public var id: String { rawValue }
 
     public var title: String {
         switch self {
+        case .auto: return "Auto (digitize)"
         case .running: return "Running stitch"
         case .bean: return "Triple (bean) stitch"
         case .satin: return "Satin border"
         case .fill: return "Fill (tatami)"
+        case .satinColumns: return "Satin columns (lettering)"
         }
     }
 }
@@ -42,10 +50,12 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
     public var underlay: Bool
     /// Extra width added to satin columns and fill rows, because thread pulls the fabric in.
     public var pullCompensation: Double
+    /// Satin columns: strokes wider than this are filled instead, since long satin stitches snag.
+    public var maxColumnWidth: Double
 
     public init(stitchType: StitchType = .running, stitchLength: Double = 2.5, satinWidth: Double = 3,
                 density: Double = 0.4, fillAngle: Double = 45, fillStitchLength: Double = 3.5,
-                underlay: Bool = true, pullCompensation: Double = 0.2) {
+                underlay: Bool = true, pullCompensation: Double = 0.2, maxColumnWidth: Double = 7) {
         self.stitchType = stitchType
         self.stitchLength = stitchLength
         self.satinWidth = satinWidth
@@ -54,10 +64,11 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
         self.fillStitchLength = fillStitchLength
         self.underlay = underlay
         self.pullCompensation = pullCompensation
+        self.maxColumnWidth = maxColumnWidth
     }
 
     private enum CodingKeys: String, CodingKey {
-        case stitchType, stitchLength, satinWidth, density, fillAngle, fillStitchLength, underlay, pullCompensation
+        case stitchType, stitchLength, satinWidth, density, fillAngle, fillStitchLength, underlay, pullCompensation, maxColumnWidth
     }
 
     public init(from decoder: Decoder) throws {
@@ -71,11 +82,12 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
         fillStitchLength = try c.decodeIfPresent(Double.self, forKey: .fillStitchLength) ?? d.fillStitchLength
         underlay = try c.decodeIfPresent(Bool.self, forKey: .underlay) ?? d.underlay
         pullCompensation = try c.decodeIfPresent(Double.self, forKey: .pullCompensation) ?? d.pullCompensation
+        maxColumnWidth = try c.decodeIfPresent(Double.self, forKey: .maxColumnWidth) ?? d.maxColumnWidth
     }
 
-    /// Settings a layer starts with: fill layers fill, everything else follows the outline.
+    /// Settings a layer starts with: automatic digitizing.
     public static func defaults(for mode: LayerMode) -> EmbroiderySettings {
-        EmbroiderySettings(stitchType: mode == .fill ? .fill : .running)
+        EmbroiderySettings(stitchType: .auto)
     }
 
     /// The settings with every value kept to a range a machine can sew.
@@ -90,6 +102,7 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
         s.fillAngle = fillAngle.isFinite ? fillAngle : 45
         s.fillStitchLength = clamp(fillStitchLength, 1, 7, 3.5)
         s.pullCompensation = clamp(pullCompensation, 0, 2, 0.2)
+        s.maxColumnWidth = clamp(maxColumnWidth, 1, 12, 7)
         return s
     }
 }
@@ -144,6 +157,12 @@ public struct StitchBlock: Hashable, Sendable {
         self.name = name
         self.runs = runs
     }
+
+    public var bounds: Rect2 {
+        var r = Rect2.empty
+        for run in runs { for p in run { r.include(p) } }
+        return r
+    }
 }
 
 /// The whole design as stitches, in sewing order.
@@ -165,8 +184,10 @@ public struct EmbroideryPlan: Hashable, Sendable {
 
 /// Turns a design's vector shapes into stitches.
 public enum EmbroideryPlanner {
-    /// Stitches for every enabled, sewable layer, in layer order. Layers next to each other with the same colour share a thread.
-    public static func plan(_ doc: KerfDocument, shapeIDs: Set<UUID>? = nil) -> EmbroideryPlan {
+    /// Stitches for every enabled, sewable layer, in layer order. Layers next to each other with the same colour
+    /// share a thread. With `groupColors`, a layer also joins an earlier layer of its colour when nothing sewn in
+    /// between overlaps it, so the look is unchanged and there are fewer thread changes.
+    public static func plan(_ doc: KerfDocument, shapeIDs: Set<UUID>? = nil, groupColors: Bool = true) -> EmbroideryPlan {
         var blocks: [StitchBlock] = []
         var cursor = Vec2.zero
         var started = false
@@ -181,11 +202,20 @@ public enum EmbroideryPlanner {
             }
             let runs = layerRuns(shapes, settings: layer.embroiderySettings.sanitized, cursor: &cursor)
             guard !runs.isEmpty else { continue }
-            let color = ThreadColor(hex: layer.colorHex)
-            if let last = blocks.last, last.color == color {
-                blocks[blocks.count - 1].runs += runs
+            let block = StitchBlock(color: ThreadColor(hex: layer.colorHex), name: layer.name, runs: runs)
+            let box = block.bounds
+            var target: Int?
+            var j = blocks.count - 1
+            while j >= 0 {
+                if blocks[j].color == block.color { target = j; break }
+                // Only the block right before may be joined unless grouping; never move past an overlapping one.
+                if !groupColors || blocks[j].bounds.intersects(box) { break }
+                j -= 1
+            }
+            if let t = target {
+                blocks[t].runs += runs
             } else {
-                blocks.append(StitchBlock(color: color, name: layer.name, runs: runs))
+                blocks.append(block)
             }
         }
         return EmbroideryPlan(blocks: blocks)
@@ -194,6 +224,8 @@ public enum EmbroideryPlanner {
     static func layerRuns(_ shapes: [Artwork], settings s: EmbroiderySettings, cursor: inout Vec2) -> [[Vec2]] {
         var runs: [[Vec2]] = []
         switch s.stitchType {
+        case .auto:
+            runs = autoRuns(shapes, settings: s, cursor: &cursor)
         case .running, .bean, .satin:
             let polys = shapes.flatMap(\.placedPaths).map { $0.deduplicated() }.filter { $0.points.count >= 2 }
             for path in Planner.order(polys, from: cursor, innerFirst: true) {
@@ -207,7 +239,7 @@ public enum EmbroideryPlanner {
                 }
                 if let last = runs.last?.last { cursor = last }
             }
-        case .fill:
+        case .fill, .satinColumns:
             var remaining = shapes.map { $0.placedPaths.map { $0.deduplicated() }.filter { $0.closed && $0.points.count >= 3 } }
                 .filter { !$0.isEmpty }
             while !remaining.isEmpty {
@@ -215,6 +247,12 @@ public enum EmbroideryPlanner {
                 let pos = cursor
                 let k = remaining.indices.min { distance(pos, to: remaining[$0].bounds) < distance(pos, to: remaining[$1].bounds) }!
                 let polys = remaining.remove(at: k)
+                if s.stitchType == .satinColumns {
+                    let cols = satinColumns(polys, settings: s, from: cursor)
+                    runs += cols
+                    if let last = cols.last?.last { cursor = last }
+                    continue
+                }
                 if s.underlay {
                     let under = fill(polys, angle: s.fillAngle + 90, spacing: max(1.5, s.density * 5),
                                      stitchLength: 3.5, extend: -0.6, from: cursor)
@@ -228,6 +266,52 @@ public enum EmbroideryPlanner {
             }
         }
         return runs.filter { $0.count >= 2 }
+    }
+
+    /// Automatic digitizing: filled shapes become satin columns (tatami where too wide), sewn first and nearest
+    /// first; then lines on top: strokes from the source file by their width (satin from 1.2 mm, triple from
+    /// 0.6 mm, else running), and open paths as running stitch.
+    static func autoRuns(_ shapes: [Artwork], settings s: EmbroiderySettings, cursor: inout Vec2) -> [[Vec2]] {
+        var runs: [[Vec2]] = []
+        var areas: [[Polyline]] = []
+        var lines: [(path: Polyline, width: Double)] = []
+        for shape in shapes {
+            let placed = shape.placedPaths.map { $0.deduplicated() }.filter { $0.points.count >= 2 }
+            if let w = shape.strokeWidth {
+                let width = w * shape.transform.meanScale
+                lines += placed.map { ($0, width) }
+            } else {
+                let closed = placed.filter { $0.closed && $0.points.count >= 3 }
+                if !closed.isEmpty { areas.append(closed) }
+                lines += placed.filter { !$0.closed || $0.points.count < 3 }.map { ($0, 0) }
+            }
+        }
+        while !areas.isEmpty {
+            let pos = cursor
+            let k = areas.indices.min { distance(pos, to: areas[$0].bounds) < distance(pos, to: areas[$1].bounds) }!
+            let polys = areas.remove(at: k)
+            var sewn = satinColumns(polys, settings: s, from: cursor)
+            if sewn.isEmpty {
+                // Too small for columns: outline it.
+                sewn = Planner.order(polys, from: cursor, innerFirst: true).map { running($0, length: min(s.stitchLength, 1.5)) }
+            }
+            runs += sewn
+            if let last = sewn.last?.last { cursor = last }
+        }
+        for (idx, pts) in Planner.orderIndexed(lines.map(\.path), from: cursor, innerFirst: false) {
+            let w = lines[idx].width
+            if w >= 1.2 {
+                var ss = s
+                ss.satinWidth = min(w, 8)
+                runs += satin(pts, settings: ss)
+            } else if w >= 0.6 {
+                runs.append(bean(running(pts, length: s.stitchLength)))
+            } else {
+                runs.append(running(pts, length: s.stitchLength))
+            }
+            if let last = runs.last?.last { cursor = last }
+        }
+        return runs
     }
 
     static func distance(_ p: Vec2, to b: Rect2) -> Double {

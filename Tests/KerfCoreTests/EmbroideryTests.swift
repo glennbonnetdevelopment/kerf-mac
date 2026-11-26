@@ -77,12 +77,113 @@ final class EmbroideryTests: XCTestCase {
         }
     }
 
+    // MARK: Satin columns
+
+    private func columnSettings(maxWidth: Double = 7) -> EmbroiderySettings {
+        EmbroiderySettings(stitchType: .satinColumns, density: 0.4, underlay: false, pullCompensation: 0,
+                           maxColumnWidth: maxWidth).sanitized
+    }
+
+    func testSatinColumnsCrossAnLShapedStroke() {
+        let l = Polyline([Vec2(0, 0), Vec2(3, 0), Vec2(3, 17), Vec2(15, 17), Vec2(15, 20), Vec2(0, 20)], closed: true)
+        let runs = EmbroideryPlanner.satinColumns([l], settings: columnSettings(), from: .zero)
+        XCTAssertFalse(runs.isEmpty)
+        let all = runs.flatMap { $0 }
+        for p in all {
+            XCTAssertTrue(p.x > -0.3 && p.x < 15.3 && p.y > -0.3 && p.y < 20.3, "\(p)")
+            XCTAssertFalse(p.x > 3.5 && p.y < 16.5, "stitch outside the L: \(p)")
+        }
+        // In the upright stem the stitches run across it (sideways), not along it.
+        var across = 0, total = 0
+        for run in runs {
+            for i in 1..<run.count where run[i].y < 14 && run[i - 1].y < 14 && run[i].y > 1 && run[i - 1].y > 1 {
+                total += 1
+                if abs(run[i].x - run[i - 1].x) > 2 && abs(run[i].y - run[i - 1].y) < 1 { across += 1 }
+            }
+        }
+        XCTAssertGreaterThan(total, 20)
+        XCTAssertGreaterThan(Double(across) / Double(total), 0.8)
+        // In the foot the stitches run up and down.
+        var upright = 0, footTotal = 0
+        for run in runs {
+            for i in 1..<run.count where run[i].x > 6 && run[i - 1].x > 6 && run[i].x < 13 && run[i - 1].x < 13 {
+                footTotal += 1
+                if abs(run[i].y - run[i - 1].y) > 2 { upright += 1 }
+            }
+        }
+        XCTAssertGreaterThan(footTotal, 10)
+        XCTAssertGreaterThan(Double(upright) / Double(footTotal), 0.8)
+    }
+
+    func testSatinColumnsFollowARing() {
+        let outer = Flatten.ellipse(center: .zero, rx: 10, ry: 10, step: 0.3)
+        let inner = Flatten.ellipse(center: .zero, rx: 7, ry: 7, step: 0.3)
+        let runs = EmbroideryPlanner.satinColumns([outer, inner], settings: columnSettings(), from: Vec2(10, 0))
+        XCTAssertFalse(runs.isEmpty)
+        for run in runs {
+            for p in run { XCTAssertTrue(p.length > 6.6 && p.length < 10.4, "\(p) off the ring") }
+            // Stitches cross the 3 mm ring; none runs along it.
+            for i in 1..<run.count { XCTAssertLessThan(run[i].distance(to: run[i - 1]), 5) }
+        }
+        XCTAssertLessThan(runs.count, 60)
+    }
+
+    func testSatinColumnsFillWideParts() {
+        let runs = EmbroideryPlanner.satinColumns([square], settings: columnSettings(maxWidth: 7), from: .zero)
+        XCTAssertFalse(runs.isEmpty)
+        // A 20 mm block is too wide for satin, so it is filled with short tatami stitches.
+        for run in runs { for i in 1..<run.count { XCTAssertLessThanOrEqual(run[i].distance(to: run[i - 1]), 3.6) } }
+    }
+
     func testPlanGroupsLayersByColour() {
         let d = doc([("#FF0000", .running, [square]), ("#FF0000", .running, [square]), ("#0000FF", .fill, [square])])
         let plan = EmbroideryPlanner.plan(d)
         XCTAssertEqual(plan.blocks.count, 2)
         XCTAssertEqual(plan.blocks[0].color, ThreadColor(hex: "#FF0000"))
         XCTAssertEqual(plan.blocks[1].color, ThreadColor(hex: "#0000FF"))
+    }
+
+    func testGroupColoursOnlyWhenNothingOverlapsInBetween() {
+        let far = Polyline([Vec2(50, 0), Vec2(70, 0), Vec2(70, 20), Vec2(50, 20)], closed: true)
+        // Red, blue elsewhere, red: the second red joins the first.
+        let apart = doc([("#FF0000", .running, [square]), ("#0000FF", .running, [far]), ("#FF0000", .running, [square])])
+        XCTAssertEqual(EmbroideryPlanner.plan(apart).blocks.count, 2)
+        XCTAssertEqual(EmbroideryPlanner.plan(apart, groupColors: false).blocks.count, 3)
+        // Blue on top of the red square: order must stay.
+        let over = doc([("#FF0000", .running, [square]), ("#0000FF", .running, [square]), ("#FF0000", .running, [square])])
+        XCTAssertEqual(EmbroideryPlanner.plan(over).blocks.count, 3)
+    }
+
+    func testAutoDigitizesImportedSVG() throws {
+        let svg = """
+        <svg xmlns="http://www.w3.org/2000/svg" width="100mm" height="100mm" viewBox="0 0 100 100">
+          <circle cx="30" cy="30" r="15" fill="#ff0000"/>
+          <path d="M 10 80 L 90 80" stroke="#0000ff" stroke-width="3" fill="none"/>
+          <path d="M 10 90 L 90 90" stroke="#0000ff" stroke-width="0.2" fill="none"/>
+        </svg>
+        """
+        let groups = try SVGImporter.importData(Data(svg.utf8))
+        XCTAssertEqual(groups.count, 3)
+        XCTAssertNil(groups[0].strokeWidth)
+        XCTAssertEqual(groups[1].strokeWidth ?? 0, 3, accuracy: 1e-6)
+        var d = KerfDocument()
+        for g in groups {
+            let id = d.layer(forColor: g.colorHex, defaultMode: .line)
+            var shape = Artwork(layerID: id, name: "svg", paths: g.paths)
+            shape.strokeWidth = g.strokeWidth
+            d.shapes.append(shape)
+        }
+        XCTAssertEqual(d.layers.count, 2)
+        let plan = EmbroideryPlanner.plan(d)
+        XCTAssertEqual(plan.blocks.count, 2)
+        // The red disc is 30 mm across, so it is filled; every stitch stays on the disc.
+        for p in plan.blocks[0].runs.flatMap({ $0 }) { XCTAssertLessThan(p.distance(to: Vec2(30, 30)), 15.4) }
+        // The 3 mm blue line is a satin column 3 mm wide; the hairline is a running stitch.
+        let blue = plan.blocks[1].runs.flatMap { $0 }
+        let thick = blue.filter { $0.y < 85 }, thin = blue.filter { $0.y > 85 }
+        XCTAssertTrue(thick.allSatisfy { abs($0.y - 80) <= 1.65 })
+        XCTAssertTrue(thick.contains { abs($0.y - 80) > 1.4 })
+        XCTAssertTrue(thin.allSatisfy { abs($0.y - 90) < 1e-6 })
     }
 
     func testPrintAndImageLayersAreNotSewn() {
@@ -296,7 +397,7 @@ final class EmbroideryTests: XCTestCase {
     func testLayerEmbroiderySettingsSaveAndOldFilesOpen() throws {
         var d = KerfDocument()
         var layer = Layer(name: "L", colorHex: "#000000", mode: .fill)
-        XCTAssertEqual(layer.embroiderySettings.stitchType, .fill)
+        XCTAssertEqual(layer.embroiderySettings.stitchType, .auto)
         layer.embroidery = EmbroiderySettings(stitchType: .satin, satinWidth: 5)
         d.layers = [layer]
         let back = try KerfDocument.decode(d.encoded())
@@ -306,7 +407,7 @@ final class EmbroideryTests: XCTestCase {
         let old = #"{"version":2,"document":{"layers":[{"name":"Old","colorHex":"#000000","mode":"line"}],"shapes":[]}}"#
         let opened = try KerfDocument.decode(Data(old.utf8))
         XCTAssertNil(opened.layers[0].embroidery)
-        XCTAssertEqual(opened.layers[0].embroiderySettings.stitchType, .running)
+        XCTAssertEqual(opened.layers[0].embroiderySettings.stitchType, .auto)
     }
 
     func testHoopFit() {
