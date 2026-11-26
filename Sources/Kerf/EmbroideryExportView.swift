@@ -244,7 +244,7 @@ private struct SewingOrderList: View {
                     Button { model.moveInSewingOrder(shape.id, by: 1) } label: { Image(systemName: "chevron.down") }
                         .disabled(i == shapes.count - 1)
                         .help("Sew later")
-                    Button { openWindow(id: "stitch-editor", value: shape.id) } label: { Image(systemName: "pencil.and.outline") }
+                    Button { model.stitchEditorShapeID = shape.id; openWindow(id: "stitch-editor") } label: { Image(systemName: "pencil.and.outline") }
                         .help("Edit this shape's stitches by hand")
                 }
                 .buttonStyle(.borderless)
