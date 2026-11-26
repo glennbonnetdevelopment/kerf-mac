@@ -86,10 +86,11 @@ extension AppModel {
     /// Layers that will be sewn, with at least one shape in the export.
     var embroideredLayers: [Layer] {
         let ids = embroideryShapeIDs
+        var source = document
+        if let ids { source.shapes = document.shapes.filter { ids.contains($0.id) } }
+        let shapes = source.machineShapes(embroidery: true)
         return document.layers.filter { layer in
-            layer.isEmbroidered && document.shapes.contains {
-                $0.layerID == layer.id && $0.image == nil && (ids?.contains($0.id) ?? true)
-            }
+            layer.isEmbroidered && shapes.contains { $0.layerID == layer.id && $0.image == nil }
         }
     }
 

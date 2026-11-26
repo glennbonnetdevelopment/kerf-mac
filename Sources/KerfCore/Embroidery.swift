@@ -195,10 +195,11 @@ public enum EmbroideryPlanner {
         var blocks: [StitchBlock] = []
         var cursor = Vec2.zero
         var started = false
+        var source = doc
+        if let shapeIDs { source.shapes = doc.shapes.filter { shapeIDs.contains($0.id) } }
+        let all = source.machineShapes(embroidery: true)
         for layer in doc.layers where layer.isEmbroidered {
-            let shapes = doc.shapes.filter {
-                $0.layerID == layer.id && $0.image == nil && (shapeIDs?.contains($0.id) ?? true)
-            }
+            let shapes = all.filter { $0.layerID == layer.id && $0.image == nil }
             guard !shapes.isEmpty else { continue }
             if !started, let first = shapes.first?.bounds, !first.isEmpty {
                 cursor = Vec2(first.minX, first.minY)

@@ -213,6 +213,7 @@ struct CanvasView: View {
         for shape in model.document.shapes {
             guard let layer = model.document.layer(shape.layerID) else { continue }
             let path = viewPath(shape.placedPaths)
+            if let style = shape.style { drawStyle(style, of: shape, path: path, in: &ctx, vp: vp) }
             let color = Color(hex: layer.colorHex).opacity(layer.enabled ? 1 : 0.3)
             if let img = shape.image, let cg = ImageCache.shared.cgImage(for: shape.id, image: img) {
                 var ictx = ctx
@@ -227,7 +228,13 @@ struct CanvasView: View {
             } else if layer.mode == .print {
                 ctx.fill(path, with: .color(color.opacity(0.85)), style: FillStyle(eoFill: true))
             }
-            ctx.stroke(path, with: .color(color), lineWidth: model.selection.contains(shape.id) ? 1.6 : 1)
+            let width: CGFloat = model.selection.contains(shape.id) ? 1.6 : 1
+            if shape.outlineEnabled {
+                ctx.stroke(path, with: .color(color), lineWidth: width)
+            } else {
+                // Not made: a faint guide so the shape can still be seen and picked.
+                ctx.stroke(path, with: .color(color.opacity(0.45)), style: StrokeStyle(lineWidth: width, dash: [3, 3]))
+            }
         }
 
         // Toolpath preview.
@@ -480,6 +487,26 @@ struct CanvasView: View {
     private func rulerLabel(_ v: Double) -> String {
         let r = (v * 1000).rounded() / 1000
         return r == r.rounded() ? String(Int(r)) : String(format: "%g", r)
+    }
+
+    /// Draws a shape's style parts in their layers' colours, under the shape's outline.
+    private func drawStyle(_ style: ShapeStyle, of shape: Artwork, path: Path, in ctx: inout GraphicsContext, vp: Viewport) {
+        for part in style.enabledParts {
+            guard let layer = model.document.layer(part.layerID) else { continue }
+            let color = Color(hex: layer.colorHex).opacity(layer.enabled ? 1 : 0.3)
+            switch part.kind {
+            case .fill:
+                let closed = viewPath(shape.placedPaths.filter { $0.closed })
+                ctx.fill(closed, with: .color(color.opacity(0.35)), style: FillStyle(eoFill: true))
+            case .stroke:
+                ctx.stroke(path, with: .color(color.opacity(0.6)),
+                           style: StrokeStyle(lineWidth: max(1, part.amount * vp.zoom), lineCap: .round, lineJoin: .round))
+            case .offset:
+                let scale = max(1e-9, shape.transform.meanScale)
+                let loops = StyleGeometry.cached(.offset, shape.paths, part.amount / scale).transformed(shape.transform)
+                ctx.stroke(viewPath(loops), with: .color(color), lineWidth: 1)
+            }
+        }
     }
 
     private func viewPath(_ polys: [Polyline]) -> Path {

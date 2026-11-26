@@ -456,6 +456,7 @@ final class AppModel: ObservableObject {
         checkpoint()
         document.shapes.removeAll { $0.layerID == id }
         document.layers.removeAll { $0.id == id }
+        document.pruneStyleParts()
         if document.layers.isEmpty { document.addLayer(mode: defaultMode) }
         pruneSelection()
         if currentLayerID == id { currentLayerID = document.layers.first?.id }

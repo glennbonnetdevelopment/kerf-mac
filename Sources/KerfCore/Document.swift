@@ -339,6 +339,8 @@ public struct Artwork: Identifiable, Codable, Hashable, Sendable {
     /// Hand-edited stitches in the shape's own coordinates. When set they are sewn exactly as they are
     /// instead of digitizing the outline.
     public var stitches: [[Vec2]]?
+    /// Stroke, fill and offset styles, each made on its own layer as a child of this shape.
+    public var style: ShapeStyle?
 
     public init(id: UUID = UUID(), layerID: UUID, name: String, paths: [Polyline], transform: Affine = .identity,
                 text: TextSpec? = nil, image: RasterImage? = nil) {

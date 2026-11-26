@@ -297,7 +297,7 @@ extension AppModel {
         // Design space is mm with y down.
         ctx.translateBy(x: 0, y: box.height)
         ctx.scaleBy(x: pt, y: -pt)
-        for shape in document.shapes {
+        for shape in document.machineShapes() {
             guard let layer = document.layer(shape.layerID), layer.mode == .print || shape.image != nil else { continue }
             if let img = shape.image, let cg = ImageCache.shared.cgImage(for: shape.id, image: img) {
                 ctx.saveGState()

@@ -40,6 +40,10 @@ struct ArrangePanel: View {
                 }
             }
 
+            if !model.styleTargets.isEmpty {
+                ShapeStyleSection()
+            }
+
             if model.selection.count == 1, let shape = model.selectedShapes.first, shape.text != nil, shape.pathText != nil {
                 Section("Text on path") {
                     if let pt = shape.pathText {

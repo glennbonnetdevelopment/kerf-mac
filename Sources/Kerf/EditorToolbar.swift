@@ -8,6 +8,7 @@ struct EditorToolbar: View {
     @State private var showShapes = false
     @State private var showCurve = false
     @State private var showContour = false
+    @State private var showStyle = false
 
     var body: some View {
         HStack(spacing: 6) {
@@ -65,6 +66,16 @@ struct EditorToolbar: View {
             Divider().frame(height: 22)
 
             colorSwatches
+
+            Button { showStyle = true } label: { Label("Style", systemImage: "lineweight") }
+                .help("Stroke colour and width, fill and offset outline for the selection")
+                .disabled(model.styleTargets.isEmpty)
+                .popover(isPresented: $showStyle, arrowEdge: .bottom) {
+                    Form { ShapeStyleControls() }
+                        .formStyle(.grouped)
+                        .frame(width: 340)
+                        .environmentObject(model)
+                }
 
             Spacer(minLength: 0)
             Picker("Units", selection: $model.units) {

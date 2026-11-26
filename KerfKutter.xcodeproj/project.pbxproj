@@ -11,6 +11,7 @@
 		B793E089DD67FCD724764323 /* AppModel+Embroidery.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0695B6768F238B4B5489063 /* AppModel+Embroidery.swift */; };
 		4D237E70D004B46A9AF04A4D /* AppModel+Materials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */; };
 		09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */; };
+		F0FF9454A7FC4BCB68BED5AE /* AppModel+Style.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80D966CE6D41858560CD3BD2 /* AppModel+Style.swift */; };
 		4B5337C7D8C8DC122496637E /* AppModel+Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */; };
 		65BE2BA1DCA25DD970B110A0 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0901F3144504604B033DB915 /* AppModel.swift */; };
 		C9FF451122D3BBF29E7BD0BC /* ArrangePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A783A8FF2788BE73410EBCB0 /* ArrangePanel.swift */; };
@@ -23,6 +24,7 @@
 		21B58757E253BC5BABEFE442 /* MachinePanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFDB58AEEFC43DA159C56114 /* MachinePanels.swift */; };
 		59B48F3495E1625031C3362A /* MaterialLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */; };
 		4F3B7E4FF0A12F0D9B0DDCEF /* MaterialPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = C314F862A43F8498C325A37A /* MaterialPreview.swift */; };
+		EF8F4E75A41DCD59C40DC3AA /* ShapeStyleSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */; };
 		BA3AE8E421587C01568F3F3E /* StitchEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */; };
 		781DFF03E099FAFD930B9A5D /* TextOutliner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39582999A1293C2FF83451F /* TextOutliner.swift */; };
 		6070AFD5C6ADAB1941E6E387 /* Contour.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C254F75332D1142D62D6AC0 /* Contour.swift */; };
@@ -44,6 +46,7 @@
 		2706ED034AAE2711CF2A72E4 /* SatinColumns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6228BF706D25036A4E831890 /* SatinColumns.swift */; };
 		97E8D0E03E319B8BB69C1EBA /* SerialPort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */; };
 		173B8B79F880460B7E279E1F /* ShapeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */; };
+		81B17E230614B1BEF80A33EA /* ShapeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 531B4D11D8B0216BD395F12F /* ShapeStyle.swift */; };
 		93BF49C7874653269D9A6F99 /* StarterMaterials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5241C9D95C51B5B841046D27 /* StarterMaterials.swift */; };
 		0B543ACA72299A7B43F62D75 /* EmbroideryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */; };
 		C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 125BC4804EAD037CDE428879 /* KerfCoreTests.swift */; };
@@ -89,6 +92,7 @@
 		C0695B6768F238B4B5489063 /* AppModel+Embroidery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Embroidery.swift"; sourceTree = "<group>"; };
 		113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Materials.swift"; sourceTree = "<group>"; };
 		D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Nodes.swift"; sourceTree = "<group>"; };
+		80D966CE6D41858560CD3BD2 /* AppModel+Style.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Style.swift"; sourceTree = "<group>"; };
 		065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Tools.swift"; sourceTree = "<group>"; };
 		0901F3144504604B033DB915 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		A783A8FF2788BE73410EBCB0 /* ArrangePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrangePanel.swift; sourceTree = "<group>"; };
@@ -101,6 +105,7 @@
 		FFDB58AEEFC43DA159C56114 /* MachinePanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachinePanels.swift; sourceTree = "<group>"; };
 		4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialLibraryView.swift; sourceTree = "<group>"; };
 		C314F862A43F8498C325A37A /* MaterialPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialPreview.swift; sourceTree = "<group>"; };
+		F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyleSection.swift; sourceTree = "<group>"; };
 		823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StitchEditorView.swift; sourceTree = "<group>"; };
 		F39582999A1293C2FF83451F /* TextOutliner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextOutliner.swift; sourceTree = "<group>"; };
 		4C254F75332D1142D62D6AC0 /* Contour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contour.swift; sourceTree = "<group>"; };
@@ -122,6 +127,7 @@
 		6228BF706D25036A4E831890 /* SatinColumns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SatinColumns.swift; sourceTree = "<group>"; };
 		6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPort.swift; sourceTree = "<group>"; };
 		7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeLibrary.swift; sourceTree = "<group>"; };
+		531B4D11D8B0216BD395F12F /* ShapeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyle.swift; sourceTree = "<group>"; };
 		5241C9D95C51B5B841046D27 /* StarterMaterials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterMaterials.swift; sourceTree = "<group>"; };
 		23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryTests.swift; sourceTree = "<group>"; };
 		125BC4804EAD037CDE428879 /* KerfCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfCoreTests.swift; sourceTree = "<group>"; };
@@ -200,6 +206,7 @@
 				C0695B6768F238B4B5489063 /* AppModel+Embroidery.swift */,
 				113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */,
 				D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */,
+				80D966CE6D41858560CD3BD2 /* AppModel+Style.swift */,
 				065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */,
 				0901F3144504604B033DB915 /* AppModel.swift */,
 				A783A8FF2788BE73410EBCB0 /* ArrangePanel.swift */,
@@ -212,6 +219,7 @@
 				FFDB58AEEFC43DA159C56114 /* MachinePanels.swift */,
 				4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */,
 				C314F862A43F8498C325A37A /* MaterialPreview.swift */,
+				F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */,
 				823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */,
 				F39582999A1293C2FF83451F /* TextOutliner.swift */,
 			);
@@ -241,6 +249,7 @@
 				6228BF706D25036A4E831890 /* SatinColumns.swift */,
 				6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */,
 				7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */,
+				531B4D11D8B0216BD395F12F /* ShapeStyle.swift */,
 				5241C9D95C51B5B841046D27 /* StarterMaterials.swift */,
 			);
 			name = KerfCore;
@@ -383,6 +392,7 @@
 				B793E089DD67FCD724764323 /* AppModel+Embroidery.swift in Sources */,
 				4D237E70D004B46A9AF04A4D /* AppModel+Materials.swift in Sources */,
 				09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */,
+				F0FF9454A7FC4BCB68BED5AE /* AppModel+Style.swift in Sources */,
 				4B5337C7D8C8DC122496637E /* AppModel+Tools.swift in Sources */,
 				65BE2BA1DCA25DD970B110A0 /* AppModel.swift in Sources */,
 				C9FF451122D3BBF29E7BD0BC /* ArrangePanel.swift in Sources */,
@@ -395,6 +405,7 @@
 				21B58757E253BC5BABEFE442 /* MachinePanels.swift in Sources */,
 				59B48F3495E1625031C3362A /* MaterialLibraryView.swift in Sources */,
 				4F3B7E4FF0A12F0D9B0DDCEF /* MaterialPreview.swift in Sources */,
+				EF8F4E75A41DCD59C40DC3AA /* ShapeStyleSection.swift in Sources */,
 				BA3AE8E421587C01568F3F3E /* StitchEditorView.swift in Sources */,
 				781DFF03E099FAFD930B9A5D /* TextOutliner.swift in Sources */,
 			);
@@ -423,6 +434,7 @@
 				2706ED034AAE2711CF2A72E4 /* SatinColumns.swift in Sources */,
 				97E8D0E03E319B8BB69C1EBA /* SerialPort.swift in Sources */,
 				173B8B79F880460B7E279E1F /* ShapeLibrary.swift in Sources */,
+				81B17E230614B1BEF80A33EA /* ShapeStyle.swift in Sources */,
 				93BF49C7874653269D9A6F99 /* StarterMaterials.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

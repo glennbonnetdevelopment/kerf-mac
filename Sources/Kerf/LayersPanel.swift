@@ -54,7 +54,8 @@ private struct LayerRow: View {
     var body: some View {
         if let binding = model.layerBinding(layerID) {
             let layer = binding.wrappedValue
-            let count = model.document.shapes.filter { $0.layerID == layerID }.count
+            let count = model.document.itemCount(onLayer: layerID)
+            let owner = model.document.styleOwner(ofLayer: layerID)
             HStack(spacing: 8) {
                 Toggle("", isOn: binding.enabled)
                     .labelsHidden()
@@ -63,8 +64,21 @@ private struct LayerRow: View {
                 RoundedRectangle(cornerRadius: 3)
                     .fill(Color(hex: layer.colorHex))
                     .frame(width: 14, height: 14)
-                Text(layer.name)
-                    .lineLimit(1)
+                if owner != nil {
+                    Image(systemName: "arrow.turn.down.right")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(layer.name)
+                        .lineLimit(1)
+                    if let owner {
+                        Text("\(owner.kind.title) of \(owner.shape.name)")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
                 Spacer()
                 Text(layer.mode.title)
                     .font(.caption)
@@ -73,6 +87,8 @@ private struct LayerRow: View {
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
+            .padding(.leading, owner == nil ? 0 : 10)
+            .help(owner.map { "Holds the \($0.kind.title.lowercased()) of \($0.shape.name)" } ?? "")
         }
     }
 }
