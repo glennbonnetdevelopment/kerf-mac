@@ -340,7 +340,7 @@ public struct Artwork: Identifiable, Codable, Hashable, Sendable {
     /// instead of digitizing the outline.
     public var stitches: [[Vec2]]?
     /// Stroke, fill and offset styles, each made on its own layer as a child of this shape.
-    public var style: ShapeStyle?
+    public var style: ArtworkStyle?
 
     public init(id: UUID = UUID(), layerID: UUID, name: String, paths: [Polyline], transform: Affine = .identity,
                 text: TextSpec? = nil, image: RasterImage? = nil) {

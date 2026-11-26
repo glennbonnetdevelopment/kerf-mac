@@ -35,7 +35,7 @@ final class ShapeStyleTests: XCTestCase {
         let cut = doc.addLayer(mode: .line)
         let engrave = doc.addLayer(mode: .fill)
         var shape = Artwork(layerID: cut, name: "Box", paths: [square], transform: .translation(50, 50))
-        shape.style = ShapeStyle(parts: [StylePart(kind: .stroke, layerID: engrave, amount: 1)], outlineEnabled: outline)
+        shape.style = ArtworkStyle(parts: [StylePart(kind: .stroke, layerID: engrave, amount: 1)], outlineEnabled: outline)
         doc.shapes = [shape]
         return (doc, cut, engrave)
     }
@@ -95,7 +95,7 @@ final class ShapeStyleTests: XCTestCase {
         var doc = KerfDocument()
         let a = doc.addLayer(mode: .mill), b = doc.addLayer(mode: .mill)
         var shape = Artwork(layerID: a, name: "Box", paths: [square])
-        shape.style = ShapeStyle(parts: [StylePart(kind: .fill, layerID: b)])
+        shape.style = ArtworkStyle(parts: [StylePart(kind: .fill, layerID: b)])
         doc.shapes = [shape]
         XCTAssertEqual(doc.machineShapes().last?.millRole, .pocket)
     }

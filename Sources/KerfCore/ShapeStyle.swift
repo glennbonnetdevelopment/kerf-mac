@@ -67,7 +67,7 @@ public struct StylePart: Codable, Hashable, Sendable, Identifiable {
 }
 
 /// Styles added to a shape.
-public struct ShapeStyle: Codable, Hashable, Sendable {
+public struct ArtworkStyle: Codable, Hashable, Sendable {
     public var parts: [StylePart]
     /// False leaves the shape's own outline out of jobs and exports, so only its style parts are made.
     public var outlineEnabled: Bool

@@ -25,7 +25,7 @@ extension AppModel {
         var newLayer: UUID?
         for t in targets {
             guard let i = document.shapes.firstIndex(where: { $0.id == t.id }) else { continue }
-            var style = document.shapes[i].style ?? ShapeStyle()
+            var style = document.shapes[i].style ?? ArtworkStyle()
             if let k = style.parts.firstIndex(where: { $0.kind == kind }), document.layer(style.parts[k].layerID) != nil {
                 style.parts[k].enabled = enabled
             } else if enabled {

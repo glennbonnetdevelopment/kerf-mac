@@ -490,7 +490,7 @@ struct CanvasView: View {
     }
 
     /// Draws a shape's style parts in their layers' colours, under the shape's outline.
-    private func drawStyle(_ style: ShapeStyle, of shape: Artwork, path: Path, in ctx: inout GraphicsContext, vp: Viewport) {
+    private func drawStyle(_ style: ArtworkStyle, of shape: Artwork, path: Path, in ctx: inout GraphicsContext, vp: Viewport) {
         for part in style.enabledParts {
             guard let layer = model.document.layer(part.layerID) else { continue }
             let color = Color(hex: layer.colorHex).opacity(layer.enabled ? 1 : 0.3)
