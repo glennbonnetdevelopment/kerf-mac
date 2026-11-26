@@ -91,11 +91,10 @@ struct KerfApp: App {
         }
         .defaultSize(width: 900, height: 640)
 
-        WindowGroup("Edit Stitches", id: "stitch-editor", for: UUID.self) { $shapeID in
-            if let shapeID {
-                StitchEditorView(shapeID: shapeID)
-                    .environmentObject(model)
-            }
+        // One window like the others, so the main window keeps its File menu commands.
+        Window("Edit Stitches", id: "stitch-editor") {
+            StitchEditorHost()
+                .environmentObject(model)
         }
         .defaultSize(width: 900, height: 700)
     }

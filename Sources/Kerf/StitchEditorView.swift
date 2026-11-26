@@ -1,6 +1,22 @@
 import KerfCore
 import SwiftUI
 
+/// Shows the stitch editor for the shape picked in the model, starting afresh when another shape is picked.
+struct StitchEditorHost: View {
+    @EnvironmentObject var model: AppModel
+
+    var body: some View {
+        if let id = model.stitchEditorShapeID, model.shape(id) != nil {
+            StitchEditorView(shapeID: id)
+                .id(id)
+        } else {
+            Text("Select a shape and choose Edit stitches… in Arrange > Embroidery.")
+                .foregroundStyle(.secondary)
+                .frame(minWidth: 480, minHeight: 300)
+        }
+    }
+}
+
 /// Hand editing of one shape's stitches: move, add and delete needle points, split runs, and save the result to
 /// the shape so it is sewn exactly as edited.
 struct StitchEditorView: View {

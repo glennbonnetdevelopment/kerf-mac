@@ -235,7 +235,7 @@ private struct ShapeEmbroiderySection: View {
                     EmbroiderySettingsFields(settings: binding)
                 }
                 HStack {
-                    Button("Edit stitches…") { openWindow(id: "stitch-editor", value: shapeID) }
+                    Button("Edit stitches…") { model.stitchEditorShapeID = shapeID; openWindow(id: "stitch-editor") }
                     if shape.stitches != nil {
                         Button("Discard hand edits") { model.setEditedStitches(shapeID, nil) }
                     }
