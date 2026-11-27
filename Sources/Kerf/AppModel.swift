@@ -4,7 +4,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 enum Tool: String, CaseIterable, Identifiable {
-    case select, node, rectangle, ellipse, line, shape, text, measure
+    case select, node, rectangle, ellipse, line, shape, text, measure, pen, brush, eraser
 
     var id: String { rawValue }
 
@@ -18,6 +18,9 @@ enum Tool: String, CaseIterable, Identifiable {
         case .node: return "point.topleft.down.to.point.bottomright.curvepath"
         case .measure: return "ruler"
         case .text: return "textformat"
+        case .pen: return "pencil.tip"
+        case .brush: return "paintbrush.pointed"
+        case .eraser: return "eraser"
         }
     }
 
@@ -26,6 +29,9 @@ enum Tool: String, CaseIterable, Identifiable {
         case .shape: return "Shapes"
         case .node: return "Edit nodes"
         case .measure: return "Measure"
+        case .pen: return "Pen: draw smooth freehand lines"
+        case .brush: return "Brush: paint strokes that become filled outlines"
+        case .eraser: return "Eraser: rub out parts of lines and shapes"
         default: return rawValue.capitalized
         }
     }
@@ -155,6 +161,10 @@ final class AppModel: ObservableObject {
     // Print and cut: measured machine positions of registration marks 1 and 2
     @Published var shapeKind: ShapeKind = .star
     @Published var shapeOptions = ShapeOptions()
+    /// Pen, brush and eraser settings, remembered between launches.
+    @Published var freehand = FreehandSettings.load() {
+        didSet { freehand.save() }
+    }
     @Published var registrationStyle: RegistrationStyle = .square
     @Published var registrationMarkSize = 5.0
     /// Distance from the artwork to the contour (shadow) cut line, in mm.

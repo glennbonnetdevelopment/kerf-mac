@@ -9,6 +9,7 @@ struct EditorToolbar: View {
     @State private var showCurve = false
     @State private var showContour = false
     @State private var showStyle = false
+    @State private var freehandPopover: Tool?
 
     var body: some View {
         HStack(spacing: 6) {
@@ -22,6 +23,19 @@ struct EditorToolbar: View {
                 showShapes = true
             }
             .popover(isPresented: $showShapes, arrowEdge: .bottom) { shapesPopover }
+
+            Divider().frame(height: 22)
+
+            ForEach([Tool.pen, .brush, .eraser]) { t in
+                toolButton(t.symbol, help: t.title, active: model.tool == t) {
+                    model.tool = t
+                    freehandPopover = t
+                }
+                .popover(isPresented: Binding(get: { freehandPopover == t }, set: { if !$0 { freehandPopover = nil } }),
+                         arrowEdge: .bottom) {
+                    FreehandOptions(tool: t).environmentObject(model)
+                }
+            }
 
             Divider().frame(height: 22)
 

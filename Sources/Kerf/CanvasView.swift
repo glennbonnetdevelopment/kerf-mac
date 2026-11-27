@@ -52,6 +52,10 @@ private enum DragMode {
     case node(ref: NodeRef, moved: Bool)
     /// Measuring with the ruler tool.
     case measure(start: Vec2, current: Vec2)
+    /// Drawing with the pen or brush.
+    case freehand(samples: [StrokeSample])
+    /// Rubbing out with the eraser.
+    case erase(trail: [Vec2])
 }
 
 /// The eight sizing handles, as fractions of the selection box, starting top-left and going clockwise.
@@ -392,6 +396,25 @@ struct CanvasView: View {
             sizeTag(&ctx, bounds: b, extra: pct)
         case .rotate(_, _, _, true):
             sizeTag(&ctx, bounds: model.selectionBounds, extra: nil)
+        case .freehand(let samples):
+            if model.tool == .brush {
+                let outline = model.brushOutline(samples, zoom: vp.zoom, clean: false)
+                let color = model.currentLayerColor
+                ctx.fill(viewPath(outline), with: .color(color.opacity(0.35)), style: FillStyle(eoFill: outline.count == 2))
+                ctx.stroke(viewPath(outline), with: .color(color), lineWidth: 1)
+            } else {
+                ctx.stroke(viewPath([Polyline(samples.map(\.point))]), with: .color(.accentColor),
+                           style: StrokeStyle(lineWidth: 1.2, lineCap: .round, lineJoin: .round))
+            }
+        case .erase(let trail):
+            let width = max(2, model.freehand.eraserSize * vp.zoom)
+            ctx.stroke(viewPath([Polyline(trail)]), with: .color(.gray.opacity(0.3)),
+                       style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
+            if let last = trail.last {
+                let c = vp.toView(last)
+                ctx.stroke(Path(ellipseIn: CGRect(x: c.x - width / 2, y: c.y - width / 2, width: width, height: width)),
+                           with: .color(.secondary), lineWidth: 1)
+            }
         case .move(_, true):
             let b = model.selectionBounds
             let u = model.units
@@ -636,6 +659,11 @@ struct CanvasView: View {
                         }
                     case .rectangle, .ellipse, .line, .shape:
                         dragMode = .create(start: start, current: doc)
+                    case .pen, .brush:
+                        let t = value.time.timeIntervalSinceReferenceDate
+                        dragMode = .freehand(samples: [StrokeSample(start, pressure: currentPressure, time: t)])
+                    case .eraser:
+                        dragMode = .erase(trail: [start])
                     case .text:
                         break
                     case .select:
@@ -697,6 +725,15 @@ struct CanvasView: View {
                     dragMode = .marquee(start: s, current: doc)
                 case .create(let s, _):
                     dragMode = .create(start: s, current: doc)
+                case .freehand(var samples):
+                    // Skip readings closer than half a screen point; they only add noise.
+                    guard let last = samples.last, last.point.distance(to: doc) * viewport.zoom >= 0.5 else { return }
+                    samples.append(StrokeSample(doc, pressure: currentPressure, time: value.time.timeIntervalSinceReferenceDate))
+                    dragMode = .freehand(samples: samples)
+                case .erase(var trail):
+                    guard let last = trail.last, last.distance(to: doc) * viewport.zoom >= 1 else { return }
+                    trail.append(doc)
+                    dragMode = .erase(trail: trail)
                 case .pan(let lastView):
                     viewport.pan.x += value.location.x - lastView.x
                     viewport.pan.y += value.location.y - lastView.y
@@ -722,6 +759,18 @@ struct CanvasView: View {
                     }
                 case .measure(let a, let b):
                     lastMeasure = (a, b)
+                case .freehand(var samples):
+                    if let last = samples.last, last.point != doc {
+                        samples.append(StrokeSample(doc, pressure: last.pressure, time: value.time.timeIntervalSinceReferenceDate))
+                    }
+                    if model.tool == .brush {
+                        model.addBrushStroke(samples, zoom: viewport.zoom)
+                    } else {
+                        model.addPenStroke(samples.map(\.point), zoom: viewport.zoom)
+                    }
+                case .erase(var trail):
+                    if trail.last != doc { trail.append(doc) }
+                    model.erase(trail: trail)
                 case .none where model.tool == .text:
                     // Clicking existing text selects it for editing in the toolbar; elsewhere adds new text.
                     if let hit = model.hitTest(doc, tolerance: 4 / viewport.zoom),
@@ -735,6 +784,18 @@ struct CanvasView: View {
                 }
                 dragMode = .none
             }
+    }
+
+    /// Pen pressure of the event being handled (a tablet or Force Touch trackpad), 1 for a mouse.
+    private var currentPressure: Double {
+        guard let e = NSApp.currentEvent else { return 1 }
+        switch e.type {
+        case .leftMouseDown, .leftMouseDragged, .tabletPoint, .pressure:
+            let p = Double(e.pressure)
+            return p > 0 ? p : 1
+        default:
+            return 1
+        }
     }
 
     private var magnifyGesture: some Gesture {
