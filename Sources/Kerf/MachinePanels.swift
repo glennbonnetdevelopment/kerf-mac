@@ -353,10 +353,32 @@ struct CutterPanel: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Toggle("Weeding border", isOn: $model.weedBorderEnabled)
-                if model.weedBorderEnabled {
-                    LabeledContent("Border margin (mm)") {
-                        TextField("", value: $model.weedBorderMargin, format: .number).frame(width: 70)
+                Section("Weeding") {
+                    Picker("Weeding box", selection: $model.weeding.box) {
+                        ForEach(WeedBoxStyle.allCases) { Text($0.title).tag($0) }
+                    }
+                    .help("Cuts a box around the design so the waste peels off in one sheet")
+                    if model.weeding.box != .none || model.weeding.lines != .none {
+                        LabeledContent("Box margin (mm)") {
+                            TextField("", value: $model.weeding.margin, format: .number).frame(width: 70)
+                        }
+                    }
+                    Picker("Weeding lines", selection: $model.weeding.lines) {
+                        ForEach(WeedLineStyle.allCases) { Text($0.title).tag($0) }
+                    }
+                    .help("Splits the waste inside the box into strips that are easier to peel")
+                    if model.weeding.lines != .none {
+                        LabeledContent("Line spacing (mm)") {
+                            TextField("", value: $model.weeding.spacing, format: .number).frame(width: 70)
+                        }
+                        LabeledContent("Stop short of design (mm)") {
+                            TextField("", value: $model.weeding.clearance, format: .number).frame(width: 70)
+                        }
+                    }
+                    if model.weeding.isActive {
+                        Text("Shown as dashed lines on the canvas. They're cut last, lines before boxes, with the last layer's settings.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
             }

@@ -230,6 +230,18 @@ struct CanvasView: View {
             ctx.stroke(path, with: .color(color), lineWidth: model.selection.contains(shape.id) ? 1.6 : 1)
         }
 
+        // Vinyl weeding box and lines.
+        let weeding = model.weedingCuts
+        if !weeding.isEmpty {
+            var weed = Path()
+            for p in weeding.allPaths {
+                guard let f = p.first else { continue }
+                weed.move(to: vp.toView(f))
+                for q in p.dropFirst() { weed.addLine(to: vp.toView(q)) }
+            }
+            ctx.stroke(weed, with: .color(.secondary), style: StrokeStyle(lineWidth: 0.8, dash: [5, 3]))
+        }
+
         // Toolpath preview.
         if model.showToolpath {
             var travel = Path()

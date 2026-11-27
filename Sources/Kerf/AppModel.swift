@@ -135,7 +135,14 @@ final class AppModel: ObservableObject {
     @Published var jobOrigin: JobOrigin = .absolute
     @Published var originAnchor: OriginAnchor = .bottomLeft
     @Published var originReference: OriginReference = .job
-    @Published var weedBorderEnabled = false
+    /// Vinyl weeding box and lines, remembered between launches.
+    @Published var weeding: WeedingOptions = AppModel.loadWeeding() {
+        didSet {
+            guard weeding != oldValue else { return }
+            cachedWeeding = nil
+            if let data = try? JSONEncoder().encode(weeding) { UserDefaults.standard.set(data, forKey: "weeding") }
+        }
+    }
     /// Shows the embroidery export sheet (see EmbroideryExportView).
     @Published var showEmbroideryExport = false
     /// The shape open in the stitch editor window.
@@ -143,7 +150,6 @@ final class AppModel: ObservableObject {
     /// The last embroidery pattern and what it was made from, so the export sheet doesn't redigitize on every redraw.
     var embroideryCache: (document: KerfDocument, shapes: Set<UUID>?, groupColors: Bool, optimizeOrder: Bool, name: String,
                           pattern: StitchPattern)?
-    @Published var weedBorderMargin = 3.0
 
     // Nesting
     @Published var nestSpacing = 3.0
@@ -186,7 +192,10 @@ final class AppModel: ObservableObject {
 
     private var undoStack: [KerfDocument] = []
     private var redoStack: [KerfDocument] = []
-    private var cachedToolpath: Toolpath?
+    private var cachedToolpath: Toolpath? {
+        didSet { if cachedToolpath == nil { cachedWeeding = nil } }
+    }
+    private var cachedWeeding: WeedingCuts?
 
     init() {
         defer {
@@ -267,6 +276,21 @@ final class AppModel: ObservableObject {
         let t = Planner.plan(doc, for: profile.kind)
         cachedToolpath = t
         return t
+    }
+
+    /// Weeding box and lines for the current vinyl job (empty for other machines), for the canvas.
+    var weedingCuts: WeedingCuts {
+        guard profile.kind == .vinylCutter, weeding.isActive else { return WeedingCuts() }
+        if let w = cachedWeeding { return w }
+        let w = Weeding.cuts(for: toolpath, options: weeding)
+        cachedWeeding = w
+        return w
+    }
+
+    nonisolated static func loadWeeding() -> WeedingOptions {
+        guard let data = UserDefaults.standard.data(forKey: "weeding"),
+              let w = try? JSONDecoder().decode(WeedingOptions.self, from: data) else { return WeedingOptions() }
+        return w
     }
 
     // MARK: - Files
@@ -408,7 +432,7 @@ final class AppModel: ObservableObject {
     /// HPGL or GP-GL for the active cutter profile.
     func plotterText() -> String {
         PlotterGenerator.generate(toolpath, profile: profile,
-                                  options: CutterJobOptions(weedBorder: weedBorderEnabled ? weedBorderMargin : nil))
+                                  options: CutterJobOptions(weeding: weeding))
     }
 
     func exportMachineFile() {
