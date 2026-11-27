@@ -128,6 +128,20 @@ final class AppModel: ObservableObject {
     /// Flips the job as it goes to the machine (heat-transfer vinyl, stamps). The design on the canvas
     /// stays as drawn. Not saved, so a later job doesn't come out mirrored by surprise.
     @Published var mirrorOutput: OutputMirror = .none
+    /// Panel (tiling) settings for vinyl signs bigger than the cutter, remembered between launches.
+    @Published var panels: PanelOptions = AppModel.loadPanels() {
+        didSet {
+            guard panels != oldValue else { return }
+            cachedPanelLayout = nil
+            if let data = try? JSONEncoder().encode(panels) { UserDefaults.standard.set(data, forKey: "panels") }
+        }
+    }
+    /// The panel shown in the preview and sent next.
+    @Published var selectedPanel = 0
+    /// Panels already sent or exported, by their area on the design, so a changed layout starts fresh.
+    @Published var sentPanels: Set<Rect2> = []
+    /// The panel layout for the current toolpath (see AppModel+Panels).
+    var cachedPanelLayout: PanelLayout?
     @Published var units: DisplayUnits = DisplayUnits(rawValue: UserDefaults.standard.string(forKey: "units") ?? "") ?? .mm {
         didSet { UserDefaults.standard.set(units.rawValue, forKey: "units") }
     }
@@ -228,7 +242,12 @@ final class AppModel: ObservableObject {
     private var undoStack: [KerfDocument] = []
     private var redoStack: [KerfDocument] = []
     private var cachedToolpath: Toolpath? {
-        didSet { if cachedToolpath == nil { cachedWeeding = nil } }
+        didSet {
+            if cachedToolpath == nil {
+                cachedWeeding = nil
+                cachedPanelLayout = nil
+            }
+        }
     }
     private var cachedWeeding: WeedingCuts?
 
@@ -320,6 +339,12 @@ final class AppModel: ObservableObject {
         let w = Weeding.cuts(for: toolpath, options: weeding)
         cachedWeeding = w
         return w
+    }
+
+    nonisolated static func loadPanels() -> PanelOptions {
+        guard let data = UserDefaults.standard.data(forKey: "panels"),
+              let p = try? JSONDecoder().decode(PanelOptions.self, from: data) else { return PanelOptions() }
+        return p
     }
 
     nonisolated static func loadWeeding() -> WeedingOptions {
@@ -478,6 +503,10 @@ final class AppModel: ObservableObject {
     func exportMachineFile() {
         guard !toolpath.isEmpty else {
             alertMessage = "Nothing to export: add shapes to an enabled layer first."
+            return
+        }
+        if panelsActive, panelLayout.isSplit {
+            exportPanels()
             return
         }
         let panel = NSSavePanel()

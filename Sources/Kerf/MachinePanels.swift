@@ -390,6 +390,7 @@ struct CutterPanel: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                PanelSettings()
             }
             .formStyle(.grouped)
 
@@ -398,13 +399,18 @@ struct CutterPanel: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
+            let tiled = model.panelsActive && model.panelLayout.isSplit
             HStack {
-                Button("Export file…") { model.exportMachineFile() }
+                Button(tiled ? "Export panels…" : "Export file…") { model.exportMachineFile() }
                     .disabled(tp.isEmpty)
                 Spacer()
                 if model.profile.language != .svgFile {
                     if cutter.isSending {
                         Button("Stop", role: .destructive) { cutter.cancel() }
+                    } else if tiled, let panel = model.currentPanel {
+                        Button("Send panel \(panel.name)") { model.sendPanel(panel, with: cutter) }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(model.profile.output == .serial && cutter.selectedPort.isEmpty)
                     } else {
                         Button("Send to cutter") { cutter.send(model.plotterText(), profile: model.profile) }
                             .buttonStyle(.borderedProminent)
