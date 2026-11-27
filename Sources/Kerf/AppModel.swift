@@ -184,6 +184,15 @@ final class AppModel: ObservableObject {
     @Published var contourOffset = 2.0
     @Published var registrationMarkCount = 3
     @Published var registrationMargin = 8.0
+    /// Line thickness of GCC AAS II L marks, mm.
+    @Published var registrationLineWidth = GCCAAS.defaultThickness
+    /// Ask a GCC LX cutter to read the AAS marks before cutting (when the sheet has four AAS marks).
+    @Published var useAAS = true
+    /// Print preview sheet and its settings, remembered between launches.
+    @Published var showPrintPreview = false
+    @Published var printSettings = PrintSettings.load() {
+        didSet { printSettings.save() }
+    }
     @Published var measuredMark1: Vec2?
     @Published var measuredMark2: Vec2?
     @Published var useAlignment = false
@@ -448,8 +457,13 @@ final class AppModel: ObservableObject {
 
     /// HPGL or GP-GL for the active cutter profile.
     func plotterText() -> String {
-        PlotterGenerator.generate(outputToolpath, profile: profile,
-                                  options: CutterJobOptions(weeding: weeding))
+        var options = CutterJobOptions(weeding: weeding)
+        if useAAS, let job = aasJob {
+            // The cutter measures the marks, then cuts relative to the origin mark.
+            options.origin = job.origin
+            options.preamble = GCCAAS.command(job, units: profile.aasUnits, unitsPerMM: profile.unitsPerMM)
+        }
+        return PlotterGenerator.generate(outputToolpath, profile: profile, options: options)
     }
 
     func exportMachineFile() {

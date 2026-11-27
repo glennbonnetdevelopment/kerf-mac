@@ -39,6 +39,8 @@ struct KerfApp: App {
                 Button("Export for KerfSender…") { model.exportForSender() }
                     .keyboardShortcut("e", modifiers: [.command, .shift])
                 Button("Export Print PDF…") { model.exportPrintPDF() }
+                Button("Print Preview…") { model.showPrintPreview = true }
+                    .keyboardShortcut("p")
                 Button("Export Embroidery (PES, JEF, DST)…") { model.showEmbroideryExport = true }
                     .keyboardShortcut("e", modifiers: [.command, .option])
             }
@@ -197,6 +199,10 @@ struct ContentView: View {
         .navigationTitle(model.fileURL?.lastPathComponent ?? "KerfKutter")
         .sheet(isPresented: $model.showEmbroideryExport) {
             EmbroideryExportView()
+                .environmentObject(model)
+        }
+        .sheet(isPresented: $model.showPrintPreview) {
+            PrintPreviewView()
                 .environmentObject(model)
         }
         .alert("KerfKutter", isPresented: Binding(get: { model.alertMessage != nil }, set: { if !$0 { model.alertMessage = nil } })) {

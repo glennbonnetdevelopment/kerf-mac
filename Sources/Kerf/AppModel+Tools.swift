@@ -253,6 +253,10 @@ extension AppModel {
         let size = max(1, registrationMarkSize)
         let layerID = document.layer(forMode: .print, name: "Registration", colorHex: "#000000")
         document.shapes.removeAll { $0.layerID == layerID && $0.name.hasPrefix("Mark ") }
+        if registrationStyle == .gccAAS {
+            addAASMarks(around: b, layerID: layerID)
+            return
+        }
         let centers = Registration.markCenters(around: b, margin: max(0, registrationMargin), size: size, count: registrationMarkCount)
         for (i, c) in centers.enumerated() {
             let corner = Vec2(c.x < b.center.x ? -1 : 1, c.y < b.center.y ? -1 : 1)
@@ -279,45 +283,6 @@ extension AppModel {
         let marks = registrationMarkCenters
         guard marks.count == 2 else { return .identity }
         return Registration.alignment(design: profile.toMachine(marks[0]), profile.toMachine(marks[1]), measured: m1, m2) ?? .identity
-    }
-
-    /// Exports a PDF at true size with images and print-only layers, for printing before cutting.
-    func exportPrintPDF() {
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [.pdf]
-        panel.nameFieldStringValue = (fileURL?.deletingPathExtension().lastPathComponent ?? "print") + ".pdf"
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        let pt = 72 / 25.4
-        var box = CGRect(x: 0, y: 0, width: profile.bedWidth * pt, height: profile.bedHeight * pt)
-        guard let ctx = CGContext(url as CFURL, mediaBox: &box, nil) else {
-            alertMessage = "Could not create the PDF."
-            return
-        }
-        ctx.beginPDFPage(nil)
-        // Design space is mm with y down.
-        ctx.translateBy(x: 0, y: box.height)
-        ctx.scaleBy(x: pt, y: -pt)
-        for shape in document.machineShapes() {
-            guard let layer = document.layer(shape.layerID), layer.mode == .print || shape.image != nil else { continue }
-            if let img = shape.image, let cg = ImageCache.shared.cgImage(for: shape.id, image: img) {
-                ctx.saveGState()
-                let t = shape.transform
-                ctx.concatenate(CGAffineTransform(a: t.a, b: t.b, c: t.c, d: t.d, tx: t.tx, ty: t.ty))
-                let f = shape.localFrame
-                // Flip the image so it is upright in the y-down design space.
-                ctx.translateBy(x: f.minX, y: f.maxY)
-                ctx.scaleBy(x: 1, y: -1)
-                ctx.draw(cg, in: CGRect(x: 0, y: 0, width: f.width, height: f.height))
-                ctx.restoreGState()
-            } else {
-                ctx.addPath(Self.cgPath(shape.placedPaths))
-                let rgb = NSColor(hexString: layer.colorHex)
-                ctx.setFillColor(rgb.cgColor)
-                ctx.fillPath(using: .evenOdd)
-            }
-        }
-        ctx.endPDFPage()
-        ctx.closePDF()
     }
 }
 

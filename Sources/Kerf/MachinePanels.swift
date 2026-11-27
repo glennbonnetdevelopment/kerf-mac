@@ -130,9 +130,12 @@ struct LaserPanel: View {
         GroupBox("Print and cut") {
             VStack(alignment: .leading, spacing: 6) {
                 RegistrationSettings()
-                Button("Add registration marks") { model.addRegistrationMarks() }
+                HStack {
+                    Button("Add registration marks") { model.addRegistrationMarks() }
+                    Button("Print preview…") { model.showPrintPreview = true }
+                }
                 if model.registrationMarkCenters.count < 2 {
-                    Text("Add registration marks, print the PDF, and place the sheet on the bed.")
+                    Text("Add registration marks, print the sheet, and place it on the bed.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {
@@ -350,10 +353,14 @@ struct CutterPanel: View {
                 Section("Print and cut") {
                     RegistrationSettings()
                     Button("Add registration marks") { model.addRegistrationMarks() }
-                    Button("Export print PDF…") { model.exportPrintPDF() }
-                    Text("Print the PDF, then load the sheet with mark 1 at the cutter's origin. Cutters that read marks with an optical sensor use their own alignment routine; Kerf doesn't drive those sensors yet.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Button("Print preview…") { model.showPrintPreview = true }
+                    if model.profile.aasEnabled {
+                        AASControls()
+                    } else {
+                        Text("Print the sheet, then load it with mark 1 at the cutter's origin. For a GCC LX cutter, turn on optical marks in the device settings.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 Section("Weeding") {
                     Picker("Weeding box", selection: $model.weeding.box) {
@@ -558,6 +565,18 @@ private struct ProfileForm: View {
                     LabeledContent("Overcut (mm)") { TextField("", value: $profile.overcut, format: .number).frame(width: 80) }
                     Toggle("Send speed and force", isOn: $profile.sendSpeedAndForce)
                 }
+                Section("Optical registration (GCC AAS II)") {
+                    Toggle("Reads printed marks (Expert II LX and similar)", isOn: $profile.aasEnabled)
+                        .disabled(profile.language != .hpgl)
+                    if profile.aasEnabled {
+                        Picker("Mark distance units", selection: $profile.aasUnits) {
+                            ForEach(AASDistanceUnits.allCases) { Text($0.title).tag($0) }
+                        }
+                        Text("GCC doesn't publish the units. If the cutter looks for the far marks in the wrong place, try another setting. Fine offsets are set on the cutter under AAS Offset.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
         .formStyle(.grouped)
@@ -572,16 +591,62 @@ struct RegistrationSettings: View {
         Picker("Mark style", selection: $model.registrationStyle) {
             ForEach(RegistrationStyle.allCases) { Text($0.title).tag($0) }
         }
+        .onChange(of: model.registrationStyle) { _, style in
+            guard style == .gccAAS else { return }
+            // GCC's suggested sizes.
+            model.registrationMarkCount = 4
+            model.registrationMarkSize = GCCAAS.defaultLength
+            model.registrationLineWidth = GCCAAS.defaultThickness
+            model.registrationMargin = GCCAAS.defaultMargin
+        }
         Picker("Marks", selection: $model.registrationMarkCount) {
             Text("3 corners").tag(3)
             Text("4 corners").tag(4)
         }
         .pickerStyle(.segmented)
-        LabeledContent("Mark size (mm)") {
+        .disabled(model.registrationStyle == .gccAAS)
+        LabeledContent(model.registrationStyle == .gccAAS ? "L length (mm)" : "Mark size (mm)") {
             TextField("", value: $model.registrationMarkSize, format: .number).frame(width: 60)
+        }
+        if model.registrationStyle == .gccAAS {
+            LabeledContent("Line thickness (mm)") {
+                TextField("", value: $model.registrationLineWidth, format: .number).frame(width: 60)
+            }
         }
         LabeledContent("Gap from artwork (mm)") {
             TextField("", value: $model.registrationMargin, format: .number).frame(width: 60)
+        }
+        if model.registrationStyle == .gccAAS {
+            Text("Four L marks, black on white. GCC allows 5–50 mm long, 1–2 mm thick and 1–50 mm from the art; 25, 1 and 5 work best. Mark 1, the thicker one, is the origin.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// Reading GCC AAS II marks with the cutter's optical sensor.
+struct AASControls: View {
+    @EnvironmentObject var model: AppModel
+    @EnvironmentObject var cutter: CutterSender
+
+    var body: some View {
+        if let job = model.aasJob {
+            Toggle("Read marks with the optical sensor (AAS)", isOn: $model.useAAS)
+            Text(String(format: "Marks %.1f × %.1f mm apart. The cut is placed from mark 1.", job.xDistance, job.yDistance))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text("Load the printed sheet, lower the pinch rollers, move the blade over mark 1 (the thick L nearest the origin) and press Origin Set, then Send to cutter.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Button("Scan marks only (test)") {
+                if let text = model.aasScanOnlyText() { cutter.send(text, profile: model.profile) }
+            }
+            .help("Reads the four marks without cutting, then returns to mark 1")
+            .disabled(cutter.isSending || (model.profile.output == .serial && cutter.selectedPort.isEmpty))
+        } else {
+            Text("Choose the GCC AAS II mark style and add registration marks. The cutter reads all four with its sensor, then cuts.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 }

@@ -92,6 +92,7 @@ public enum HelpLibrary {
         vinyl,
         cnc,
         printAndCut,
+        gccOpticalMarks,
         embroidery,
         devices,
         previewExport,
@@ -316,18 +317,54 @@ public enum HelpLibrary {
 
     static let printAndCut = HelpTopic(
         id: "print-and-cut", title: "Print and cut", symbol: "printer",
-        summary: "Registration marks, printing, and cutting around printed artwork.",
+        summary: "Registration marks, print preview, printing, and cutting around printed artwork.",
         blocks: [
             .heading("Contour cut"),
             .text("**Contour cut** (above the canvas, or the Arrange menu) adds a cut line around the artwork, a set distance out. Images are outlined by their printed (non-white) pixels, and holes are skipped so each piece cuts out whole. The line goes on its own layer."),
             .heading("Registration marks"),
+            .text("Choose the mark style, 3 or 4 corners, size and gap, then click **Add registration marks**. They go on a Print only layer, which prints but is never cut. For a GCC LX cutter choose **GCC AAS II (L marks, optical)**; see *Optical marks on GCC cutters*."),
+            .heading("Print preview and printing"),
             .steps([
-                "Choose the mark style, 3 or 4 corners, size and gap, then click **Add registration marks**. They go on a Print only layer.",
-                "Use **File › Export Print PDF…** and print it.",
-                "Load the printed sheet on the machine.",
+                "Choose **File › Print Preview…** (⌘P), or **Print preview…** in the Machine tab.",
+                "Pick the paper size, orientation and where the job sits on the page. The dashed line is the page margin, and red lines show where the cutter will cut.",
+                "Add or replace the registration marks from the preview if needed. Warnings appear when the job doesn't fit or the marks are too close to the edge.",
+                "Click **Print…** to print through the macOS print dialog, or **Save as PDF…**.",
             ]),
+            .tip("Print at 100%. If the print dialog offers **Scale to fit**, turn it off, or the marks and cut won't line up."),
+            .text("**Print cut lines (test sheet)** prints the cut path as a thin red line. Cut a test sheet and check the blade follows it."),
+            .text("**File › Export Print PDF…** still saves a bed-sized PDF with the artwork where it sits on the bed."),
+            .heading("Lining up the cut"),
             .text("**On a laser**: jog the laser dot to the centre of each mark, click **Record mark 1** and **Record mark 2**, and turn on **Align job to marks**. The job is moved and rotated to match the sheet."),
-            .text("**On a cutter**: load the sheet with mark 1 at the cutter's origin. Cutters with an optical mark sensor use their own alignment routine, which KerfKutter doesn't drive yet."),
+            .text("**On a cutter without a sensor**: load the sheet with mark 1 at the cutter's origin."),
+            .text("**On a GCC LX cutter**: the cutter reads the marks itself. See *Optical marks on GCC cutters*."),
+        ])
+
+    static let gccOpticalMarks = HelpTopic(
+        id: "gcc-aas", title: "Optical marks on GCC cutters", symbol: "viewfinder",
+        summary: "Print and cut on the GCC Expert II 24 LX with its AAS II mark sensor.",
+        blocks: [
+            .text("GCC's LX cutters, such as the **Expert II 24 LX**, have an optical sensor (AAS II) that finds four printed L marks and corrects the cut for where the sheet really is, including skew and stretch."),
+            .heading("Set up"),
+            .steps([
+                "Add the **GCC Expert II 24 LX (optical marks)** device, or turn on **Reads printed marks** in an existing GCC device's settings.",
+                "Choose the mark style **GCC AAS II (L marks, optical)**. Four marks are used, 25 mm long, 1 mm thick and 5 mm from the art, which is what GCC suggests.",
+                "Add registration marks. Mark 1 is drawn thicker and goes at the corner nearest the cutter's origin (front right on the Expert II).",
+            ]),
+            .heading("Print and cut"),
+            .steps([
+                "Print from **File › Print Preview…** at 100%, on white media. Leave about 30 mm beside the marks, 20 mm above and 50 mm below.",
+                "Load the sheet the right way round, keep the marks off the pinch roller tracks, and lower the rollers.",
+                "Move the blade over mark 1 with the cutter's arrow keys and press **Origin Set**.",
+                "In the Machine tab, check **Read marks with the optical sensor (AAS)** is on and click **Send to cutter**. The cutter reads the four marks, then cuts.",
+            ]),
+            .text("**Scan marks only (test)** reads the marks without cutting, then returns to mark 1, so you can check the sensor finds them first."),
+            .heading("If it doesn't line up"),
+            .bullets([
+                "Marks not found: use black marks on plain white media under 0.8 mm thick, keep them clean and flat, and avoid strong side light on the sensor. Calibrate the media sensitivity on the cutter if needed.",
+                "The cutter looks for the far marks in the wrong place: change **Mark distance units** in the device settings. GCC doesn't publish them, so this is experimental.",
+                "Cut consistently shifted by the same amount: set **AAS Offset** on the cutter, using GCC's offset test.",
+            ]),
+            .warning("Optical registration is experimental. Cut a test sheet with **Print cut lines** on before using good media."),
         ])
 
     static let embroidery = HelpTopic(
@@ -363,7 +400,7 @@ public enum HelpLibrary {
             .bullets([
                 "Lasers: xTool D1 Pro (with and without the extension kit), Creality Falcon2 12 W and 40 W, a K40-style CO2 laser, and a generic GRBL laser.",
                 "CNC: SainSmart Genmitsu 4040 Pro.",
-                "Cutters: GCC Expert 24, Redsail RS series, EasyCut-class USB cutters, Janome Artistic Edge 15 (experimental), and Brother ScanNCut 12×12 and 12×24 mats (SVG export).",
+                "Cutters: GCC Expert 24, GCC Expert II 24 LX (reads printed marks), Redsail RS series, EasyCut-class USB cutters, Janome Artistic Edge 15 (experimental), and Brother ScanNCut 12×12 and 12×24 mats (SVG export).",
             ]),
             .heading("Settings"),
             .bullets([
@@ -383,7 +420,8 @@ public enum HelpLibrary {
             .heading("Export"),
             .bullets([
                 "**File › Export Machine File…** (⌘E): G-code (.gc) for lasers and CNC routers, or HPGL (.plt), GP-GL or SVG for cutters, depending on the device.",
-                "**File › Export Print PDF…**: the print layers and artwork for print and cut.",
+                "**File › Print Preview…** (⌘P): lay out and print the print layers and artwork for print and cut, or save them as a PDF.",
+                "**File › Export Print PDF…**: the print layers and artwork as a bed-sized PDF.",
                 "**File › Export Embroidery…** (⌥⌘E): PES, JEF or DST.",
             ]),
             .tip("A machine file can't know where the head will be, so a job set to start at the current head position is written from its zero point."),
@@ -403,6 +441,7 @@ public enum HelpLibrary {
                 HelpKey("⇧⌘I", "Import image to engrave"),
                 HelpKey("⌘E", "Export machine file"),
                 HelpKey("⌥⌘E", "Export embroidery"),
+                HelpKey("⌘P", "Print preview and print"),
             ]),
             .heading("Edit and arrange"),
             .keys([
