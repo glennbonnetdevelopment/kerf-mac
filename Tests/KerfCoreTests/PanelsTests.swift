@@ -55,10 +55,10 @@ final class PanelsTests: XCTestCase {
         let square = rect(0, 0, 100, 40)
         let left = Panels.clip(square, to: Rect2(minX: -1, minY: -1, maxX: 50, maxY: 41))
         XCTAssertEqual(left.count, 1, "the piece through the start is joined into one cut")
-        XCTAssertEqual(Panels.length(left), 50 + 40 + 50, accuracy: 1e-9)
+        XCTAssertEqual(Panels.length(left[0]), 50 + 40 + 50, accuracy: 1e-9)
         let right = Panels.clip(square, to: Rect2(minX: 50, minY: -1, maxX: 101, maxY: 41))
         XCTAssertEqual(right.count, 1)
-        XCTAssertEqual(Panels.length(right), 50 + 40 + 50, accuracy: 1e-9)
+        XCTAssertEqual(Panels.length(right[0]), 50 + 40 + 50, accuracy: 1e-9)
         // Wholly inside: unchanged and still closed.
         XCTAssertEqual(Panels.clip(square, to: Rect2(minX: -5, minY: -5, maxX: 200, maxY: 200)), [square])
         // Wholly outside: nothing.
