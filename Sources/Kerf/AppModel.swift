@@ -158,6 +158,15 @@ final class AppModel: ObservableObject {
     }
     /// Shows the embroidery export sheet (see EmbroideryExportView).
     @Published var showEmbroideryExport = false
+    /// Rhinestone layout settings, remembered between launches (see AppModel+Rhinestones).
+    @Published var rhinestones: RhinestoneOptions = AppModel.loadRhinestones() {
+        didSet {
+            guard rhinestones != oldValue else { return }
+            if let data = try? JSONEncoder().encode(rhinestones) { UserDefaults.standard.set(data, forKey: "rhinestones") }
+        }
+    }
+    /// Shows the rhinestone layout sheet (see RhinestoneView).
+    @Published var showRhinestones = false
     /// The shape open in the stitch editor window.
     @Published var stitchEditorShapeID: UUID?
     /// The last embroidery pattern and what it was made from, so the export sheet doesn't redigitize on every redraw.

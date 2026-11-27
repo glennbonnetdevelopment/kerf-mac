@@ -81,6 +81,9 @@ struct EditorToolbar: View {
             Button { showContour = true } label: { Label("Contour cut", systemImage: "seal") }
                 .help("Add a cut line around the artwork, a set distance out (print and cut)")
                 .popover(isPresented: $showContour, arrowEdge: .bottom) { contourPopover }
+            Button { model.showRhinestones = true } label: { Label("Rhinestones", systemImage: "circle.grid.3x3.fill") }
+                .help("Lay rhinestones along and inside the selected shapes or text, and cut the template holes")
+                .disabled(model.rhinestoneTargets.isEmpty)
             Divider().frame(height: 22)
 
             colorSwatches
