@@ -77,6 +77,9 @@ struct KerfApp: App {
             CommandGroup(after: .toolbar) {
                 OpenPreviewButton()
             }
+            CommandGroup(replacing: .help) {
+                OpenHelpButton()
+            }
         }
 
         Window("Material Preview", id: "material-preview") {
@@ -97,6 +100,11 @@ struct KerfApp: App {
                 .environmentObject(model)
         }
         .defaultSize(width: 900, height: 700)
+
+        Window("KerfKutter Help", id: "help") {
+            HelpView()
+        }
+        .defaultSize(width: 960, height: 680)
     }
 }
 
