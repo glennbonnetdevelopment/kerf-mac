@@ -261,13 +261,20 @@ public struct CutterJobOptions: Sendable {
     /// Weeding box and weeding lines added after the design.
     public var weeding: WeedingOptions
 
-    public init(weeding: WeedingOptions = .init()) {
+    /// Design-space point that becomes the cutter's (0, 0), such as the origin mark for optical registration.
+    public var origin: Vec2?
+    /// Commands sent after initialising and before the cut data (HPGL only), such as the GCC AAS command.
+    public var preamble: String
+
+    public init(weeding: WeedingOptions = .init(), origin: Vec2? = nil, preamble: String = "") {
         self.weeding = weeding
+        self.origin = origin
+        self.preamble = preamble
     }
 
     /// A plain weeding box `margin` mm around the job (nil for none).
     public init(weedBorder: Double?) {
-        self.weeding = WeedingOptions(box: weedBorder == nil ? .none : .job, margin: weedBorder ?? 3)
+        self.init(weeding: WeedingOptions(box: weedBorder == nil ? .none : .job, margin: weedBorder ?? 3))
     }
 }
 
@@ -302,14 +309,15 @@ public enum PlotterGenerator {
             return svg(jobs: jobs, profile: profile)
         }
 
+        let zero = options.origin.map(profile.toMachine) ?? .zero
         func u(_ p: Vec2) -> (Int, Int) {
-            let q = profile.toMachine(p)
+            let q = profile.toMachine(p) - zero
             return (Int((q.x * profile.unitsPerMM).rounded()), Int((q.y * profile.unitsPerMM).rounded()))
         }
 
         switch profile.language {
         case .hpgl:
-            var out = "IN;"
+            var out = "IN;" + options.preamble
             for (layer, paths) in jobs {
                 if profile.sendSpeedAndForce {
                     out += "VS\(max(1, layer.cutSpeed));FS\(max(1, layer.cutForce));"
