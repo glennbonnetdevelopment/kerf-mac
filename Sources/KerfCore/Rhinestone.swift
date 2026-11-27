@@ -367,6 +367,25 @@ public enum Rhinestone {
                 tryPlace(b.center)
                 return
             }
+            let corners = cornerIndices(curve)
+            if corners.count >= 2 {
+                // A stone on every corner, and each side between corners spaced evenly on its own.
+                let pts = curve.points
+                for (k, c) in corners.enumerated() {
+                    let end = corners[(k + 1) % corners.count]
+                    var side = [pts[c]]
+                    var i = c
+                    repeat {
+                        i = (i + 1) % pts.count
+                        side.append(pts[i])
+                    } while i != end
+                    let sideLength = Polyline(side).length
+                    let n = max(1, Int((sideLength / pitch).rounded(.down)))
+                    // The last point is the next corner, placed by the next side.
+                    for p in pointsAlong(side, every: sideLength / Double(n), count: n) { tryPlace(p) }
+                }
+                return
+            }
             let loop = curve.rotatedStart(to: sharpestCorner(curve))
             let n = max(3, Int((length / pitch).rounded(.down)))
             let step = length / Double(n)
@@ -423,6 +442,20 @@ public enum Rhinestone {
             }
         }
         return Polyline(out, closed: true)
+    }
+
+    /// Points where a closed loop turns by more than about 30°, in order.
+    static func cornerIndices(_ p: Polyline) -> [Int] {
+        let pts = p.points
+        let n = pts.count
+        guard n >= 3 else { return [] }
+        var out: [Int] = []
+        for i in 0..<n {
+            let a = pts[(i - 1 + n) % n], b = pts[i], c = pts[(i + 1) % n]
+            let u = (b - a).normalized, v = (c - b).normalized
+            if acos(max(-1, min(1, u.dot(v)))) > 0.5 { out.append(i) }
+        }
+        return out
     }
 
     /// Index of the point where a closed loop turns the most.

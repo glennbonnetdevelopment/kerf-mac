@@ -49,9 +49,9 @@ final class RhinestoneTests: XCTestCase {
             XCTAssertGreaterThanOrEqual(s.center.y - s.radius, -0.5)
             XCTAssertLessThanOrEqual(s.center.y + s.radius, 50.5)
         }
-        // Loops start at their sharpest corner, so at least one corner gets a stone.
+        // Every corner gets a stone.
         let corners = [Vec2(1.4, 1.4), Vec2(48.6, 1.4), Vec2(48.6, 48.6), Vec2(1.4, 48.6)]
-        XCTAssertTrue(corners.contains { c in stones.contains { $0.center.distance(to: c) < 1.0 } })
+        for c in corners { XCTAssertTrue(stones.contains { $0.center.distance(to: c) < 0.05 }, "corner \(c)") }
     }
 
     func testHoneycombFillStaysInsideWithoutOverlaps() {
