@@ -50,6 +50,7 @@
 		93BF49C7874653269D9A6F99 /* StarterMaterials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5241C9D95C51B5B841046D27 /* StarterMaterials.swift */; };
 		0B543ACA72299A7B43F62D75 /* EmbroideryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */; };
 		C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 125BC4804EAD037CDE428879 /* KerfCoreTests.swift */; };
+		21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */; };
 		893EF6FE3F847DA65CD969FE /* KerfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; };
 		E1702234442CFA704BA06EFF /* KerfCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		BD54067B074BB2544118BDFD /* KerfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; };
@@ -131,6 +132,7 @@
 		5241C9D95C51B5B841046D27 /* StarterMaterials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterMaterials.swift; sourceTree = "<group>"; };
 		23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryTests.swift; sourceTree = "<group>"; };
 		125BC4804EAD037CDE428879 /* KerfCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfCoreTests.swift; sourceTree = "<group>"; };
+		FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyleTests.swift; sourceTree = "<group>"; };
 		F91288DB192297DC903FE08C /* KerfKutter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KerfKutter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		240CB5B45D2EFCB17ED411CB /* KerfCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = KerfCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5400806AFA697D620185B72 /* KerfCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KerfCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -261,6 +263,7 @@
 			children = (
 				23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */,
 				125BC4804EAD037CDE428879 /* KerfCoreTests.swift */,
+				FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */,
 			);
 			name = KerfCoreTests;
 			path = Tests/KerfCoreTests;
@@ -445,6 +448,7 @@
 			files = (
 				0B543ACA72299A7B43F62D75 /* EmbroideryTests.swift in Sources */,
 				C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */,
+				21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

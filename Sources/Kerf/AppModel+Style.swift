@@ -104,6 +104,22 @@ extension AppModel {
         }
     }
 
+    /// The first selected shape's corner radius in mm (0 when sharp).
+    var selectionCornerRadius: Double { styleTargets.first?.style?.cornerRadius ?? 0 }
+
+    /// Rounds the selected shapes' sharp corners (0 makes them sharp again).
+    func setCornerRadius(_ value: Double) {
+        let ids = Set(styleTargets.map(\.id))
+        guard !ids.isEmpty else { return }
+        let r = max(0, value)
+        checkpoint()
+        for i in document.shapes.indices where ids.contains(document.shapes[i].id) {
+            var style = document.shapes[i].style ?? ArtworkStyle()
+            style.cornerRadius = r > 0 ? r : nil
+            document.shapes[i].style = style.isEmpty ? nil : style
+        }
+    }
+
     /// A new layer for a style of `shape`, with the next free colour, right after the shape's layer.
     private func makeStyleLayer(_ kind: StylePartKind, for shape: Artwork) -> UUID {
         let used = Set(document.layers.map { $0.colorHex.uppercased() })

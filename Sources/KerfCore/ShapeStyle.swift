@@ -71,22 +71,41 @@ public struct ArtworkStyle: Codable, Hashable, Sendable {
     public var parts: [StylePart]
     /// False leaves the shape's own outline out of jobs and exports, so only its style parts are made.
     public var outlineEnabled: Bool
+    /// Rounds the shape's sharp corners by this radius in mm (nil or 0 keeps them sharp). It changes the shape
+    /// itself, so its stroke, fill and offset follow the rounded outline.
+    public var cornerRadius: Double?
 
-    public init(parts: [StylePart] = [], outlineEnabled: Bool = true) {
+    public init(parts: [StylePart] = [], outlineEnabled: Bool = true, cornerRadius: Double? = nil) {
         self.parts = parts
         self.outlineEnabled = outlineEnabled
+        self.cornerRadius = cornerRadius
     }
+
+    /// The corner radius when it rounds anything.
+    public var roundedCorners: Double? { (cornerRadius ?? 0) > 1e-6 ? cornerRadius : nil }
 
     public func part(_ kind: StylePartKind) -> StylePart? { parts.first { $0.kind == kind } }
 
     public var enabledParts: [StylePart] { parts.filter(\.enabled) }
 
-    public var isEmpty: Bool { parts.isEmpty && outlineEnabled }
+    public var isEmpty: Bool { parts.isEmpty && outlineEnabled && roundedCorners == nil }
 }
 
 public extension Artwork {
     /// True when the shape's own outline is made (it has no style, or its style keeps the outline).
     var outlineEnabled: Bool { style?.outlineEnabled ?? true }
+
+    /// The outlines in the shape's own coordinates with its corner radius applied.
+    var styledPaths: [Polyline] {
+        guard image == nil, let r = style?.roundedCorners else { return paths }
+        return Fillet.cached(paths, radius: r / max(1e-9, transform.meanScale))
+    }
+
+    /// `styledPaths` placed on the bed.
+    var placedStyledPaths: [Polyline] {
+        let p = styledPaths
+        return transform.isIdentity ? p : p.transformed(transform)
+    }
 
     /// Stable id for the child shape a style part makes.
     static func partID(_ parent: UUID, _ kind: StylePartKind) -> UUID {
@@ -103,6 +122,7 @@ public extension Artwork {
     func styleShapes(embroidery: Bool = false) -> [Artwork] {
         guard let style, image == nil else { return [] }
         let scale = max(1e-9, transform.meanScale)
+        let paths = styledPaths
         var out: [Artwork] = []
         for part in style.enabledParts {
             var child = Artwork(id: Self.partID(id, part.kind), layerID: part.layerID,
@@ -136,7 +156,16 @@ public extension KerfDocument {
         var out: [Artwork] = []
         out.reserveCapacity(shapes.count)
         for shape in shapes {
-            if shape.outlineEnabled { out.append(shape) }
+            if shape.outlineEnabled {
+                if shape.style?.roundedCorners != nil {
+                    var rounded = shape
+                    rounded.paths = shape.styledPaths
+                    // Hand-edited stitches were made for the sharp outline and still apply as they are.
+                    out.append(rounded)
+                } else {
+                    out.append(shape)
+                }
+            }
             if shape.style != nil {
                 out += shape.styleShapes(embroidery: embroidery).filter { layer($0.layerID) != nil }
             }
@@ -173,7 +202,7 @@ public extension KerfDocument {
 /// Outline geometry for strokes and offsets. Works on a grid like `Contour`, so any outline (open, closed,
 /// self-crossing, with holes) gives clean closed loops with round corners.
 public enum StyleGeometry {
-    public enum Op: Hashable, Sendable { case stroke, offset }
+    public enum Op: Hashable, Sendable { case stroke, offset, fillet }
 
     /// Outlines of the band `width` wide centred on `paths`.
     public static func stroke(_ paths: [Polyline], width: Double) -> [Polyline] {
@@ -208,7 +237,12 @@ public enum StyleGeometry {
     public static func cached(_ op: Op, _ paths: [Polyline], _ amount: Double) -> [Polyline] {
         let key = CacheKey(op: op, paths: paths, amount: amount)
         if let hit = cache.get(key) { return hit }
-        let result = op == .stroke ? stroke(paths, width: amount) : offset(paths, by: amount)
+        let result: [Polyline]
+        switch op {
+        case .stroke: result = stroke(paths, width: amount)
+        case .offset: result = offset(paths, by: amount)
+        case .fillet: result = paths.map { Fillet.round($0, radius: amount) }
+        }
         cache.set(key, result)
         return result
     }
@@ -301,4 +335,55 @@ public enum StyleGeometry {
     }
 
     static let cache = Cache()
+}
+
+/// Rounds the sharp corners of outlines with circular arcs.
+public enum Fillet {
+    /// Rounds every corner of `p` that turns by more than `minTurn` radians. The radius shrinks where the
+    /// sides next to a corner are too short for it. Open paths keep their end points.
+    public static func round(_ p: Polyline, radius: Double, minTurn: Double = 0.2, step: Double = 0.2) -> Polyline {
+        let pts = p.deduplicated().points
+        let n = pts.count
+        guard radius > 0, n >= 3 else { return p }
+        var out: [Vec2] = []
+        out.reserveCapacity(n * 4)
+        for i in 0..<n {
+            let isEnd = !p.closed && (i == 0 || i == n - 1)
+            let b = pts[i]
+            if isEnd { out.append(b); continue }
+            let a = pts[(i - 1 + n) % n], c = pts[(i + 1) % n]
+            let ab = a - b, cb = c - b
+            let la = ab.length, lc = cb.length
+            guard la > 1e-9, lc > 1e-9 else { out.append(b); continue }
+            let u = ab / la, v = cb / lc
+            let cosT = max(-1, min(1, u.dot(v)))
+            let theta = acos(cosT) // inside angle at the corner
+            guard Double.pi - theta > minTurn, theta > 1e-3 else { out.append(b); continue }
+            let half = theta / 2
+            // Each side can give at most half its length, so neighbouring corners don't overlap.
+            let t = min(radius / tan(half), la / 2, lc / 2)
+            let r = t * tan(half)
+            guard r > 1e-6 else { out.append(b); continue }
+            let p1 = b + u * t, p2 = b + v * t
+            let bis = u + v
+            let bl = bis.length
+            guard bl > 1e-9 else { out.append(b); continue }
+            let centre = b + (bis / bl) * (r / sin(half))
+            let a1 = atan2(p1.y - centre.y, p1.x - centre.x)
+            var sweep = atan2(p2.y - centre.y, p2.x - centre.x) - a1
+            while sweep > .pi { sweep -= 2 * .pi }
+            while sweep < -.pi { sweep += 2 * .pi }
+            let segs = max(2, min(48, Int((abs(sweep) * r / step).rounded(.up))))
+            for k in 0...segs {
+                let ang = a1 + sweep * Double(k) / Double(segs)
+                out.append(Vec2(centre.x + r * cos(ang), centre.y + r * sin(ang)))
+            }
+        }
+        return Polyline(out, closed: p.closed).deduplicated()
+    }
+
+    /// `round` for every outline, remembering recent results so the canvas can redraw every frame.
+    public static func cached(_ paths: [Polyline], radius: Double) -> [Polyline] {
+        StyleGeometry.cached(.fillet, paths, radius)
+    }
 }

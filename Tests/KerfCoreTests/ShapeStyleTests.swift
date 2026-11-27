@@ -99,4 +99,39 @@ final class ShapeStyleTests: XCTestCase {
         doc.shapes = [shape]
         XCTAssertEqual(doc.machineShapes().last?.millRole, .pocket)
     }
+
+    func testCornerRadiusRoundsSharpCorners() {
+        let r = Fillet.round(square, radius: 2)
+        XCTAssertGreaterThan(r.points.count, 8)
+        XCTAssertEqual(r.bounds.width, 10, accuracy: 1e-6, "sides stay where they were")
+        let nearest = r.points.map { $0.length }.min()!
+        XCTAssertEqual(nearest, 2 * (2.0.squareRoot() - 1), accuracy: 0.05, "the corner is cut by the arc")
+        // A radius too big for the sides is limited to half of each side.
+        let big = Fillet.round(square, radius: 50)
+        XCTAssertEqual(big.bounds.width, 10, accuracy: 1e-6)
+        XCTAssertEqual(big.points.map { $0.distance(to: Vec2(5, 5)) }.max()!, 5, accuracy: 0.05)
+        // Open paths keep their ends.
+        let open = Fillet.round(Polyline([Vec2(0, 0), Vec2(10, 0), Vec2(10, 10)]), radius: 2)
+        XCTAssertEqual(open.points.first, Vec2(0, 0))
+        XCTAssertEqual(open.points.last, Vec2(10, 10))
+    }
+
+    func testCornerRadiusAppliesToOutlineAndStyles() {
+        var (doc, cut, engrave) = styledDocument()
+        doc.shapes[0].style?.cornerRadius = 3
+        let shapes = doc.machineShapes()
+        let outline = shapes.first { $0.layerID == cut }!
+        XCTAssertGreaterThan(outline.paths[0].points.count, 4)
+        XCTAssertEqual(doc.shapes[0].paths, [square], "the shape itself is unchanged, so the radius can be edited")
+        XCTAssertNotNil(shapes.first { $0.layerID == engrave })
+        // Radius alone (no parts) keeps a style.
+        var plain = KerfDocument()
+        let l = plain.addLayer(mode: .line)
+        var s = Artwork(layerID: l, name: "Box", paths: [square])
+        s.style = ArtworkStyle(cornerRadius: 1)
+        plain.shapes = [s]
+        plain.pruneStyleParts()
+        XCTAssertNotNil(plain.shapes[0].style)
+        XCTAssertGreaterThan(plain.machineShapes()[0].paths[0].points.count, 4)
+    }
 }

@@ -18,9 +18,21 @@ struct ShapeStyleControls: View {
 
     var body: some View {
         if model.styleTargets.isEmpty {
-            Text("Select a shape to add a stroke, fill or offset outline.")
+            Text("Select a shape to round its corners or add a stroke, fill or offset outline.")
                 .foregroundStyle(.secondary)
         } else {
+            LabeledContent {
+                TextField("", value: Binding(get: { model.selectionCornerRadius }, set: { model.setCornerRadius($0) }),
+                          format: .number.precision(.fractionLength(0...2)))
+                    .frame(width: 70)
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "app")
+                        .frame(width: 16)
+                    Text("Corner radius (mm)")
+                }
+            }
+            .help("Rounds the shape's sharp corners. 0 keeps them sharp.")
             ForEach(StylePartKind.allCases) { kind in
                 StylePartRow(kind: kind)
             }

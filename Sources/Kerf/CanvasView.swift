@@ -212,7 +212,7 @@ struct CanvasView: View {
         // Shapes.
         for shape in model.document.shapes {
             guard let layer = model.document.layer(shape.layerID) else { continue }
-            let path = viewPath(shape.placedPaths)
+            let path = viewPath(shape.style?.roundedCorners != nil ? shape.placedStyledPaths : shape.placedPaths)
             if let style = shape.style { drawStyle(style, of: shape, path: path, in: &ctx, vp: vp) }
             let color = Color(hex: layer.colorHex).opacity(layer.enabled ? 1 : 0.3)
             if let img = shape.image, let cg = ImageCache.shared.cgImage(for: shape.id, image: img) {
@@ -496,14 +496,14 @@ struct CanvasView: View {
             let color = Color(hex: layer.colorHex).opacity(layer.enabled ? 1 : 0.3)
             switch part.kind {
             case .fill:
-                let closed = viewPath(shape.placedPaths.filter { $0.closed })
+                let closed = viewPath(shape.placedStyledPaths.filter { $0.closed })
                 ctx.fill(closed, with: .color(color.opacity(0.35)), style: FillStyle(eoFill: true))
             case .stroke:
                 ctx.stroke(path, with: .color(color.opacity(0.6)),
                            style: StrokeStyle(lineWidth: max(1, part.amount * vp.zoom), lineCap: .round, lineJoin: .round))
             case .offset:
                 let scale = max(1e-9, shape.transform.meanScale)
-                let loops = StyleGeometry.cached(.offset, shape.paths, part.amount / scale).transformed(shape.transform)
+                let loops = StyleGeometry.cached(.offset, shape.styledPaths, part.amount / scale).transformed(shape.transform)
                 ctx.stroke(viewPath(loops), with: .color(color), lineWidth: 1)
             }
         }
