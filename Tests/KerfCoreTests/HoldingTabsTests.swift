@@ -216,7 +216,7 @@ final class HoldingTabsTests: XCTestCase {
     }
 
     func testOldLayersDecodeWithTabDefaults() throws {
-        let json = #"{"id":"6F1C2A3E-0000-4000-8000-000000000001","name":"L","colorHex":"#000000","tabsEnabled":true}"#
+        let json = ##"{"id":"6F1C2A3E-0000-4000-8000-000000000001","name":"L","colorHex":"#000000","tabsEnabled":true}"##
         let layer = try JSONDecoder().decode(Layer.self, from: Data(json.utf8))
         XCTAssertTrue(layer.tabsEnabled)
         XCTAssertEqual(layer.tabPlacement, .count)
