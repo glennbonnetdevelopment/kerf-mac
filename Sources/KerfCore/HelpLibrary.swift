@@ -90,8 +90,11 @@ public enum HelpLibrary {
         materials,
         laser,
         vinyl,
+        panels,
         cnc,
         printAndCut,
+        gccOpticalMarks,
+        rhinestones,
         embroidery,
         devices,
         previewExport,
@@ -109,7 +112,7 @@ public enum HelpLibrary {
             .heading("The window"),
             .bullets([
                 "**Toolbar** (top): Import, Image, the toolpath **Preview** switch, and the **Device** picker that chooses the machine you're working for.",
-                "**Drawing tools** (above the canvas): select, edit nodes, measure, basic shapes, the shapes library, text, text around a shape, curved text, contour cut, colour swatches and units.",
+                "**Drawing tools** (above the canvas): select, edit nodes, measure, basic shapes, the shapes library, text, text around a shape, curved text, contour cut, rhinestones, colour swatches and units.",
                 "**Canvas**: the machine's bed, drawn to scale with a grid and rulers.",
                 "**Sidebar** (right): the **Layers**, **Arrange** and **Machine** tabs.",
             ]),
@@ -236,7 +239,7 @@ public enum HelpLibrary {
                 "In the layer's Material menu choose **Save these settings as a material…** and give it a material, operation and notes.",
                 "Next time, pick it from the layer's Material menu, or select it in the library and click **Apply to current layer**.",
             ]),
-            .text("Materials belong to a machine type (laser, cutter or CNC). If you change a layer after applying a material it shows as edited, and **Update “…” with these settings** saves the changes back. The library can import and export materials files to share or back up, and can restore the built-in xTool starter settings."),
+            .text("Materials belong to a machine type (laser, cutter or CNC). If you change a layer after applying a material it shows as edited, and **Update “…” with these settings** saves the changes back. The library can import and export materials files to share or back up, and can restore the built-in xTool laser and vinyl cutter starter settings."),
             .warning("Starter settings are a starting point. Test on a scrap of the same material first."),
         ])
 
@@ -283,9 +286,38 @@ public enum HelpLibrary {
                 "**Overcut** runs a little past the start of each closed shape so it fully separates.",
                 "Inner shapes are cut before outer ones so letters don't shift on the mat.",
                 "**Weeding border** adds a rectangle around the design, with the margin you set, to make weeding easier.",
+                "Signs bigger than the cutter can be cut as overlapping panels. See **Panel cutting (big signs)**.",
             ]),
+            .heading("Vinyl presets"),
+            .text("The material library comes with starter settings for vinyl cutters: adhesive vinyl (Oracal 651, 751 and 631, metallic, holographic), heat-transfer vinyl (standard, stretch, metallic, glitter, flock, puff, reflective), reflective sign vinyl, stencil and sandblast film, sticker paper, cardstock and magnet sheet. Pick one from a cut layer's **Material** menu to set its force, speed and passes."),
+            .text("Thick or textured materials use a 60° blade, so their presets set the layer's own **blade offset** to 0.5 mm. Turn on **Own blade offset** on any cut layer to do the same for your own settings."),
+            .warning("Presets are tuned for a GCC Expert 24 class cutter. Cut a small test shape and weed it before a full job."),
             .tip("Cutters that appear as a USB printer (like the GCC Expert 24): add them in **System Settings › Printers** as a Generic PostScript printer, then choose that queue. KerfKutter sends raw cutter commands to it."),
             .text("Machines with no live connection, like the Brother ScanNCut, use **Export file…** to save an SVG that you load from a USB stick or the maker's app."),
+        ])
+
+    static let panels = HelpTopic(
+        id: "panels", title: "Panel cutting (big signs)", symbol: "rectangle.split.3x1",
+        summary: "Cutting a vinyl sign bigger than the cutter as overlapping panels, one at a time.",
+        blocks: [
+            .text("When a sign is wider or longer than your cutter, KerfKutter can split it into overlapping panels (tiling). You cut each panel on its own and line them up when you apply the vinyl."),
+            .steps([
+                "Pick your cutter, then in the **Machine** tab turn on **Split into panels** under **Panels (oversized signs)**.",
+                "Set **Panel width** (across the vinyl) and **Panel length** (along the roll). Leave them at 0 to use the machine's full work area.",
+                "Set the **Overlap**, for example 12 mm (about half an inch), so the panels sit on top of each other with no gap.",
+                "Check the panels on the canvas: dashed outlines named A1, A2, B1 and so on, with the overlaps shaded.",
+                "Pick a panel in the grid to preview it, load the vinyl, and click **Send panel A1**. KerfKutter ticks it off and moves on to the next panel.",
+            ]),
+            .bullets([
+                "Panels are equal in size, cut row by row from **A1** at the top left. Rows are letters, columns are numbers.",
+                "Each panel is moved so it starts at the cutter's origin, so load fresh vinyl at the same spot each time.",
+                "**Alignment marks** cuts small crosshairs in the middle of each overlap, at the same spot on both panels. Lay one panel over the next so the crosshairs match. Marks are never placed on the artwork; if a seam has no clear spot, KerfKutter tells you.",
+                "Weeding boxes and lines are added to each panel separately.",
+                "**Export panels…** saves one file per panel, such as sign-A1.plt and sign-A2.plt, in a folder you choose.",
+                "**Skip** moves on without sending, and **Start over** clears the ticks.",
+            ]),
+            .tip("A design that already fits the cutter is cut in one piece as usual, even with panels turned on."),
+            .warning("Panels longer than the bed rely on the cutter feeding vinyl off the roll. Check that your cutter tracks straight over that length before cutting a long panel."),
         ])
 
     static let cnc = HelpTopic(
@@ -316,18 +348,91 @@ public enum HelpLibrary {
 
     static let printAndCut = HelpTopic(
         id: "print-and-cut", title: "Print and cut", symbol: "printer",
-        summary: "Registration marks, printing, and cutting around printed artwork.",
+        summary: "Registration marks, print preview, printing, and cutting around printed artwork.",
         blocks: [
             .heading("Contour cut"),
             .text("**Contour cut** (above the canvas, or the Arrange menu) adds a cut line around the artwork, a set distance out. Images are outlined by their printed (non-white) pixels, and holes are skipped so each piece cuts out whole. The line goes on its own layer."),
             .heading("Registration marks"),
+            .text("Choose the mark style, 3 or 4 corners, size and gap, then click **Add registration marks**. They go on a Print only layer, which prints but is never cut. For a GCC LX cutter choose **GCC AAS II (L marks, optical)**; see *Optical marks on GCC cutters*."),
+            .heading("Print preview and printing"),
             .steps([
-                "Choose the mark style, 3 or 4 corners, size and gap, then click **Add registration marks**. They go on a Print only layer.",
-                "Use **File › Export Print PDF…** and print it.",
-                "Load the printed sheet on the machine.",
+                "Choose **File › Print Preview…** (⌘P), or **Print preview…** in the Machine tab.",
+                "Pick the paper size, orientation and where the job sits on the page. The dashed line is the page margin, and red lines show where the cutter will cut.",
+                "Add or replace the registration marks from the preview if needed. Warnings appear when the job doesn't fit or the marks are too close to the edge.",
+                "Click **Print…** to print through the macOS print dialog, or **Save as PDF…**.",
             ]),
+            .tip("Print at 100%. If the print dialog offers **Scale to fit**, turn it off, or the marks and cut won't line up."),
+            .text("**Print cut lines (test sheet)** prints the cut path as a thin red line. Cut a test sheet and check the blade follows it."),
+            .text("**File › Export Print PDF…** still saves a bed-sized PDF with the artwork where it sits on the bed."),
+            .heading("Lining up the cut"),
             .text("**On a laser**: jog the laser dot to the centre of each mark, click **Record mark 1** and **Record mark 2**, and turn on **Align job to marks**. The job is moved and rotated to match the sheet."),
-            .text("**On a cutter**: load the sheet with mark 1 at the cutter's origin. Cutters with an optical mark sensor use their own alignment routine, which KerfKutter doesn't drive yet."),
+            .text("**On a cutter without a sensor**: load the sheet with mark 1 at the cutter's origin."),
+            .text("**On a GCC LX cutter**: the cutter reads the marks itself. See *Optical marks on GCC cutters*."),
+        ])
+
+    static let gccOpticalMarks = HelpTopic(
+        id: "gcc-aas", title: "Optical marks on GCC cutters", symbol: "viewfinder",
+        summary: "Print and cut on the GCC Expert II 24 LX with its AAS II mark sensor.",
+        blocks: [
+            .text("GCC's LX cutters, such as the **Expert II 24 LX**, have an optical sensor (AAS II) that finds four printed L marks and corrects the cut for where the sheet really is, including skew and stretch."),
+            .heading("Set up"),
+            .steps([
+                "Add the **GCC Expert II 24 LX (optical marks)** device, or turn on **Reads printed marks** in an existing GCC device's settings.",
+                "Choose the mark style **GCC AAS II (L marks, optical)**. Four marks are used, 25 mm long, 1 mm thick and 5 mm from the art, which is what GCC suggests.",
+                "Add registration marks. Mark 1 is drawn thicker and goes at the corner nearest the cutter's origin (front right on the Expert II).",
+            ]),
+            .heading("Print and cut"),
+            .steps([
+                "Print from **File › Print Preview…** at 100%, on white media. Leave about 30 mm beside the marks, 20 mm above and 50 mm below.",
+                "Load the sheet the right way round, keep the marks off the pinch roller tracks, and lower the rollers.",
+                "Move the blade over mark 1 with the cutter's arrow keys and press **Origin Set**.",
+                "In the Machine tab, check **Read marks with the optical sensor (AAS)** is on and click **Send to cutter**. The cutter reads the four marks, then cuts.",
+            ]),
+            .text("**Scan marks only (test)** reads the marks without cutting, then returns to mark 1, so you can check the sensor finds them first."),
+            .heading("If it doesn't line up"),
+            .bullets([
+                "Marks not found: use black marks on plain white media under 0.8 mm thick, keep them clean and flat, and avoid strong side light on the sensor. Calibrate the media sensitivity on the cutter if needed.",
+                "The cutter looks for the far marks in the wrong place: change **Mark distance units** in the device settings. GCC doesn't publish them, so this is experimental.",
+                "Cut consistently shifted by the same amount: set **AAS Offset** on the cutter, using GCC's offset test.",
+            ]),
+            .warning("Optical registration is experimental. Cut a test sheet with **Print cut lines** on before using good media."),
+        ])
+
+    static let rhinestones = HelpTopic(
+        id: "rhinestones", title: "Rhinestone templates", symbol: "circle.grid.3x3.fill",
+        summary: "Laying stones along and inside shapes and text, and cutting the template holes.",
+        blocks: [
+            .text("**Rhinestones** (above the canvas, or **Arrange › Rhinestone Layout…**, ⌥⌘K) fills the selected shapes or text with stones and turns each stone into a hole to cut in template material on the vinyl cutter or laser."),
+            .steps([
+                "Select the shapes or text. Text works as it is; thin lettering suits **Centred on the outline**.",
+                "Open **Rhinestones**. The preview shows every stone, and the count for each size and colour.",
+                "Choose the **Outline** stones and how many rows, and a **Fill** pattern with its own stone.",
+                "Set the **Spacing** between stones and the **Hole clearance**, then click **Add Stones**.",
+                "Cut each Rhinestones layer in template material, one template per stone colour.",
+            ]),
+            .heading("Stones"),
+            .bullets([
+                "Sizes **SS6** (2.0 mm), **SS8** (2.4 mm), **SS10** (2.8 mm), **SS12** (3.1 mm), **SS16** (3.9 mm) and **SS20** (4.7 mm). Stones vary by maker, so check yours with calipers.",
+                "The outline, the fill and the gap stones can each be a different size and colour. Each size and colour goes on its own layer, named like **Rhinestones SS10 Crystal**, so you can cut a template for each colour or turn layers off.",
+                "The layer's colour is the stone colour on the canvas.",
+            ]),
+            .heading("Patterns"),
+            .bullets([
+                "**Outline**: stones evenly spaced along the outline, just inside it or centred on it. Corners get a stone, and tiny parts like the dot of an i get one stone in the middle. Extra rows step inwards.",
+                "**Honeycomb**: staggered rows, the densest and most even fill. **Grid**: square rows. Both can be turned with **Row angle**.",
+                "**Contour**: rows that follow the outline inwards, like rings.",
+                "**Fill gaps with smaller stones** puts small stones where the main fill leaves room, near edges and corners.",
+                "Holes in shapes, like the middle of an O, stay empty.",
+            ]),
+            .heading("Template"),
+            .bullets([
+                "**Spacing** is the gap between stones, edge to edge. 0.8 to 1.5 mm is typical.",
+                "**Hole clearance** makes each hole slightly bigger than its stone so stones drop in. 0.1 to 0.3 mm suits most flock; a laser burns a little extra, so use less there.",
+                "**Original artwork** can move to a turned-off **Rhinestone guide** layer (shown faintly, never cut), stay where it is, or be deleted.",
+                "Holes go on Cut layers for a vinyl cutter and Line layers for a laser, ready for that layer's force or power.",
+            ]),
+            .tip("No need to mirror: brush the stones into the template face up, lift them with transfer tape and press them onto the garment. The design reads the same way as the template."),
+            .warning("Don't laser-cut vinyl-based (PVC) template materials. Use a laser-safe rubber or foam template sheet."),
         ])
 
     static let embroidery = HelpTopic(
@@ -363,7 +468,7 @@ public enum HelpLibrary {
             .bullets([
                 "Lasers: xTool D1 Pro (with and without the extension kit), Creality Falcon2 12 W and 40 W, a K40-style CO2 laser, and a generic GRBL laser.",
                 "CNC: SainSmart Genmitsu 4040 Pro.",
-                "Cutters: GCC Expert 24, Redsail RS series, EasyCut-class USB cutters, Janome Artistic Edge 15 (experimental), and Brother ScanNCut 12×12 and 12×24 mats (SVG export).",
+                "Cutters: GCC Expert 24, GCC Expert II 24 LX (reads printed marks), Redsail RS series, EasyCut-class USB cutters, Janome Artistic Edge 15 (experimental), and Brother ScanNCut 12×12 and 12×24 mats (SVG export).",
             ]),
             .heading("Settings"),
             .bullets([
@@ -383,7 +488,8 @@ public enum HelpLibrary {
             .heading("Export"),
             .bullets([
                 "**File › Export Machine File…** (⌘E): G-code (.gc) for lasers and CNC routers, or HPGL (.plt), GP-GL or SVG for cutters, depending on the device.",
-                "**File › Export Print PDF…**: the print layers and artwork for print and cut.",
+                "**File › Print Preview…** (⌘P): lay out and print the print layers and artwork for print and cut, or save them as a PDF.",
+                "**File › Export Print PDF…**: the print layers and artwork as a bed-sized PDF.",
                 "**File › Export Embroidery…** (⌥⌘E): PES, JEF or DST.",
             ]),
             .tip("A machine file can't know where the head will be, so a job set to start at the current head position is written from its zero point."),
@@ -403,6 +509,7 @@ public enum HelpLibrary {
                 HelpKey("⇧⌘I", "Import image to engrave"),
                 HelpKey("⌘E", "Export machine file"),
                 HelpKey("⌥⌘E", "Export embroidery"),
+                HelpKey("⌘P", "Print preview and print"),
             ]),
             .heading("Edit and arrange"),
             .keys([
@@ -412,6 +519,7 @@ public enum HelpLibrary {
                 HelpKey("⌘R / ⇧⌘R", "Rotate 90° clockwise / counter-clockwise"),
                 HelpKey("⌥⌘W", "Weld"),
                 HelpKey("⌘J", "Join open paths"),
+                HelpKey("⌥⌘K", "Rhinestone layout"),
                 HelpKey("Arrows / ⇧ arrows", "Nudge 1 mm / 10 mm"),
             ]),
             .heading("Windows"),

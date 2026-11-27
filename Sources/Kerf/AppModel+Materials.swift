@@ -13,24 +13,25 @@ extension AppModel {
         if let url = Self.materialsURL, let data = try? Data(contentsOf: url), let lib = try? MaterialLibrary.decode(data) {
             materials = lib
         }
-        // Add the xTool starter settings once; deleting them afterwards keeps them deleted.
-        let key = "addedXToolStarters"
-        if !UserDefaults.standard.bool(forKey: key) {
-            materials.merge(MaterialLibrary(materials: CutMaterial.xToolStarters))
+        // Add each set of starter settings once; deleting them afterwards keeps them deleted.
+        for (key, starters) in [("addedXToolStarters", CutMaterial.xToolStarters), ("addedVinylStarters", CutMaterial.vinylStarters)]
+        where !UserDefaults.standard.bool(forKey: key) {
+            materials.merge(MaterialLibrary(materials: starters))
             UserDefaults.standard.set(true, forKey: key)
             saveMaterials()
         }
         materialsLoaded = true
     }
 
-    /// Adds back any xTool starter settings that are missing, without touching ones you've edited.
-    func restoreStarterMaterials() {
+    /// Adds back any starter settings for `kind` that are missing, without touching ones you've edited.
+    func restoreStarterMaterials(for kind: DeviceKind) {
         let before = materials.materials.count
         var lib = materials
-        for m in CutMaterial.xToolStarters where lib.material(m.id) == nil { lib.upsert(m) }
+        for m in CutMaterial.starters where m.kind == kind && lib.material(m.id) == nil { lib.upsert(m) }
         materials = lib
         let added = materials.materials.count - before
-        alertMessage = added == 0 ? "All the xTool starter settings are already in your library." : "Added \(added) xTool starter setting\(added == 1 ? "" : "s")."
+        let what = kind == .vinylCutter ? "vinyl cutter" : "xTool"
+        alertMessage = added == 0 ? "All the \(what) starter settings are already in your library." : "Added \(added) \(what) starter setting\(added == 1 ? "" : "s")."
     }
 
     func saveMaterials() {

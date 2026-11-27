@@ -130,6 +130,12 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
     /// Diameter of the object being engraved (chuck type), mm.
     public var rotaryObjectDiameter: Double
 
+    // Optical registration (GCC AAS II)
+    /// The cutter reads GCC AAS II registration marks with its optical sensor.
+    public var aasEnabled: Bool
+    /// Units for the mark distances in the AAS command.
+    public var aasUnits: AASDistanceUnits
+
     public init(id: UUID = UUID(), name: String, kind: DeviceKind, bedWidth: Double, bedHeight: Double,
                 origin: OriginCorner, swapAxes: Bool = false, baudRate: Int, flowControl: FlowControl = .none,
                 sMax: Double = 1000, rapidSpeed: Double = 3000, rxBufferSize: Int = 127,
@@ -137,7 +143,8 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
                 overcut: Double = 1, output: CutterOutput = .serial, printerQueue: String = "",
                 sendSpeedAndForce: Bool = true, safeZ: Double = 5,
                 rotaryEnabled: Bool = false, rotaryType: RotaryType = .roller, rotaryMMPerRotation: Double = 360,
-                rotaryRollerDiameter: Double = 25, rotaryObjectDiameter: Double = 80) {
+                rotaryRollerDiameter: Double = 25, rotaryObjectDiameter: Double = 80,
+                aasEnabled: Bool = false, aasUnits: AASDistanceUnits = .plotterUnits) {
         self.id = id
         self.name = name
         self.kind = kind
@@ -163,12 +170,14 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
         self.rotaryMMPerRotation = rotaryMMPerRotation
         self.rotaryRollerDiameter = rotaryRollerDiameter
         self.rotaryObjectDiameter = rotaryObjectDiameter
+        self.aasEnabled = aasEnabled
+        self.aasUnits = aasUnits
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, name, kind, bedWidth, bedHeight, origin, swapAxes, baudRate, flowControl, sMax, rapidSpeed,
              rxBufferSize, language, unitsPerMM, bladeOffset, overcut, output, printerQueue, sendSpeedAndForce, safeZ,
-             rotaryEnabled, rotaryType, rotaryMMPerRotation, rotaryRollerDiameter, rotaryObjectDiameter
+             rotaryEnabled, rotaryType, rotaryMMPerRotation, rotaryRollerDiameter, rotaryObjectDiameter, aasEnabled, aasUnits
     }
 
     /// Missing keys fall back to defaults so saved profiles survive upgrades.
@@ -198,7 +207,16 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
                   rotaryType: try c.decodeIfPresent(RotaryType.self, forKey: .rotaryType) ?? .roller,
                   rotaryMMPerRotation: try c.decodeIfPresent(Double.self, forKey: .rotaryMMPerRotation) ?? 360,
                   rotaryRollerDiameter: try c.decodeIfPresent(Double.self, forKey: .rotaryRollerDiameter) ?? 25,
-                  rotaryObjectDiameter: try c.decodeIfPresent(Double.self, forKey: .rotaryObjectDiameter) ?? 80)
+                  rotaryObjectDiameter: try c.decodeIfPresent(Double.self, forKey: .rotaryObjectDiameter) ?? 80,
+                  aasEnabled: try c.decodeIfPresent(Bool.self, forKey: .aasEnabled) ?? false,
+                  aasUnits: try c.decodeIfPresent(AASDistanceUnits.self, forKey: .aasUnits) ?? .plotterUnits)
+    }
+
+    /// The blade offset to use for a layer: the layer's own when it has one, else the machine's.
+    /// A machine set to 0 (no compensation, or one that compensates itself) stays at 0.
+    public func bladeOffset(for layer: Layer) -> Double {
+        guard bladeOffset > 0 else { return 0 }
+        return max(0, layer.bladeOffset ?? bladeOffset)
     }
 
     public static let defaultLaser = DeviceProfile(name: "GRBL laser 400×400", kind: .grblLaser,
@@ -230,6 +248,10 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
         DeviceProfile(name: "GCC Expert 24", kind: .vinylCutter, bedWidth: 600, bedHeight: 1000,
                       origin: .bottomRight, baudRate: 9600, flowControl: .hardware,
                       language: .hpgl, unitsPerMM: 40, bladeOffset: 0.25, output: .printerQueue),
+        // Expert II LX models add the AAS II optical sensor that reads printed registration marks.
+        DeviceProfile(name: "GCC Expert II 24 LX (optical marks)", kind: .vinylCutter, bedWidth: 600, bedHeight: 1000,
+                      origin: .bottomRight, baudRate: 9600, flowControl: .hardware,
+                      language: .hpgl, unitsPerMM: 40, bladeOffset: 0.25, output: .printerQueue, aasEnabled: true),
         DeviceProfile(name: "Redsail cutter (RS series)", kind: .vinylCutter, bedWidth: 630, bedHeight: 1000,
                       origin: .bottomRight, baudRate: 9600, flowControl: .software,
                       language: .hpgl, unitsPerMM: 40, bladeOffset: 0.25),

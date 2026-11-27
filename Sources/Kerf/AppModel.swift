@@ -128,6 +128,20 @@ final class AppModel: ObservableObject {
     /// Flips the job as it goes to the machine (heat-transfer vinyl, stamps). The design on the canvas
     /// stays as drawn. Not saved, so a later job doesn't come out mirrored by surprise.
     @Published var mirrorOutput: OutputMirror = .none
+    /// Panel (tiling) settings for vinyl signs bigger than the cutter, remembered between launches.
+    @Published var panels: PanelOptions = AppModel.loadPanels() {
+        didSet {
+            guard panels != oldValue else { return }
+            cachedPanelLayout = nil
+            if let data = try? JSONEncoder().encode(panels) { UserDefaults.standard.set(data, forKey: "panels") }
+        }
+    }
+    /// The panel shown in the preview and sent next.
+    @Published var selectedPanel = 0
+    /// Panels already sent or exported, by their area on the design, so a changed layout starts fresh.
+    @Published var sentPanels: Set<Rect2> = []
+    /// The panel layout for the current toolpath (see AppModel+Panels).
+    var cachedPanelLayout: PanelLayout?
     @Published var units: DisplayUnits = DisplayUnits(rawValue: UserDefaults.standard.string(forKey: "units") ?? "") ?? .mm {
         didSet { UserDefaults.standard.set(units.rawValue, forKey: "units") }
     }
@@ -158,6 +172,15 @@ final class AppModel: ObservableObject {
     }
     /// Shows the embroidery export sheet (see EmbroideryExportView).
     @Published var showEmbroideryExport = false
+    /// Rhinestone layout settings, remembered between launches (see AppModel+Rhinestones).
+    @Published var rhinestones: RhinestoneOptions = AppModel.loadRhinestones() {
+        didSet {
+            guard rhinestones != oldValue else { return }
+            if let data = try? JSONEncoder().encode(rhinestones) { UserDefaults.standard.set(data, forKey: "rhinestones") }
+        }
+    }
+    /// Shows the rhinestone layout sheet (see RhinestoneView).
+    @Published var showRhinestones = false
     /// The shape open in the stitch editor window.
     @Published var stitchEditorShapeID: UUID?
     /// The last embroidery pattern and what it was made from, so the export sheet doesn't redigitize on every redraw.
@@ -184,6 +207,15 @@ final class AppModel: ObservableObject {
     @Published var contourOffset = 2.0
     @Published var registrationMarkCount = 3
     @Published var registrationMargin = 8.0
+    /// Line thickness of GCC AAS II L marks, mm.
+    @Published var registrationLineWidth = GCCAAS.defaultThickness
+    /// Ask a GCC LX cutter to read the AAS marks before cutting (when the sheet has four AAS marks).
+    @Published var useAAS = true
+    /// Print preview sheet and its settings, remembered between launches.
+    @Published var showPrintPreview = false
+    @Published var printSettings = PrintSettings.load() {
+        didSet { printSettings.save() }
+    }
     @Published var measuredMark1: Vec2?
     @Published var measuredMark2: Vec2?
     @Published var useAlignment = false
@@ -210,7 +242,12 @@ final class AppModel: ObservableObject {
     private var undoStack: [KerfDocument] = []
     private var redoStack: [KerfDocument] = []
     private var cachedToolpath: Toolpath? {
-        didSet { if cachedToolpath == nil { cachedWeeding = nil } }
+        didSet {
+            if cachedToolpath == nil {
+                cachedWeeding = nil
+                cachedPanelLayout = nil
+            }
+        }
     }
     private var cachedWeeding: WeedingCuts?
 
@@ -302,6 +339,12 @@ final class AppModel: ObservableObject {
         let w = Weeding.cuts(for: toolpath, options: weeding)
         cachedWeeding = w
         return w
+    }
+
+    nonisolated static func loadPanels() -> PanelOptions {
+        guard let data = UserDefaults.standard.data(forKey: "panels"),
+              let p = try? JSONDecoder().decode(PanelOptions.self, from: data) else { return PanelOptions() }
+        return p
     }
 
     nonisolated static func loadWeeding() -> WeedingOptions {
@@ -448,13 +491,22 @@ final class AppModel: ObservableObject {
 
     /// HPGL or GP-GL for the active cutter profile.
     func plotterText() -> String {
-        PlotterGenerator.generate(outputToolpath, profile: profile,
-                                  options: CutterJobOptions(weeding: weeding))
+        var options = CutterJobOptions(weeding: weeding)
+        if useAAS, let job = aasJob {
+            // The cutter measures the marks, then cuts relative to the origin mark.
+            options.origin = job.origin
+            options.preamble = GCCAAS.command(job, units: profile.aasUnits, unitsPerMM: profile.unitsPerMM)
+        }
+        return PlotterGenerator.generate(outputToolpath, profile: profile, options: options)
     }
 
     func exportMachineFile() {
         guard !toolpath.isEmpty else {
             alertMessage = "Nothing to export: add shapes to an enabled layer first."
+            return
+        }
+        if panelsActive, panelLayout.isSplit {
+            exportPanels()
             return
         }
         let panel = NSSavePanel()

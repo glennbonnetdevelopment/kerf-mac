@@ -37,7 +37,7 @@ struct LayersPanel: View {
             Divider()
 
             if let id = model.currentLayerID, let binding = model.layerBinding(id) {
-                LayerSettings(layer: binding, kind: model.profile.kind)
+                LayerSettings(layer: binding, kind: model.profile.kind, machineBladeOffset: model.profile.bladeOffset)
             } else {
                 Text("Select a layer to edit its settings.")
                     .foregroundStyle(.secondary)
@@ -98,6 +98,8 @@ struct LayerSettings: View {
     let kind: DeviceKind
     /// False in the material library, where the name, colour and material links don't apply.
     var showsIdentity = true
+    /// The current machine's blade offset, shown when a layer starts using its own.
+    var machineBladeOffset: Double = 0.25
 
     private var color: Binding<Color> {
         Binding(get: { Color(hex: layer.colorHex) }, set: { layer.colorHex = $0.hexString })
@@ -130,6 +132,7 @@ struct LayerSettings: View {
             case .cut:
                 number("Speed (cm/s)", $layer.cutSpeed)
                 number("Force (g)", $layer.cutForce)
+                if kind == .vinylCutter { bladeOffsetSettings }
                 if kind == .grblLaser { tabSettings(cnc: false) }
             case .mill:
                 number("Feed (mm/min)", $layer.speed)
@@ -212,6 +215,19 @@ struct LayerSettings: View {
             Text(cnc
                  ? "Tabs go on parts, away from corners. The tool lifts to leave a bridge this tall. Use the Holding tabs tool to add, move or remove tabs by hand."
                  : "Tabs go on parts, away from corners, and are left uncut so pieces stay in the sheet. Use the Holding tabs tool to add, move or remove tabs by hand.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private var bladeOffsetSettings: some View {
+        Toggle("Own blade offset", isOn: Binding(
+            get: { layer.bladeOffset != nil },
+            set: { layer.bladeOffset = $0 ? (layer.bladeOffset ?? (machineBladeOffset > 0 ? machineBladeOffset : 0.25)) : nil }))
+            .help("Use a different blade offset from the machine's for this layer, such as for a 60° blade")
+        if layer.bladeOffset != nil {
+            number("Blade offset (mm)", Binding(get: { layer.bladeOffset ?? 0 }, set: { layer.bladeOffset = max(0, $0) }))
+            Text("About 0.25 mm for a 45° blade and 0.5 mm for a 60° blade. Machines with a blade offset of 0 ignore this.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

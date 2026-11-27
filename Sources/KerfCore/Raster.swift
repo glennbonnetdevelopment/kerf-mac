@@ -168,6 +168,8 @@ public enum Nester {
 /// How registration marks look when printed.
 public enum RegistrationStyle: String, Codable, CaseIterable, Identifiable, Sendable {
     case square, circle, crosshair, target, corners, squareAndCorners
+    /// Four L marks read by the optical sensor on GCC LX cutters (AAS II).
+    case gccAAS
     public var id: String { rawValue }
     public var title: String {
         switch self {
@@ -177,6 +179,7 @@ public enum RegistrationStyle: String, Codable, CaseIterable, Identifiable, Send
         case .target: return "Target (ring and dot)"
         case .corners: return "Corner brackets"
         case .squareAndCorners: return "Square plus corner brackets"
+        case .gccAAS: return "GCC AAS II (L marks, optical)"
         }
     }
 }
@@ -226,6 +229,8 @@ public enum Registration {
         case .squareAndCorners:
             // A solid square on mark 1 tells the cutter which way round the sheet is.
             return index == 0 ? [mark(at: .zero, size: size)] : [bracket(arm: size * 2, width: max(0.5, size * 0.2), corner: corner)]
+        case .gccAAS:
+            return GCCAAS.mark(length: size, thickness: GCCAAS.defaultThickness, corner: corner, isOrigin: index == 0)
         }
     }
 

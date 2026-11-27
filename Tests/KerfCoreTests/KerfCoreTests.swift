@@ -782,6 +782,60 @@ final class Phase2Tests: XCTestCase {
         XCTAssertEqual(lib.merge(MaterialLibrary(materials: b)), 0)
     }
 
+    func testVinylStartersAreStableAndSensible() {
+        let a = CutMaterial.vinylStarters, b = CutMaterial.vinylStarters
+        XCTAssertEqual(a.map(\.id), b.map(\.id))
+        let all = CutMaterial.starters
+        XCTAssertEqual(Set(all.map(\.id)).count, all.count, "vinyl ids don't clash with the laser ones")
+        for m in a {
+            XCTAssertEqual(m.kind, .vinylCutter)
+            XCTAssertEqual(m.settings.mode, .cut)
+            XCTAssertTrue((1...250).contains(m.settings.cutForce), "within the GCC Expert 24's force range: \(m.name)")
+            XCTAssertTrue((1...60).contains(m.settings.cutSpeed), m.name)
+            XCTAssertGreaterThanOrEqual(m.settings.passes, 1)
+        }
+        for name in ["Oracal 651", "HTV – Glitter", "HTV – Flock", "Reflective vinyl", "Sandblast stencil", "Cardstock"] {
+            XCTAssertTrue(a.contains { $0.name.contains(name) }, name)
+        }
+        let glitter = a.first { $0.name == "HTV – Glitter" }!
+        XCTAssertEqual(glitter.settings.bladeOffset, 0.5)
+        XCTAssertNil(a.first { $0.name.contains("Oracal 651") }!.settings.bladeOffset)
+        var lib = MaterialLibrary(materials: a)
+        XCTAssertEqual(lib.merge(MaterialLibrary(materials: b)), 0)
+    }
+
+    func testLayerBladeOffsetOverridesMachine() throws {
+        var profile = DeviceProfile.defaultCutter
+        profile.bladeOffset = 0.25
+        var layer = Layer(name: "", colorHex: "#000000", mode: .cut)
+        XCTAssertEqual(profile.bladeOffset(for: layer), 0.25)
+        layer.bladeOffset = 0.5
+        XCTAssertEqual(profile.bladeOffset(for: layer), 0.5)
+        profile.bladeOffset = 0
+        XCTAssertEqual(profile.bladeOffset(for: layer), 0, "machines that compensate themselves stay at 0")
+
+        // Survives a save and load; older files without it decode as nil.
+        let round = try JSONDecoder().decode(Layer.self, from: JSONEncoder().encode(layer))
+        XCTAssertEqual(round.bladeOffset, 0.5)
+        XCTAssertNil(try JSONDecoder().decode(Layer.self, from: Data(##"{"name":"A","colorHex":"#000000"}"##.utf8)).bladeOffset)
+
+        // The generator uses the layer's offset: a bigger offset moves the first point further.
+        profile = DeviceProfile.defaultCutter
+        profile.bladeOffset = 0.25
+        profile.overcut = 0
+        profile.sendSpeedAndForce = false
+        func firstMove(_ offset: Double?) -> String {
+            var doc = KerfDocument()
+            let id = doc.addLayer(mode: .cut)
+            doc.layers[doc.layers.firstIndex { $0.id == id }!].bladeOffset = offset
+            doc.shapes.append(Artwork(layerID: id, name: "l", paths: [Polyline([Vec2(10, 10), Vec2(30, 10)])]))
+            let hpgl = PlotterGenerator.generate(Planner.plan(doc, for: .vinylCutter), profile: profile)
+            return String(hpgl.split(separator: ";")[1])
+        }
+        XCTAssertNotEqual(firstMove(nil), firstMove(0.5))
+        XCTAssertEqual(firstMove(nil), firstMove(0.25))
+    }
+
     func testCO2PresetExists() {
         let co2 = DeviceProfile.presets.first { $0.name.contains("40 W CO2") }
         XCTAssertEqual(co2?.kind, .grblLaser)

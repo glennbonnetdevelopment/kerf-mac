@@ -27,6 +27,11 @@ straight to the machine over USB.
   Redsail, EasyCut-class cutters, Janome Artistic Edge (experimental), Brother ScanNCut mats.
   Check the bed size and origin of each preset against your machine.
 - **Toolpath preview** with travel moves and estimated job time. Export `.gc`, `.plt` or `.svg`.
+- **Rhinestone templates** (Arrange > Rhinestone Layout, ⌥⌘K): lays SS6–SS20 stones along the outline
+  (inside it or centred on it, one or more rows) and fills shapes and text with honeycomb, grid or contour
+  rows, with optional smaller stones in the gaps. Outline, fill and gap stones can each have their own size
+  and colour; each size and colour becomes its own layer of template holes (stone size plus a clearance)
+  to cut in flock or rubber on the vinyl cutter or laser. A live preview shows the stone count per colour.
 - **Embroidery machines** (File > Export Embroidery, ⌥⌘E): turns the design into stitches and writes
   Brother/Baby Lock `.pes`, Janome `.jef` or Tajima `.dst`. Each layer is a thread colour. **Auto
   (digitize)**, the default, picks per shape: narrow parts of filled shapes become satin columns
