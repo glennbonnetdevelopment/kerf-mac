@@ -89,6 +89,7 @@ public enum HelpLibrary {
         layers,
         materials,
         laser,
+        camera,
         vinyl,
         panels,
         cnc,
@@ -270,6 +271,45 @@ public enum HelpLibrary {
             .text("Tick **Cut selected shapes only** to run, frame, preview and export just the selection. The **Console** shows what the machine reports and lets you send GRBL commands."),
             .heading("Rotary"),
             .text("For mugs and tumblers, turn on **Rotary attachment fitted** in the device editor and enter the roller or chuck details. Design height then wraps around the object."),
+        ])
+
+    static let camera = HelpTopic(
+        id: "camera", title: "Laser camera alignment", symbol: "camera.viewfinder",
+        summary: "Show a camera's view of the bed on the canvas, place designs on the material, and trace from it.",
+        blocks: [
+            .text("A USB or built-in camera fixed above the laser (on a stand, the enclosure lid or the ceiling) can show the bed on the canvas. Calibrate it once and your design appears right on top of the material, so you can drop a logo onto a coaster or fit parts into an offcut. Open it with **View › Camera…** (⌥⌘C)."),
+            .tip("Any camera macOS can see works: a webcam, a USB laser camera, or the Mac's own camera. Wider lenses see more of the bed but need the lens calibration. The camera must not move relative to the bed once it is calibrated."),
+            .heading("1. Pick the camera"),
+            .steps([
+                "Open **View › Camera…** and choose the camera in the **Camera** picker (click refresh after plugging one in).",
+                "Allow camera access when macOS asks. If you said no before, turn it on in **System Settings › Privacy & Security › Camera**.",
+            ]),
+            .heading("2. Calibrate the lens (optional)"),
+            .text("Wide lenses bend straight lines near the edges. The **Lens** tab measures that from a checkerboard so it can be taken out. Skip it if your picture already looks straight; alignment still works, just less exactly near the edges."),
+            .steps([
+                "Set the board's **inner corners** (where four squares meet; a 10 × 7-square board has 9 × 6). **Add to design** makes one you can print, or engrave on card or plywood. Keep it flat.",
+                "Show the board to the camera and click **Capture view**. When the whole board is found its corners light up green.",
+                "Move the board for each view: the middle, the edges, the corners, and some views tilted. Capture 8 to 15.",
+                "Click **Calibrate lens**. An average error under about 0.5 pixels is good. Turn on **Show the straightened picture** to check that straight edges now look straight.",
+            ]),
+            .heading("3. Align the camera to the bed"),
+            .text("The **Alignment** tab burns marks at known places and asks you to click them in a snapshot. That ties every point of the picture to a point on the bed."),
+            .steps([
+                "Cover the bed with scrap card or thin plywood, at the height you usually work. Home the laser.",
+                "Connect the laser in the **Machine** tab, choose how many marks, their size, speed and power, and click **Burn target…**. (Or **Add to design** to frame and run the target yourself from machine home.)",
+                "Click **Take snapshot**, then click the centre of each mark in order: left to right, top row first, as they sit on the canvas. Mark 1 has a small inner ring. The magnifier helps, and clicks snap to the mark's centre; hold Option to place one exactly.",
+                "Check the fit (under 0.5 mm is good) and click **Save alignment**. A big error usually means a mark was clicked out of order.",
+            ]),
+            .tip("More marks (4 × 4 or 5 × 5) give a more even fit across the bed. Keep the target settings the same between burning and clicking."),
+            .heading("4. Place designs on the material"),
+            .bullets([
+                "Click the **Camera** button in the toolbar (or **View › Show Camera on Canvas**) to see the bed under your design. **Snapshot** (⌥⌘U) takes a fresh picture.",
+                "In the camera window's **Overlay** tab, turn on **Live** to keep the picture updating, and set its opacity.",
+                "Move and size your design over the material, then run with the zero point set to **Machine home (absolute)** so the job lands where it shows.",
+            ]),
+            .heading("Trace from the camera"),
+            .text("**Trace from the camera** in the **Overlay** tab turns dark areas of the snapshot (a pen drawing, a paper template, a part) into outlines at the same place on the bed. It traces inside the selected shapes' box if something is selected, otherwise the workpiece or the whole picture. Use **Auto** for the threshold, or **Trace light areas instead** for light marks on dark material. ⌘Z removes a trace you don't want."),
+            .warning("The picture is only exact at the height it was aligned at. Thick material sits closer to the camera, so things look a little bigger and shifted away from the centre. Realign at that height for thick stock, and always frame the job first."),
         ])
 
     static let vinyl = HelpTopic(
@@ -526,6 +566,8 @@ public enum HelpLibrary {
             .keys([
                 HelpKey("⌥⌘P", "Material Preview"),
                 HelpKey("⌥⌘L", "Material Library"),
+                HelpKey("⌥⌘C", "Camera window"),
+                HelpKey("⌥⌘U", "Update the camera snapshot on the canvas"),
                 HelpKey("⌘?", "KerfKutter Help"),
             ]),
         ])

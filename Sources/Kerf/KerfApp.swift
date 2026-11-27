@@ -8,6 +8,7 @@ struct KerfApp: App {
     @StateObject private var model = AppModel()
     @StateObject private var laser = LaserController()
     @StateObject private var cutter = CutterSender()
+    @StateObject private var camera = CameraController()
 
     var body: some Scene {
         WindowGroup("KerfKutter") {
@@ -15,6 +16,8 @@ struct KerfApp: App {
                 .environmentObject(model)
                 .environmentObject(laser)
                 .environmentObject(cutter)
+                .environmentObject(camera)
+                .environmentObject(camera.overlay)
                 .frame(minWidth: 980, minHeight: 640)
         }
         .commands {
@@ -84,6 +87,7 @@ struct KerfApp: App {
             }
             CommandGroup(after: .toolbar) {
                 OpenPreviewButton()
+                CameraMenuItems(overlay: camera.overlay, camera: camera, model: model)
             }
             CommandGroup(replacing: .help) {
                 OpenHelpButton()
@@ -108,6 +112,15 @@ struct KerfApp: App {
                 .environmentObject(model)
         }
         .defaultSize(width: 900, height: 700)
+
+        // Camera calibration and overlay controls (see CameraWindow).
+        Window("Camera", id: "camera") {
+            CameraWindowView()
+                .environmentObject(model)
+                .environmentObject(camera)
+                .environmentObject(laser)
+        }
+        .defaultSize(width: 1180, height: 760)
 
         Window("KerfKutter Help", id: "help") {
             HelpView()
@@ -191,6 +204,7 @@ struct ContentView: View {
                     .help("Import an image to engrave")
                 Toggle(isOn: $model.showToolpath) { Label("Preview", systemImage: "point.topleft.down.to.point.bottomright.curvepath") }
                     .help("Show toolpath order and travel moves")
+                CameraToolbarItems()
                 if model.profile.kind == .cncRouter {
                     MaterialPreviewToolbarButton()
                 }

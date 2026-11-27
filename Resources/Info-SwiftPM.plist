@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Embedded in the `swift build` executable so macOS shows the camera permission prompt
+     (the Xcode build gets the same text from scripts/generate_xcodeproj.py). No bundle identifier,
+     so the swift build keeps its own saved settings. -->
+<plist version="1.0">
+<dict>
+	<key>NSCameraUsageDescription</key>
+	<string>KerfKutter shows the camera above your laser bed on the canvas so you can place designs on the material.</string>
+</dict>
+</plist>
