@@ -109,21 +109,24 @@ final class WeedingTests: XCTestCase {
         profile.overcut = 0
         profile.sendSpeedAndForce = false
         profile.origin = .topLeft
-        profile.unitsPerMM = 1
+        profile.unitsPerMM = 10
         var doc = KerfDocument()
         let layer = doc.addLayer(mode: .cut)
         doc.shapes.append(Artwork(layerID: layer, name: "s", paths: [Polyline(square(10, 10, 10))]))
         let tp = Planner.plan(doc, for: .vinylCutter)
         let options = CutterJobOptions(weeding: WeedingOptions(box: .job, margin: 10, lines: .horizontal, spacing: 20))
         let hpgl = PlotterGenerator.generate(tp, profile: profile, options: options)
-        let strokes = hpgl.split(separator: "\n").map(String.init).filter { $0.hasPrefix("PU") && $0.contains("PD") }
-        // Design, then the one line (split in two by the square), then the box.
+        let strokes = hpgl.replacingOccurrences(of: "IN;", with: "").split(separator: "\n").map(String.init)
+            .filter { $0.contains("PD") }
+        // Design, then the one line across the middle (split by the square, 0.5 mm clear each side), then the box.
         XCTAssertEqual(strokes.count, 4)
-        XCTAssertTrue(strokes[1].hasPrefix("PU0,20;") || strokes[1].hasPrefix("PU40,20;"))
-        XCTAssertEqual(strokes[3], "PU0,0;PD40,0,40,40,0,40,0,0;")
+        guard strokes.count == 4 else { return }
+        XCTAssertEqual(strokes[1], "PU0,150;PD95,150;")
+        XCTAssertEqual(strokes[2], "PU205,150;PD300,150;")
+        XCTAssertEqual(strokes[3], "PU0,0;PD300,0,300,300,0,300,0,0;")
         // The old border option still works.
         let border = PlotterGenerator.generate(tp, profile: profile, options: CutterJobOptions(weedBorder: 10))
-        XCTAssertTrue(border.contains("PU0,0;PD40,0,40,40,0,40,0,0;"))
+        XCTAssertTrue(border.contains("PU0,0;PD300,0,300,300,0,300,0,0;"))
     }
 
     func testOptionsDecodeWithMissingKeys() throws {
