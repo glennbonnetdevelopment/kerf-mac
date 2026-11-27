@@ -117,6 +117,9 @@ final class AppModel: ObservableObject {
     @Published var cutSelectionOnly = false {
         didSet { cachedToolpath = nil }
     }
+    /// Flips the job as it goes to the machine (heat-transfer vinyl, stamps). The design on the canvas
+    /// stays as drawn. Not saved, so a later job doesn't come out mirrored by surprise.
+    @Published var mirrorOutput: OutputMirror = .none
     @Published var units: DisplayUnits = DisplayUnits(rawValue: UserDefaults.standard.string(forKey: "units") ?? "") ?? .mm {
         didSet { UserDefaults.standard.set(units.rawValue, forKey: "units") }
     }
@@ -402,12 +405,12 @@ final class AppModel: ObservableObject {
 
     /// G-code for the active laser profile.
     func gcodeLines(offset: Vec2 = .zero) -> [String] {
-        GCodeGenerator.generate(toolpath, profile: profile, offset: useAlignment ? .zero : offset, alignment: alignmentTransform)
+        GCodeGenerator.generate(outputToolpath, profile: profile, offset: useAlignment ? .zero : offset, alignment: alignmentTransform)
     }
 
     /// HPGL or GP-GL for the active cutter profile.
     func plotterText() -> String {
-        PlotterGenerator.generate(toolpath, profile: profile,
+        PlotterGenerator.generate(outputToolpath, profile: profile,
                                   options: CutterJobOptions(weedBorder: weedBorderEnabled ? weedBorderMargin : nil))
     }
 
