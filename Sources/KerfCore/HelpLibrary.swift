@@ -236,7 +236,7 @@ public enum HelpLibrary {
                 "In the layer's Material menu choose **Save these settings as a material…** and give it a material, operation and notes.",
                 "Next time, pick it from the layer's Material menu, or select it in the library and click **Apply to current layer**.",
             ]),
-            .text("Materials belong to a machine type (laser, cutter or CNC). If you change a layer after applying a material it shows as edited, and **Update “…” with these settings** saves the changes back. The library can import and export materials files to share or back up, and can restore the built-in xTool starter settings."),
+            .text("Materials belong to a machine type (laser, cutter or CNC). If you change a layer after applying a material it shows as edited, and **Update “…” with these settings** saves the changes back. The library can import and export materials files to share or back up, and can restore the built-in xTool laser and vinyl cutter starter settings."),
             .warning("Starter settings are a starting point. Test on a scrap of the same material first."),
         ])
 
@@ -284,6 +284,10 @@ public enum HelpLibrary {
                 "Inner shapes are cut before outer ones so letters don't shift on the mat.",
                 "**Weeding border** adds a rectangle around the design, with the margin you set, to make weeding easier.",
             ]),
+            .heading("Vinyl presets"),
+            .text("The material library comes with starter settings for vinyl cutters: adhesive vinyl (Oracal 651, 751 and 631, metallic, holographic), heat-transfer vinyl (standard, stretch, metallic, glitter, flock, puff, reflective), reflective sign vinyl, stencil and sandblast film, sticker paper, cardstock and magnet sheet. Pick one from a cut layer's **Material** menu to set its force, speed and passes."),
+            .text("Thick or textured materials use a 60° blade, so their presets set the layer's own **blade offset** to 0.5 mm. Turn on **Own blade offset** on any cut layer to do the same for your own settings."),
+            .warning("Presets are tuned for a GCC Expert 24 class cutter. Cut a small test shape and weed it before a full job."),
             .tip("Cutters that appear as a USB printer (like the GCC Expert 24): add them in **System Settings › Printers** as a Generic PostScript printer, then choose that queue. KerfKutter sends raw cutter commands to it."),
             .text("Machines with no live connection, like the Brother ScanNCut, use **Export file…** to save an SVG that you load from a USB stick or the maker's app."),
         ])

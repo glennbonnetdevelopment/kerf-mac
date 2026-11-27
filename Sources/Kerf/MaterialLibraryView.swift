@@ -61,8 +61,13 @@ struct MaterialLibraryView: View {
         }
         .toolbar {
             ToolbarItemGroup {
-                Button { model.restoreStarterMaterials() } label: { Label("xTool starters", systemImage: "wand.and.stars") }
-                    .help("Add back the built-in xTool 5 W, 10 W, 40 W and 2 W IR starter settings")
+                if kind == .grblLaser {
+                    Button { model.restoreStarterMaterials(for: .grblLaser) } label: { Label("xTool starters", systemImage: "wand.and.stars") }
+                        .help("Add back the built-in xTool 5 W, 10 W, 40 W and 2 W IR starter settings")
+                } else if kind == .vinylCutter {
+                    Button { model.restoreStarterMaterials(for: .vinylCutter) } label: { Label("Vinyl starters", systemImage: "wand.and.stars") }
+                        .help("Add back the built-in vinyl, heat-transfer vinyl, stencil and cardstock starter settings")
+                }
                 Button { model.importMaterials() } label: { Label("Import", systemImage: "square.and.arrow.down") }
                     .help("Add materials from a KerfKutter materials file")
                 Button { model.exportMaterials() } label: { Label("Export", systemImage: "square.and.arrow.up") }

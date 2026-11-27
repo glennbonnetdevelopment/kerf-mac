@@ -86,3 +86,96 @@ public extension CutMaterial {
         }
     }
 }
+
+/// Starting-point settings for drag-knife vinyl cutters such as the GCC Expert 24.
+/// Force is in grams and speed in cm/s, as GCC lists them. Rolls and batches differ, so test first.
+public extension CutMaterial {
+    static let vinylStarterNote = "Starter setting for a drag-knife cutter such as the GCC Expert 24: cut a small test shape (a triangle inside a square) and weed it, then adjust. The blade should cut through the film and only lightly mark the backing."
+
+    /// 45° is the standard blade for thin film; 60° for thick or textured material.
+    private enum Blade {
+        case standard, deep
+        var note: String {
+            switch self {
+            case .standard: return "45° blade, using the machine's blade offset."
+            case .deep: return "60° blade with a 0.5 mm blade offset."
+            }
+        }
+        /// nil keeps the machine's offset, which is set for the 45° blade most people leave in.
+        var offset: Double? { self == .deep ? 0.5 : nil }
+    }
+
+    private struct VinylSpec {
+        var material: String
+        var thickness: Double = 0
+        var operation: String = "Cut"
+        var force: Int
+        var speed: Int
+        var passes: Int = 1
+        var blade: Blade = .standard
+        var note: String = ""
+    }
+
+    private static let htvNote = "Heat-transfer vinyl: mirror the design and put the shiny carrier side down."
+
+    private static let vinylSpecs: [VinylSpec] = [
+        // Adhesive (sign) vinyl
+        VinylSpec(material: "Adhesive vinyl – Oracal 651 (permanent)", force: 85, speed: 30),
+        VinylSpec(material: "Adhesive vinyl – Oracal 751 (cast)", force: 75, speed: 30),
+        VinylSpec(material: "Adhesive vinyl – Oracal 631 (removable)", force: 70, speed: 30),
+        VinylSpec(material: "Adhesive vinyl – Metallic or chrome", force: 100, speed: 20),
+        VinylSpec(material: "Adhesive vinyl – Holographic", force: 100, speed: 20),
+        VinylSpec(material: "Adhesive vinyl – Etched glass (frosted)", force: 80, speed: 30),
+        VinylSpec(material: "Adhesive vinyl – Chalkboard", force: 95, speed: 25),
+        VinylSpec(material: "Printable sticker vinyl", operation: "Kiss cut", force: 90, speed: 20,
+                  note: "For print and cut: cut through the vinyl, not the liner."),
+        VinylSpec(material: "Sticker paper", operation: "Kiss cut", force: 80, speed: 20,
+                  note: "For print and cut: cut through the paper, not the liner."),
+        VinylSpec(material: "Static cling window film", force: 120, speed: 20),
+
+        // Heat-transfer vinyl
+        VinylSpec(material: "HTV – Siser EasyWeed (standard)", force: 70, speed: 25, note: htvNote),
+        VinylSpec(material: "HTV – EasyWeed Stretch", force: 75, speed: 25, note: htvNote),
+        VinylSpec(material: "HTV – Metallic or foil", force: 80, speed: 20, note: htvNote),
+        VinylSpec(material: "HTV – Holographic", force: 85, speed: 20, note: htvNote),
+        VinylSpec(material: "HTV – Glitter", force: 140, speed: 15, blade: .deep,
+                  note: htvNote + " Glitter dulls blades quickly; keep one blade for it."),
+        VinylSpec(material: "HTV – Flock", force: 120, speed: 15, blade: .deep, note: htvNote),
+        VinylSpec(material: "HTV – Puff", force: 150, speed: 10, blade: .deep, note: htvNote),
+        VinylSpec(material: "HTV – Reflective", force: 110, speed: 15, note: htvNote),
+
+        // Reflective sign vinyl
+        VinylSpec(material: "Reflective vinyl – Engineering grade (Oralite 5600)", thickness: 0.15, force: 150, speed: 10, blade: .deep),
+        VinylSpec(material: "Reflective vinyl – High intensity prismatic", thickness: 0.3, force: 200, speed: 8, passes: 2, blade: .deep,
+                  note: "Prismatic sheeting is tough; slow down further if corners lift."),
+
+        // Stencils
+        VinylSpec(material: "Stencil film – Oramask 813", force: 80, speed: 30),
+        VinylSpec(material: "Sandblast stencil – 15 mil", thickness: 0.38, force: 200, speed: 8, passes: 2, blade: .deep),
+        VinylSpec(material: "Sandblast stencil – 25 mil", thickness: 0.64, force: 250, speed: 5, passes: 2, blade: .deep,
+                  note: "Near the GCC Expert 24's 250 g limit; add a third pass if it doesn't weed cleanly."),
+
+        // Paper and card (on a carrier sheet or cutting mat)
+        VinylSpec(material: "Copy paper or vellum", force: 60, speed: 20, note: "Use a carrier sheet or cutting mat."),
+        VinylSpec(material: "Cardstock – 65 lb (176 gsm)", thickness: 0.25, force: 160, speed: 10, blade: .deep,
+                  note: "Use a carrier sheet or cutting mat."),
+        VinylSpec(material: "Cardstock – 110 lb (300 gsm)", thickness: 0.4, force: 230, speed: 8, passes: 2, blade: .deep,
+                  note: "Use a carrier sheet or cutting mat."),
+        VinylSpec(material: "Magnet sheet – 20 mil", thickness: 0.5, force: 250, speed: 5, passes: 3, blade: .deep,
+                  note: "At the GCC Expert 24's limit; cut slowly and check depth between passes."),
+    ]
+
+    /// The built-in vinyl cutter starter settings.
+    static var vinylStarters: [CutMaterial] {
+        vinylSpecs.enumerated().map { i, s in
+            let layer = Layer(name: "", colorHex: "#000000", mode: .cut, passes: s.passes,
+                              cutSpeed: s.speed, cutForce: s.force, bladeOffset: s.blade.offset)
+            let note = [s.note, s.blade.note, vinylStarterNote].filter { !$0.isEmpty }.joined(separator: " ")
+            return CutMaterial(id: starterID(1001 + i), name: s.material, thickness: s.thickness, operation: s.operation,
+                               notes: note, kind: .vinylCutter, settings: layer, modified: starterDate)
+        }
+    }
+
+    /// Every built-in starter setting (lasers and vinyl cutters).
+    static var starters: [CutMaterial] { xToolStarters + vinylStarters }
+}

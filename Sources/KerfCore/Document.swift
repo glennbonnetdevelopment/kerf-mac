@@ -122,6 +122,9 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
     public var cutSpeed: Int
     /// Knife force in grams (sent where the cutter supports it).
     public var cutForce: Int
+    /// Blade offset in mm for this layer, for a different blade (a 60° blade for thick material);
+    /// nil uses the machine's. Ignored on machines whose blade offset is 0 (they compensate themselves).
+    public var bladeOffset: Double?
 
     // CNC settings
     /// Final cut depth in mm.
@@ -170,7 +173,8 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
                 plungeRate: Double = 300, spindleSpeed: Double = 1000, defaultMillRole: MillRole = .auto,
                 millStyle: MillStyle = .climb, stepover: Double = 0.4, tabsEnabled: Bool = false,
                 tabPlacement: TabPlacement = .count, tabCount: Int = 4, tabSpacing: Double = 100,
-                tabWidth: Double = 5, tabHeight: Double = 1.5, laserTabWidth: Double = 0.5, rampLength: Double = 0) {
+                tabWidth: Double = 5, tabHeight: Double = 1.5, laserTabWidth: Double = 0.5, rampLength: Double = 0,
+                bladeOffset: Double? = nil) {
         self.id = id
         self.name = name
         self.colorHex = colorHex
@@ -206,13 +210,14 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         self.tabHeight = tabHeight
         self.laserTabWidth = laserTabWidth
         self.rampLength = rampLength
+        self.bladeOffset = bladeOffset
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, name, colorHex, mode, enabled, passes, speed, power, powerMin, airAssist, fillInterval, fillAngle,
              fillBidirectional, dither, invertImage, overscan, cutSpeed, cutForce, cutDepth, stepDown, toolDiameter,
              millOffset, plungeRate, spindleSpeed, defaultMillRole, millStyle, stepover, tabsEnabled, tabPlacement, tabCount,
-             tabSpacing, tabWidth, tabHeight, laserTabWidth, rampLength, materialID, embroidery
+             tabSpacing, tabWidth, tabHeight, laserTabWidth, rampLength, materialID, embroidery, bladeOffset
     }
 
     /// Missing keys fall back to defaults so older project files still open.
@@ -256,6 +261,7 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         rampLength = try c.decodeIfPresent(Double.self, forKey: .rampLength) ?? d.rampLength
         materialID = try c.decodeIfPresent(UUID.self, forKey: .materialID)
         embroidery = try c.decodeIfPresent(EmbroiderySettings.self, forKey: .embroidery)
+        bladeOffset = try c.decodeIfPresent(Double.self, forKey: .bladeOffset)
     }
 
     /// Default layer colours, in the order new layers take them.

@@ -201,6 +201,13 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
                   rotaryObjectDiameter: try c.decodeIfPresent(Double.self, forKey: .rotaryObjectDiameter) ?? 80)
     }
 
+    /// The blade offset to use for a layer: the layer's own when it has one, else the machine's.
+    /// A machine set to 0 (no compensation, or one that compensates itself) stays at 0.
+    public func bladeOffset(for layer: Layer) -> Double {
+        guard bladeOffset > 0 else { return 0 }
+        return max(0, layer.bladeOffset ?? bladeOffset)
+    }
+
     public static let defaultLaser = DeviceProfile(name: "GRBL laser 400×400", kind: .grblLaser,
                                                    bedWidth: 400, bedHeight: 400, origin: .bottomLeft, baudRate: 115200)
 

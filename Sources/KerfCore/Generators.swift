@@ -275,22 +275,24 @@ public enum PlotterGenerator {
     public static func generate(_ tp: Toolpath, profile: DeviceProfile, options: CutterJobOptions = .init()) -> String {
         var jobs: [(Layer, [[Vec2]])] = []
         for tl in tp.layers where tl.layer.mode != .fill && tl.layer.mode != .image {
+            let offset = profile.bladeOffset(for: tl.layer)
             let prepared = tl.paths.map { path -> [Vec2] in
                 var p = path
                 if let f = p.first, let l = p.last, p.count > 2, f.distance(to: l) < 1e-6, profile.overcut > 0 {
                     p = addOvercut(p, distance: profile.overcut)
                 }
-                return profile.bladeOffset > 0 ? bladeCompensate(p, offset: profile.bladeOffset) : p
+                return offset > 0 ? bladeCompensate(p, offset: offset) : p
             }
             jobs.append((tl.layer, prepared))
         }
         if let last = jobs.last?.0, options.weeding.isActive {
             let weeding = Weeding.cuts(for: tp, options: options.weeding)
             // Lines are open cuts: blade offset only. Boxes are closed: overcut too.
-            var extra = weeding.lines.map { profile.bladeOffset > 0 ? bladeCompensate($0, offset: profile.bladeOffset) : $0 }
+            let offset = profile.bladeOffset(for: last)
+            var extra = weeding.lines.map { offset > 0 ? bladeCompensate($0, offset: offset) : $0 }
             for var box in weeding.boxes {
                 if profile.overcut > 0 { box = addOvercut(box, distance: profile.overcut) }
-                if profile.bladeOffset > 0 { box = bladeCompensate(box, offset: profile.bladeOffset) }
+                if offset > 0 { box = bladeCompensate(box, offset: offset) }
                 extra.append(box)
             }
             if !extra.isEmpty { jobs.append((last, extra)) }
