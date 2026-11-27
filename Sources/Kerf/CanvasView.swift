@@ -67,6 +67,7 @@ private let rotateHandleOffset: CGFloat = 22
 
 struct CanvasView: View {
     @EnvironmentObject var model: AppModel
+    @EnvironmentObject var cameraOverlay: CameraOverlay
     @StateObject private var viewport = Viewport()
     @State private var dragMode = DragMode.none
     @State private var scrollMonitor: Any?
@@ -144,6 +145,16 @@ struct CanvasView: View {
         let bedRect = CGRect(origin: vp.toView(.zero),
                              size: CGSize(width: profile.bedWidth * vp.zoom, height: profile.bedHeight * vp.zoom))
         ctx.fill(Path(bedRect), with: .color(Color(nsColor: .textBackgroundColor)))
+
+        // Camera picture of the bed, under everything else.
+        if cameraOverlay.visible, let img = cameraOverlay.image, !cameraOverlay.area.isEmpty {
+            let a = cameraOverlay.area
+            var c = ctx
+            c.opacity = cameraOverlay.opacity
+            c.clip(to: Path(bedRect))
+            c.draw(Image(decorative: img, scale: 1),
+                   in: CGRect(origin: vp.toView(a.origin), size: CGSize(width: a.width * vp.zoom, height: a.height * vp.zoom)))
+        }
 
         // Grid: 10 mm with 100 mm lines stronger, or ¼ inch with whole inches stronger.
         let inch = model.units == .inch

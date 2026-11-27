@@ -13,6 +13,9 @@
 	<true/>
 	<key>com.apple.security.device.usb</key>
 	<true/>
+	<!-- A USB or built-in camera above the laser bed, for camera alignment. -->
+	<key>com.apple.security.device.camera</key>
+	<true/>
 	<!-- Send cut jobs to cutters set up as printers (CUPS queues). -->
 	<key>com.apple.security.print</key>
 	<true/>
