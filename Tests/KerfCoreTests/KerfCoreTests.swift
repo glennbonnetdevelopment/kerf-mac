@@ -788,3 +788,34 @@ final class Phase2Tests: XCTestCase {
         XCTAssertEqual(co2?.bedWidth, 300)
     }
 }
+
+final class SenderJobTests: XCTestCase {
+    func testLaserJobRoundTripsAndCountsSendableLines() throws {
+        let gcode = "; header\nG21\nG90\n(comment)\nG1 X10 Y10 F1000\nM5\n"
+        let job = SenderJob(name: "test", profile: .defaultLaser, estimatedSeconds: 12.4, data: gcode)
+        XCTAssertEqual(job.machine.language, "gcode")
+        XCTAssertEqual(job.machine.kind, "grblLaser")
+        XCTAssertEqual(job.machine.output, "serial")
+        XCTAssertEqual(job.lineCount, 4)
+        XCTAssertEqual(job.estimatedSeconds, 12)
+        let back = try SenderJob.decode(job.encoded())
+        XCTAssertEqual(back, job)
+        XCTAssertEqual(back.data, gcode)
+    }
+
+    func testCutterJobUsesPlotterSettings() {
+        var profile = DeviceProfile.defaultCutter
+        profile.output = .printerQueue
+        let job = SenderJob(name: "decal", profile: profile, estimatedSeconds: 3, data: "IN;PU0,0;PD40,0;")
+        XCTAssertEqual(job.machine.language, "hpgl")
+        XCTAssertEqual(job.machine.output, "printerQueue")
+        XCTAssertEqual(job.machine.flowControl, "software")
+        XCTAssertEqual(job.lineCount, 16)
+    }
+
+    func testSVGOnlyCuttersAreNotSupported() {
+        let scanNCut = DeviceProfile.presets.first { $0.language == .svgFile }!
+        XCTAssertFalse(SenderJob.supports(scanNCut))
+        XCTAssertTrue(SenderJob.supports(.defaultLaser))
+    }
+}

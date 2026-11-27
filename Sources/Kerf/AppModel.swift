@@ -479,6 +479,37 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Exports a .kerfjob for the KerfSender apps on older Windows and Mac computers.
+    func exportForSender() {
+        guard SenderJob.supports(profile) else {
+            alertMessage = "This machine has no live connection, so KerfSender can't drive it. Use Export Machine File instead."
+            return
+        }
+        guard !toolpath.isEmpty else {
+            alertMessage = "Nothing to export: add shapes to an enabled layer first."
+            return
+        }
+        let base = fileURL?.deletingPathExtension().lastPathComponent ?? "job"
+        let text: String
+        if profile.kind.usesGRBL {
+            // A file can't know where the head will be, so current-position jobs are written from the zero point.
+            text = gcodeLines(offset: jobOffset(head: nil)).joined(separator: "\n") + "\n"
+        } else {
+            text = plotterText()
+        }
+        let job = SenderJob(name: base, profile: profile,
+                            estimatedSeconds: toolpath.estimatedSeconds(profile: profile), data: text)
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [UTType(filenameExtension: SenderJob.fileExtension) ?? .json]
+        panel.nameFieldStringValue = base + "." + SenderJob.fileExtension
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            try job.encoded().write(to: url, options: .atomic)
+        } catch {
+            alertMessage = "Could not export: \(error.localizedDescription)"
+        }
+    }
+
     // MARK: - Layers
 
     func ensureCurrentLayer() -> UUID {

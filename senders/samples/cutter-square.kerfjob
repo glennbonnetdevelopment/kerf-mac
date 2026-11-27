@@ -1,0 +1,21 @@
+{
+  "created" : "2026-11-25T10:00:00Z",
+  "data" : "IN;SP1;VS20;PU0,0;PD800,0,800,800,0,800,0,0;PU0,0;SP0;",
+  "estimatedSeconds" : 3,
+  "format" : "kerfjob",
+  "generator" : "KerfKutter",
+  "lineCount" : 54,
+  "machine" : {
+    "baudRate" : 9600,
+    "bedHeight" : 1000,
+    "bedWidth" : 600,
+    "flowControl" : "hardware",
+    "kind" : "vinylCutter",
+    "language" : "hpgl",
+    "name" : "GCC Expert 24",
+    "output" : "printerQueue",
+    "rxBufferSize" : 127
+  },
+  "name" : "cutter-square",
+  "version" : 1
+}

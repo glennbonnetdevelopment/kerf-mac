@@ -42,6 +42,11 @@ straight to the machine over USB.
   edit stitches point by point in the stitch editor (move, add, delete, nudge with arrow keys, split
   or join runs). Edited stitches are saved with the shape and sewn exactly as edited.
 
+## KerfSender for older computers
+
+Send-only companion apps for Windows 7/10 and macOS 10.12 live in [`senders/`](senders/README.md).
+Export a job with **File › Export for KerfSender…** and open it there.
+
 ## Build and run
 
 Requires macOS 14 or newer and Xcode 15 or newer.

@@ -55,6 +55,7 @@
 		AEE5E2AB3606C3BB4887F06E /* Raster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64407DC74BC181882DBEEBAF /* Raster.swift */; };
 		62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */; };
 		2706ED034AAE2711CF2A72E4 /* SatinColumns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6228BF706D25036A4E831890 /* SatinColumns.swift */; };
+		88E7F9CAF7BD3424144BD586 /* SenderJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 412B3A78BDA08630D1A8243C /* SenderJob.swift */; };
 		97E8D0E03E319B8BB69C1EBA /* SerialPort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */; };
 		173B8B79F880460B7E279E1F /* ShapeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */; };
 		81B17E230614B1BEF80A33EA /* ShapeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 531B4D11D8B0216BD395F12F /* ShapeStyle.swift */; };
@@ -154,6 +155,7 @@
 		64407DC74BC181882DBEEBAF /* Raster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Raster.swift; sourceTree = "<group>"; };
 		8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SVGImporter.swift; sourceTree = "<group>"; };
 		6228BF706D25036A4E831890 /* SatinColumns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SatinColumns.swift; sourceTree = "<group>"; };
+		412B3A78BDA08630D1A8243C /* SenderJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SenderJob.swift; sourceTree = "<group>"; };
 		6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPort.swift; sourceTree = "<group>"; };
 		7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeLibrary.swift; sourceTree = "<group>"; };
 		531B4D11D8B0216BD395F12F /* ShapeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyle.swift; sourceTree = "<group>"; };
@@ -294,6 +296,7 @@
 				64407DC74BC181882DBEEBAF /* Raster.swift */,
 				8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */,
 				6228BF706D25036A4E831890 /* SatinColumns.swift */,
+				412B3A78BDA08630D1A8243C /* SenderJob.swift */,
 				6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */,
 				7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */,
 				531B4D11D8B0216BD395F12F /* ShapeStyle.swift */,
@@ -497,6 +500,7 @@
 				AEE5E2AB3606C3BB4887F06E /* Raster.swift in Sources */,
 				62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */,
 				2706ED034AAE2711CF2A72E4 /* SatinColumns.swift in Sources */,
+				88E7F9CAF7BD3424144BD586 /* SenderJob.swift in Sources */,
 				97E8D0E03E319B8BB69C1EBA /* SerialPort.swift in Sources */,
 				173B8B79F880460B7E279E1F /* ShapeLibrary.swift in Sources */,
 				81B17E230614B1BEF80A33EA /* ShapeStyle.swift in Sources */,
