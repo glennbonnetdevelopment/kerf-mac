@@ -40,6 +40,7 @@ final class HelpTests: XCTestCase {
         XCTAssertTrue(HelpLibrary.search("holding tabs").contains { $0.id == "cnc" })
         XCTAssertTrue(HelpLibrary.search("PES").contains { $0.id == "embroidery" })
         XCTAssertTrue(HelpLibrary.search("WEEDING").contains { $0.id == "vinyl" })
+        XCTAssertTrue(HelpLibrary.search("rhinestone template").contains { $0.id == "rhinestones" })
         XCTAssertTrue(HelpLibrary.search("zzqx nothing").isEmpty)
     }
 }

@@ -75,6 +75,8 @@ struct KerfApp: App {
                 Button("Put Text Around Selected Shape") { model.addTextAlongSelection() }
                 Button("Add Registration Marks") { model.addRegistrationMarks() }
                 Button("Add Contour Cut Around Artwork") { model.addContourCut() }
+                Button("Rhinestone Layout…") { model.showRhinestones = true }
+                    .keyboardShortcut("k", modifiers: [.command, .option])
             }
             CommandGroup(after: .toolbar) {
                 OpenPreviewButton()
@@ -197,6 +199,10 @@ struct ContentView: View {
         .navigationTitle(model.fileURL?.lastPathComponent ?? "KerfKutter")
         .sheet(isPresented: $model.showEmbroideryExport) {
             EmbroideryExportView()
+                .environmentObject(model)
+        }
+        .sheet(isPresented: $model.showRhinestones) {
+            RhinestoneView()
                 .environmentObject(model)
         }
         .alert("KerfKutter", isPresented: Binding(get: { model.alertMessage != nil }, set: { if !$0 { model.alertMessage = nil } })) {

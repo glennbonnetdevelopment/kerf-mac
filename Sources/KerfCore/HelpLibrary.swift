@@ -92,6 +92,7 @@ public enum HelpLibrary {
         vinyl,
         cnc,
         printAndCut,
+        rhinestones,
         embroidery,
         devices,
         previewExport,
@@ -109,7 +110,7 @@ public enum HelpLibrary {
             .heading("The window"),
             .bullets([
                 "**Toolbar** (top): Import, Image, the toolpath **Preview** switch, and the **Device** picker that chooses the machine you're working for.",
-                "**Drawing tools** (above the canvas): select, edit nodes, measure, basic shapes, the shapes library, text, text around a shape, curved text, contour cut, colour swatches and units.",
+                "**Drawing tools** (above the canvas): select, edit nodes, measure, basic shapes, the shapes library, text, text around a shape, curved text, contour cut, rhinestones, colour swatches and units.",
                 "**Canvas**: the machine's bed, drawn to scale with a grid and rulers.",
                 "**Sidebar** (right): the **Layers**, **Arrange** and **Machine** tabs.",
             ]),
@@ -330,6 +331,43 @@ public enum HelpLibrary {
             .text("**On a cutter**: load the sheet with mark 1 at the cutter's origin. Cutters with an optical mark sensor use their own alignment routine, which KerfKutter doesn't drive yet."),
         ])
 
+    static let rhinestones = HelpTopic(
+        id: "rhinestones", title: "Rhinestone templates", symbol: "circle.grid.3x3.fill",
+        summary: "Laying stones along and inside shapes and text, and cutting the template holes.",
+        blocks: [
+            .text("**Rhinestones** (above the canvas, or **Arrange › Rhinestone Layout…**, ⌥⌘K) fills the selected shapes or text with stones and turns each stone into a hole to cut in template material on the vinyl cutter or laser."),
+            .steps([
+                "Select the shapes or text. Text works as it is; thin lettering suits **Centred on the outline**.",
+                "Open **Rhinestones**. The preview shows every stone, and the count for each size and colour.",
+                "Choose the **Outline** stones and how many rows, and a **Fill** pattern with its own stone.",
+                "Set the **Spacing** between stones and the **Hole clearance**, then click **Add Stones**.",
+                "Cut each Rhinestones layer in template material, one template per stone colour.",
+            ]),
+            .heading("Stones"),
+            .bullets([
+                "Sizes **SS6** (2.0 mm), **SS8** (2.4 mm), **SS10** (2.8 mm), **SS12** (3.1 mm), **SS16** (3.9 mm) and **SS20** (4.7 mm). Stones vary by maker, so check yours with calipers.",
+                "The outline, the fill and the gap stones can each be a different size and colour. Each size and colour goes on its own layer, named like **Rhinestones SS10 Crystal**, so you can cut a template for each colour or turn layers off.",
+                "The layer's colour is the stone colour on the canvas.",
+            ]),
+            .heading("Patterns"),
+            .bullets([
+                "**Outline**: stones evenly spaced along the outline, just inside it or centred on it. Corners get a stone, and tiny parts like the dot of an i get one stone in the middle. Extra rows step inwards.",
+                "**Honeycomb**: staggered rows, the densest and most even fill. **Grid**: square rows. Both can be turned with **Row angle**.",
+                "**Contour**: rows that follow the outline inwards, like rings.",
+                "**Fill gaps with smaller stones** puts small stones where the main fill leaves room, near edges and corners.",
+                "Holes in shapes, like the middle of an O, stay empty.",
+            ]),
+            .heading("Template"),
+            .bullets([
+                "**Spacing** is the gap between stones, edge to edge. 0.8 to 1.5 mm is typical.",
+                "**Hole clearance** makes each hole slightly bigger than its stone so stones drop in. 0.1 to 0.3 mm suits most flock; a laser burns a little extra, so use less there.",
+                "**Original artwork** can move to a turned-off **Rhinestone guide** layer (shown faintly, never cut), stay where it is, or be deleted.",
+                "Holes go on Cut layers for a vinyl cutter and Line layers for a laser, ready for that layer's force or power.",
+            ]),
+            .tip("No need to mirror: brush the stones into the template face up, lift them with transfer tape and press them onto the garment. The design reads the same way as the template."),
+            .warning("Don't laser-cut vinyl-based (PVC) template materials. Use a laser-safe rubber or foam template sheet."),
+        ])
+
     static let embroidery = HelpTopic(
         id: "embroidery", title: "Embroidery", symbol: "circle.hexagongrid",
         summary: "Turning artwork into stitches and exporting PES, JEF or DST files.",
@@ -412,6 +450,7 @@ public enum HelpLibrary {
                 HelpKey("⌘R / ⇧⌘R", "Rotate 90° clockwise / counter-clockwise"),
                 HelpKey("⌥⌘W", "Weld"),
                 HelpKey("⌘J", "Join open paths"),
+                HelpKey("⌥⌘K", "Rhinestone layout"),
                 HelpKey("Arrows / ⇧ arrows", "Nudge 1 mm / 10 mm"),
             ]),
             .heading("Windows"),

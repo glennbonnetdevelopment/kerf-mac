@@ -13,6 +13,7 @@
 		4D237E70D004B46A9AF04A4D /* AppModel+Materials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */; };
 		9CA40CEB1150ECEB91DE8E0E /* AppModel+Mirror.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87545F165D19018DFCB0BAFA /* AppModel+Mirror.swift */; };
 		09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */; };
+		8DD6CC08722FCCD2B64D7E64 /* AppModel+Rhinestones.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F4A1ACC12482326FDFBBACD /* AppModel+Rhinestones.swift */; };
 		F0FF9454A7FC4BCB68BED5AE /* AppModel+Style.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80D966CE6D41858560CD3BD2 /* AppModel+Style.swift */; };
 		358665C47F68532C6E1D26CA /* AppModel+Tabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791AAB2D83EE7D9C40C85893 /* AppModel+Tabs.swift */; };
 		4B5337C7D8C8DC122496637E /* AppModel+Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */; };
@@ -30,6 +31,7 @@
 		59B48F3495E1625031C3362A /* MaterialLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */; };
 		4F3B7E4FF0A12F0D9B0DDCEF /* MaterialPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = C314F862A43F8498C325A37A /* MaterialPreview.swift */; };
 		F765E64EED6C3083AA8CF0CA /* MirrorOutputPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653C322525E3193AF8D5325D /* MirrorOutputPicker.swift */; };
+		7C40AA3F2B4F02E4D050EF47 /* RhinestoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004A9381EA56EC12F851590F /* RhinestoneView.swift */; };
 		EF8F4E75A41DCD59C40DC3AA /* ShapeStyleSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */; };
 		BA3AE8E421587C01568F3F3E /* StitchEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */; };
 		781DFF03E099FAFD930B9A5D /* TextOutliner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39582999A1293C2FF83451F /* TextOutliner.swift */; };
@@ -53,6 +55,7 @@
 		3E0C57B0DC2557B9CE5B00A4 /* Planner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0723E6676B095D4FE0AB26 /* Planner.swift */; };
 		4B605E8FAE1FC75646BD0640 /* ProjectImporters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BCB080CAF16C7A02A6870BE /* ProjectImporters.swift */; };
 		AEE5E2AB3606C3BB4887F06E /* Raster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64407DC74BC181882DBEEBAF /* Raster.swift */; };
+		F00463AA8572B1903D69CACC /* Rhinestone.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E68E51899E261E721796BE /* Rhinestone.swift */; };
 		62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */; };
 		2706ED034AAE2711CF2A72E4 /* SatinColumns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6228BF706D25036A4E831890 /* SatinColumns.swift */; };
 		88E7F9CAF7BD3424144BD586 /* SenderJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 412B3A78BDA08630D1A8243C /* SenderJob.swift */; };
@@ -67,6 +70,7 @@
 		54A8C95104371CFA19F6E6DA /* HoldingTabsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6339144B08447B305B34F59D /* HoldingTabsTests.swift */; };
 		C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 125BC4804EAD037CDE428879 /* KerfCoreTests.swift */; };
 		D67C569E491C5CF56FF144C5 /* OutputMirrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 691DE43C7B283D21C7703A59 /* OutputMirrorTests.swift */; };
+		E1CDD52747690D1CFEE8DB13 /* RhinestoneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D11B2E9DA0E56CAC6296E9 /* RhinestoneTests.swift */; };
 		21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */; };
 		6B1C7B36FE999A7B57A5AA2E /* WeedingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7274E1EC283143FAAF08A /* WeedingTests.swift */; };
 		893EF6FE3F847DA65CD969FE /* KerfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; };
@@ -113,6 +117,7 @@
 		113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Materials.swift"; sourceTree = "<group>"; };
 		87545F165D19018DFCB0BAFA /* AppModel+Mirror.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Mirror.swift"; sourceTree = "<group>"; };
 		D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Nodes.swift"; sourceTree = "<group>"; };
+		4F4A1ACC12482326FDFBBACD /* AppModel+Rhinestones.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Rhinestones.swift"; sourceTree = "<group>"; };
 		80D966CE6D41858560CD3BD2 /* AppModel+Style.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Style.swift"; sourceTree = "<group>"; };
 		791AAB2D83EE7D9C40C85893 /* AppModel+Tabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Tabs.swift"; sourceTree = "<group>"; };
 		065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Tools.swift"; sourceTree = "<group>"; };
@@ -130,6 +135,7 @@
 		4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialLibraryView.swift; sourceTree = "<group>"; };
 		C314F862A43F8498C325A37A /* MaterialPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialPreview.swift; sourceTree = "<group>"; };
 		653C322525E3193AF8D5325D /* MirrorOutputPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorOutputPicker.swift; sourceTree = "<group>"; };
+		004A9381EA56EC12F851590F /* RhinestoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhinestoneView.swift; sourceTree = "<group>"; };
 		F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyleSection.swift; sourceTree = "<group>"; };
 		823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StitchEditorView.swift; sourceTree = "<group>"; };
 		F39582999A1293C2FF83451F /* TextOutliner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextOutliner.swift; sourceTree = "<group>"; };
@@ -153,6 +159,7 @@
 		BB0723E6676B095D4FE0AB26 /* Planner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Planner.swift; sourceTree = "<group>"; };
 		0BCB080CAF16C7A02A6870BE /* ProjectImporters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectImporters.swift; sourceTree = "<group>"; };
 		64407DC74BC181882DBEEBAF /* Raster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Raster.swift; sourceTree = "<group>"; };
+		C5E68E51899E261E721796BE /* Rhinestone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rhinestone.swift; sourceTree = "<group>"; };
 		8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SVGImporter.swift; sourceTree = "<group>"; };
 		6228BF706D25036A4E831890 /* SatinColumns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SatinColumns.swift; sourceTree = "<group>"; };
 		412B3A78BDA08630D1A8243C /* SenderJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SenderJob.swift; sourceTree = "<group>"; };
@@ -167,6 +174,7 @@
 		6339144B08447B305B34F59D /* HoldingTabsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingTabsTests.swift; sourceTree = "<group>"; };
 		125BC4804EAD037CDE428879 /* KerfCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfCoreTests.swift; sourceTree = "<group>"; };
 		691DE43C7B283D21C7703A59 /* OutputMirrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMirrorTests.swift; sourceTree = "<group>"; };
+		81D11B2E9DA0E56CAC6296E9 /* RhinestoneTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhinestoneTests.swift; sourceTree = "<group>"; };
 		FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyleTests.swift; sourceTree = "<group>"; };
 		D3A7274E1EC283143FAAF08A /* WeedingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeedingTests.swift; sourceTree = "<group>"; };
 		F91288DB192297DC903FE08C /* KerfKutter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KerfKutter.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -246,6 +254,7 @@
 				113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */,
 				87545F165D19018DFCB0BAFA /* AppModel+Mirror.swift */,
 				D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */,
+				4F4A1ACC12482326FDFBBACD /* AppModel+Rhinestones.swift */,
 				80D966CE6D41858560CD3BD2 /* AppModel+Style.swift */,
 				791AAB2D83EE7D9C40C85893 /* AppModel+Tabs.swift */,
 				065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */,
@@ -263,6 +272,7 @@
 				4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */,
 				C314F862A43F8498C325A37A /* MaterialPreview.swift */,
 				653C322525E3193AF8D5325D /* MirrorOutputPicker.swift */,
+				004A9381EA56EC12F851590F /* RhinestoneView.swift */,
 				F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */,
 				823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */,
 				F39582999A1293C2FF83451F /* TextOutliner.swift */,
@@ -294,6 +304,7 @@
 				BB0723E6676B095D4FE0AB26 /* Planner.swift */,
 				0BCB080CAF16C7A02A6870BE /* ProjectImporters.swift */,
 				64407DC74BC181882DBEEBAF /* Raster.swift */,
+				C5E68E51899E261E721796BE /* Rhinestone.swift */,
 				8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */,
 				6228BF706D25036A4E831890 /* SatinColumns.swift */,
 				412B3A78BDA08630D1A8243C /* SenderJob.swift */,
@@ -316,6 +327,7 @@
 				6339144B08447B305B34F59D /* HoldingTabsTests.swift */,
 				125BC4804EAD037CDE428879 /* KerfCoreTests.swift */,
 				691DE43C7B283D21C7703A59 /* OutputMirrorTests.swift */,
+				81D11B2E9DA0E56CAC6296E9 /* RhinestoneTests.swift */,
 				FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */,
 				D3A7274E1EC283143FAAF08A /* WeedingTests.swift */,
 			);
@@ -451,6 +463,7 @@
 				4D237E70D004B46A9AF04A4D /* AppModel+Materials.swift in Sources */,
 				9CA40CEB1150ECEB91DE8E0E /* AppModel+Mirror.swift in Sources */,
 				09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */,
+				8DD6CC08722FCCD2B64D7E64 /* AppModel+Rhinestones.swift in Sources */,
 				F0FF9454A7FC4BCB68BED5AE /* AppModel+Style.swift in Sources */,
 				358665C47F68532C6E1D26CA /* AppModel+Tabs.swift in Sources */,
 				4B5337C7D8C8DC122496637E /* AppModel+Tools.swift in Sources */,
@@ -468,6 +481,7 @@
 				59B48F3495E1625031C3362A /* MaterialLibraryView.swift in Sources */,
 				4F3B7E4FF0A12F0D9B0DDCEF /* MaterialPreview.swift in Sources */,
 				F765E64EED6C3083AA8CF0CA /* MirrorOutputPicker.swift in Sources */,
+				7C40AA3F2B4F02E4D050EF47 /* RhinestoneView.swift in Sources */,
 				EF8F4E75A41DCD59C40DC3AA /* ShapeStyleSection.swift in Sources */,
 				BA3AE8E421587C01568F3F3E /* StitchEditorView.swift in Sources */,
 				781DFF03E099FAFD930B9A5D /* TextOutliner.swift in Sources */,
@@ -498,6 +512,7 @@
 				3E0C57B0DC2557B9CE5B00A4 /* Planner.swift in Sources */,
 				4B605E8FAE1FC75646BD0640 /* ProjectImporters.swift in Sources */,
 				AEE5E2AB3606C3BB4887F06E /* Raster.swift in Sources */,
+				F00463AA8572B1903D69CACC /* Rhinestone.swift in Sources */,
 				62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */,
 				2706ED034AAE2711CF2A72E4 /* SatinColumns.swift in Sources */,
 				88E7F9CAF7BD3424144BD586 /* SenderJob.swift in Sources */,
@@ -519,6 +534,7 @@
 				54A8C95104371CFA19F6E6DA /* HoldingTabsTests.swift in Sources */,
 				C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */,
 				D67C569E491C5CF56FF144C5 /* OutputMirrorTests.swift in Sources */,
+				E1CDD52747690D1CFEE8DB13 /* RhinestoneTests.swift in Sources */,
 				21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */,
 				6B1C7B36FE999A7B57A5AA2E /* WeedingTests.swift in Sources */,
 			);
