@@ -39,10 +39,12 @@ struct KerfApp: App {
                 Button("Export for KerfSender…") { model.exportForSender() }
                     .keyboardShortcut("e", modifiers: [.command, .shift])
                 Button("Export Print PDF…") { model.exportPrintPDF() }
-                Button("Print Preview…") { model.showPrintPreview = true }
-                    .keyboardShortcut("p")
                 Button("Export Embroidery (PES, JEF, DST)…") { model.showEmbroideryExport = true }
                     .keyboardShortcut("e", modifiers: [.command, .option])
+            }
+            CommandGroup(replacing: .printItem) {
+                Button("Print Preview…") { model.showPrintPreview = true }
+                    .keyboardShortcut("p")
             }
             CommandGroup(replacing: .undoRedo) {
                 Button("Undo") { model.undo() }

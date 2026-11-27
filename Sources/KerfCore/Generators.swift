@@ -274,7 +274,7 @@ public struct CutterJobOptions: Sendable {
 
     /// A plain weeding box `margin` mm around the job (nil for none).
     public init(weedBorder: Double?) {
-        self.weeding = WeedingOptions(box: weedBorder == nil ? .none : .job, margin: weedBorder ?? 3)
+        self.init(weeding: WeedingOptions(box: weedBorder == nil ? .none : .job, margin: weedBorder ?? 3))
     }
 }
 

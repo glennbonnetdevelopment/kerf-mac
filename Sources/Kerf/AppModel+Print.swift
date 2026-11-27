@@ -34,7 +34,7 @@ extension AppModel {
 
     /// The cut lines of the current job (design space), for showing on the preview.
     var printPreviewCuts: [[Vec2]] {
-        toolpath.layers.filter { ![.fill, .image, .print].contains($0.layer.mode) }.flatMap(\.paths)
+        toolpath.layers.filter { ![LayerMode.fill, .image, .print].contains($0.layer.mode) }.flatMap(\.paths)
     }
 
     /// Draws print items (and optionally cut lines as hairlines) into a context set up in design space.
