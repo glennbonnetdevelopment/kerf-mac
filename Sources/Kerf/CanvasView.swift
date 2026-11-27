@@ -50,6 +50,8 @@ private enum DragMode {
     case slideText(id: UUID, moved: Bool)
     /// Dragging one node with the node tool.
     case node(ref: NodeRef, moved: Bool)
+    /// Dragging a holding tab along its outline; `index` is its hand-placed index once it has moved.
+    case tab(mark: TabMark, index: Int?, moved: Bool)
     /// Measuring with the ruler tool.
     case measure(start: Vec2, current: Vec2)
 }
@@ -122,6 +124,9 @@ struct CanvasView: View {
     private func deletePressed() {
         if model.tool == .node, let ref = model.selectedNode {
             model.deleteNode(ref)
+        } else if model.tool == .tabs {
+            if let mark = model.selectedTab { model.removeTab(mark) }
+            model.selectedTab = nil
         } else {
             model.deleteSelection()
         }
@@ -267,6 +272,27 @@ struct CanvasView: View {
                     ctx.stroke(line, with: .color(color.opacity(0.8)),
                                style: StrokeStyle(lineWidth: 0.6, dash: cut == .pocketClear ? [2, 2] : []))
                 }
+            }
+        }
+
+        // Holding tabs.
+        let marks = model.tabMarks
+        if !marks.isEmpty {
+            let editing = model.tool == .tabs
+            for m in marks {
+                let half = max(3 / vp.zoom, m.length / 2)
+                let a = vp.toView(m.point - m.direction * half), b = vp.toView(m.point + m.direction * half)
+                var bar = Path()
+                bar.move(to: a)
+                bar.addLine(to: b)
+                let selected = editing && model.selectedTab == m
+                if editing {
+                    ctx.stroke(bar, with: .color(.white), style: StrokeStyle(lineWidth: selected ? 9 : 7, lineCap: .round))
+                }
+                // Hand-placed tabs are solid; automatic ones lighter.
+                let color = Color.orange.opacity(m.manualIndex == nil ? 0.65 : 1)
+                ctx.stroke(bar, with: .color(selected ? .accentColor : color),
+                           style: StrokeStyle(lineWidth: editing ? (selected ? 6 : 4.5) : 3.5, lineCap: .round))
             }
         }
 
@@ -607,6 +633,23 @@ struct CanvasView: View {
                         } else {
                             model.selection = []
                         }
+                    case .tabs:
+                        let tolerance = 6 / viewport.zoom
+                        if let mark = model.tabHit(at: start, tolerance: tolerance) {
+                            if NSEvent.modifierFlags.contains(.command) {
+                                model.removeTab(mark)
+                                model.selectedTab = nil
+                            } else {
+                                model.selectedTab = mark
+                                model.selection = [mark.shapeID]
+                                dragMode = .tab(mark: mark, index: mark.manualIndex, moved: false)
+                            }
+                        } else if model.addTab(at: start, tolerance: 4 / viewport.zoom) {
+                            model.selectedTab = nil
+                        } else {
+                            model.selection = []
+                            model.selectedTab = nil
+                        }
                     case .rectangle, .ellipse, .line, .shape:
                         dragMode = .create(start: start, current: doc)
                     case .text:
@@ -642,6 +685,9 @@ struct CanvasView: View {
                 case .node(let ref, let moved):
                     model.moveNode(ref, to: doc, recordUndo: !moved)
                     dragMode = .node(ref: ref, moved: true)
+                case .tab(let mark, let index, let moved):
+                    let k = model.moveTab(mark, index: index, to: doc, recordUndo: !moved)
+                    dragMode = .tab(mark: mark, index: k, moved: true)
                 case .measure(let a, _):
                     var end = doc
                     if NSEvent.modifierFlags.contains(.shift) {
@@ -695,6 +741,9 @@ struct CanvasView: View {
                     }
                 case .measure(let a, let b):
                     lastMeasure = (a, b)
+                case .tab(let mark, let index, true):
+                    // Keep the moved tab picked, at its new place.
+                    model.selectedTab = model.tabMarks.first { $0.shapeID == mark.shapeID && $0.manualIndex == index }
                 case .none where model.tool == .text:
                     // Clicking existing text selects it for editing in the toolbar; elsewhere adds new text.
                     if let hit = model.hitTest(doc, tolerance: 4 / viewport.zoom),

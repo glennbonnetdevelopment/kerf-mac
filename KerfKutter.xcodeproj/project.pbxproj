@@ -11,6 +11,7 @@
 		B793E089DD67FCD724764323 /* AppModel+Embroidery.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0695B6768F238B4B5489063 /* AppModel+Embroidery.swift */; };
 		4D237E70D004B46A9AF04A4D /* AppModel+Materials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */; };
 		09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */; };
+		358665C47F68532C6E1D26CA /* AppModel+Tabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791AAB2D83EE7D9C40C85893 /* AppModel+Tabs.swift */; };
 		4B5337C7D8C8DC122496637E /* AppModel+Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */; };
 		65BE2BA1DCA25DD970B110A0 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0901F3144504604B033DB915 /* AppModel.swift */; };
 		C9FF451122D3BBF29E7BD0BC /* ArrangePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A783A8FF2788BE73410EBCB0 /* ArrangePanel.swift */; };
@@ -34,6 +35,7 @@
 		CB5DF4C92B7D89238618208F /* GRBLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */; };
 		9E1E7C74848252EBA2F98FE3 /* Generators.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA00D3AEA459E1003D3A8E03 /* Generators.swift */; };
 		7F00E4948A3B7EBB96AC2C7A /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F957B3F4575CD538D71D4B0F /* Geometry.swift */; };
+		BBCDE23BBA63C54EE7025B2E /* HoldingTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB69DF8B5377BF2D74E8D15 /* HoldingTabs.swift */; };
 		6DC8D0E6C7C45753D94F1CAA /* MaterialLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B52EDCC1E37978B1DA777BA /* MaterialLibrary.swift */; };
 		BB2C4CFE8BFC425AC035C57C /* MillSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30BBBF1F89B105465D349229 /* MillSimulator.swift */; };
 		B906C86C1DACE8F4A562B1DF /* PathText.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA5602941646C375BA84D3A2 /* PathText.swift */; };
@@ -46,6 +48,7 @@
 		173B8B79F880460B7E279E1F /* ShapeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */; };
 		93BF49C7874653269D9A6F99 /* StarterMaterials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5241C9D95C51B5B841046D27 /* StarterMaterials.swift */; };
 		0B543ACA72299A7B43F62D75 /* EmbroideryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */; };
+		54A8C95104371CFA19F6E6DA /* HoldingTabsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6339144B08447B305B34F59D /* HoldingTabsTests.swift */; };
 		C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 125BC4804EAD037CDE428879 /* KerfCoreTests.swift */; };
 		893EF6FE3F847DA65CD969FE /* KerfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; };
 		E1702234442CFA704BA06EFF /* KerfCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -89,6 +92,7 @@
 		C0695B6768F238B4B5489063 /* AppModel+Embroidery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Embroidery.swift"; sourceTree = "<group>"; };
 		113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Materials.swift"; sourceTree = "<group>"; };
 		D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Nodes.swift"; sourceTree = "<group>"; };
+		791AAB2D83EE7D9C40C85893 /* AppModel+Tabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Tabs.swift"; sourceTree = "<group>"; };
 		065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Tools.swift"; sourceTree = "<group>"; };
 		0901F3144504604B033DB915 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		A783A8FF2788BE73410EBCB0 /* ArrangePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrangePanel.swift; sourceTree = "<group>"; };
@@ -112,6 +116,7 @@
 		AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRBLProtocol.swift; sourceTree = "<group>"; };
 		FA00D3AEA459E1003D3A8E03 /* Generators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Generators.swift; sourceTree = "<group>"; };
 		F957B3F4575CD538D71D4B0F /* Geometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geometry.swift; sourceTree = "<group>"; };
+		BBB69DF8B5377BF2D74E8D15 /* HoldingTabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingTabs.swift; sourceTree = "<group>"; };
 		8B52EDCC1E37978B1DA777BA /* MaterialLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialLibrary.swift; sourceTree = "<group>"; };
 		30BBBF1F89B105465D349229 /* MillSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MillSimulator.swift; sourceTree = "<group>"; };
 		FA5602941646C375BA84D3A2 /* PathText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathText.swift; sourceTree = "<group>"; };
@@ -124,6 +129,7 @@
 		7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeLibrary.swift; sourceTree = "<group>"; };
 		5241C9D95C51B5B841046D27 /* StarterMaterials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterMaterials.swift; sourceTree = "<group>"; };
 		23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryTests.swift; sourceTree = "<group>"; };
+		6339144B08447B305B34F59D /* HoldingTabsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingTabsTests.swift; sourceTree = "<group>"; };
 		125BC4804EAD037CDE428879 /* KerfCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfCoreTests.swift; sourceTree = "<group>"; };
 		F91288DB192297DC903FE08C /* KerfKutter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KerfKutter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		240CB5B45D2EFCB17ED411CB /* KerfCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = KerfCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -200,6 +206,7 @@
 				C0695B6768F238B4B5489063 /* AppModel+Embroidery.swift */,
 				113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */,
 				D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */,
+				791AAB2D83EE7D9C40C85893 /* AppModel+Tabs.swift */,
 				065CB4A50BA5296E03C63D3E /* AppModel+Tools.swift */,
 				0901F3144504604B033DB915 /* AppModel.swift */,
 				A783A8FF2788BE73410EBCB0 /* ArrangePanel.swift */,
@@ -231,6 +238,7 @@
 				AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */,
 				FA00D3AEA459E1003D3A8E03 /* Generators.swift */,
 				F957B3F4575CD538D71D4B0F /* Geometry.swift */,
+				BBB69DF8B5377BF2D74E8D15 /* HoldingTabs.swift */,
 				8B52EDCC1E37978B1DA777BA /* MaterialLibrary.swift */,
 				30BBBF1F89B105465D349229 /* MillSimulator.swift */,
 				FA5602941646C375BA84D3A2 /* PathText.swift */,
@@ -251,6 +259,7 @@
 			isa = PBXGroup;
 			children = (
 				23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */,
+				6339144B08447B305B34F59D /* HoldingTabsTests.swift */,
 				125BC4804EAD037CDE428879 /* KerfCoreTests.swift */,
 			);
 			name = KerfCoreTests;
@@ -383,6 +392,7 @@
 				B793E089DD67FCD724764323 /* AppModel+Embroidery.swift in Sources */,
 				4D237E70D004B46A9AF04A4D /* AppModel+Materials.swift in Sources */,
 				09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */,
+				358665C47F68532C6E1D26CA /* AppModel+Tabs.swift in Sources */,
 				4B5337C7D8C8DC122496637E /* AppModel+Tools.swift in Sources */,
 				65BE2BA1DCA25DD970B110A0 /* AppModel.swift in Sources */,
 				C9FF451122D3BBF29E7BD0BC /* ArrangePanel.swift in Sources */,
@@ -413,6 +423,7 @@
 				CB5DF4C92B7D89238618208F /* GRBLProtocol.swift in Sources */,
 				9E1E7C74848252EBA2F98FE3 /* Generators.swift in Sources */,
 				7F00E4948A3B7EBB96AC2C7A /* Geometry.swift in Sources */,
+				BBCDE23BBA63C54EE7025B2E /* HoldingTabs.swift in Sources */,
 				6DC8D0E6C7C45753D94F1CAA /* MaterialLibrary.swift in Sources */,
 				BB2C4CFE8BFC425AC035C57C /* MillSimulator.swift in Sources */,
 				B906C86C1DACE8F4A562B1DF /* PathText.swift in Sources */,
@@ -432,6 +443,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0B543ACA72299A7B43F62D75 /* EmbroideryTests.swift in Sources */,
+				54A8C95104371CFA19F6E6DA /* HoldingTabsTests.swift in Sources */,
 				C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

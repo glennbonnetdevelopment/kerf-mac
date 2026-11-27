@@ -14,13 +14,23 @@ public struct ToolpathLayer: Sendable {
     public var rasters: [RasterRow]
     /// For CNC layers: what each path is (same order as `paths`).
     public var cuts: [MillCut]
+    /// For CNC layers: arc-length ranges of each path where the tool lifts to leave a holding tab
+    /// (same order as `paths`). Laser tabs are already left out of `paths`.
+    public var tabs: [[ClosedRange<Double>]]
+    /// Every holding tab on the layer, for the canvas.
+    public var tabMarks: [TabMark]
 
-    public init(layer: Layer, paths: [[Vec2]], rasters: [RasterRow] = [], cuts: [MillCut] = []) {
+    public init(layer: Layer, paths: [[Vec2]], rasters: [RasterRow] = [], cuts: [MillCut] = [],
+                tabs: [[ClosedRange<Double>]] = [], tabMarks: [TabMark] = []) {
         self.layer = layer
         self.paths = paths
         self.rasters = rasters
         self.cuts = cuts
+        self.tabs = tabs
+        self.tabMarks = tabMarks
     }
+
+    public func tabs(at i: Int) -> [ClosedRange<Double>] { i < tabs.count ? tabs[i] : [] }
 
     public func cut(at i: Int) -> MillCut { i < cuts.count ? cuts[i] : .onLine }
 
@@ -45,6 +55,9 @@ public struct Toolpath: Sendable {
     public var layers: [ToolpathLayer]
 
     public var isEmpty: Bool { layers.allSatisfy { $0.paths.isEmpty } }
+
+    /// Every holding tab in the job.
+    public var tabMarks: [TabMark] { layers.flatMap(\.tabMarks) }
 
     public var bounds: Rect2 {
         var r = Rect2.empty
@@ -125,26 +138,88 @@ public enum Planner {
                 continue
             }
             if layer.mode == .mill {
-                let (paths, cuts) = millPaths(shapes.filter { $0.image == nil }, layer: layer, from: pos)
+                let (paths, cuts, owners) = millPaths(shapes.filter { $0.image == nil }, layer: layer, from: pos)
                 guard !paths.isEmpty else { continue }
                 pos = paths.last?.last ?? pos
-                layers.append(ToolpathLayer(layer: layer, paths: paths, cuts: cuts))
+                // Tabs on parts (and by hand on holes). The tool eats into the bridge from both sides,
+                // so the lifted stretch is the tab width plus the tool diameter.
+                let width = max(0, layer.tabWidth) + max(0, layer.toolDiameter)
+                let placed = HoldingTabs.place(paths: paths, owners: owners, autoEligible: cuts.map { $0 == .part },
+                                               manualEligible: cuts.map { $0 == .part || $0 == .hole },
+                                               layer: layer, width: width)
+                let tabs = zip(paths, placed).map { path, p in
+                    HoldingTabs.intervals(centers: p.map(\.s), width: width, total: HoldingTabs.cumulative(path).last ?? 0)
+                }
+                let marks = paths.indices.flatMap {
+                    HoldingTabs.marks(on: paths[$0], placed: placed[$0], owner: owners[$0].id, width: width)
+                }
+                layers.append(ToolpathLayer(layer: layer, paths: paths, cuts: cuts, tabs: tabs, tabMarks: marks))
                 continue
             }
-            let polys = shapes.filter { $0.image == nil }.flatMap(\.placedPaths).filter { $0.points.count > 1 }
+            var polys: [Polyline] = []
+            var owners: [Artwork] = []
+            for shape in shapes where shape.image == nil {
+                for p in shape.placedPaths where p.points.count > 1 {
+                    polys.append(p)
+                    owners.append(shape)
+                }
+            }
             guard !polys.isEmpty else { continue }
             var paths: [[Vec2]]
+            var marks: [TabMark] = []
             if layer.mode == .fill {
                 paths = hatch(polys.filter { $0.closed }, interval: layer.fillInterval, angleDegrees: layer.fillAngle,
                               bidirectional: layer.fillBidirectional)
+            } else if kind == .grblLaser, layer.tabsEnabled {
+                (paths, marks) = laserPathsWithTabs(polys, owners: owners, layer: layer, from: pos)
             } else {
                 paths = order(polys, from: pos, innerFirst: true)
             }
             guard !paths.isEmpty else { continue }
             pos = paths.last?.last ?? pos
-            layers.append(ToolpathLayer(layer: layer, paths: paths))
+            layers.append(ToolpathLayer(layer: layer, paths: paths, tabMarks: marks))
         }
         return Toolpath(layers: layers)
+    }
+
+    /// Laser outlines in cutting order with holding tabs left uncut: automatic tabs on parts (closed
+    /// outlines that aren't holes in another), and hand-placed tabs on any closed outline of their shape.
+    static func laserPathsWithTabs(_ polys: [Polyline], owners: [Artwork], layer: Layer,
+                                   from start: Vec2) -> ([[Vec2]], [TabMark]) {
+        let depth = layerNestingDepth(polys, owners: owners)
+        let ordered = orderIndexed(polys, from: start, innerFirst: true)
+        let paths = ordered.map(\.1)
+        let pathOwners = ordered.map { owners[$0.0] }
+        let width = max(0.01, layer.laserTabWidth)
+        let placed = HoldingTabs.place(paths: paths, owners: pathOwners,
+                                       autoEligible: ordered.map { polys[$0.0].closed && depth[$0.0] % 2 == 0 },
+                                       manualEligible: ordered.map { polys[$0.0].closed },
+                                       layer: layer, width: width)
+        var out: [[Vec2]] = []
+        var marks: [TabMark] = []
+        for (i, path) in paths.enumerated() {
+            guard !placed[i].isEmpty else {
+                out.append(path)
+                continue
+            }
+            let total = HoldingTabs.cumulative(path).last ?? 0
+            let ranges = HoldingTabs.intervals(centers: placed[i].map(\.s), width: width, total: total)
+            out += HoldingTabs.split(path, tabs: ranges)
+            marks += HoldingTabs.marks(on: path, placed: placed[i], owner: pathOwners[i].id, width: width)
+        }
+        return (out, marks)
+    }
+
+    /// Nesting depth of each outline within its layer, with text nested only within itself
+    /// (so lettering behaves the same wherever it sits). Even depths are parts, odd ones holes.
+    static func layerNestingDepth(_ polys: [Polyline], owners: [Artwork]) -> [Int] {
+        var depth = [Int](repeating: 0, count: polys.count)
+        var groups: [UUID?: [Int]] = [:]
+        for i in polys.indices { groups[owners[i].text == nil ? nil : owners[i].id, default: []].append(i) }
+        for (_, members) in groups {
+            for (k, d) in nestingDepth(members.map { polys[$0] }).enumerated() { depth[members[k]] = d }
+        }
+        return depth
     }
 
     // MARK: - Ordering
@@ -235,7 +310,8 @@ public enum Planner {
     }
 
     /// Builds CNC paths: tool-offset contours for parts and holes, centre-line paths, pocket clearing and drill points.
-    static func millPaths(_ shapes: [Artwork], layer: Layer, from start: Vec2) -> ([[Vec2]], [MillCut]) {
+    /// Also returns the shape each path came from.
+    static func millPaths(_ shapes: [Artwork], layer: Layer, from start: Vec2) -> ([[Vec2]], [MillCut], [Artwork]) {
         let r = max(0, layer.toolDiameter / 2)
         // Auto roles come from nesting across the whole layer, so a hole drawn as a separate shape still counts.
         // Text is self-contained: its letters and counters nest only within the text itself, so the
@@ -250,8 +326,9 @@ public enum Planner {
 
         var contours: [Polyline] = []
         var contourCuts: [MillCut] = []
+        var contourOwners: [Artwork] = []
         var prefixes: [[[Vec2]]] = [] // pocket clearing that runs before a contour
-        var drills: [Vec2] = []
+        var drills: [(Vec2, Artwork)] = []
 
         for shape in shapes {
             let role = shape.millRole ?? layer.defaultMillRole
@@ -259,7 +336,7 @@ public enum Planner {
             switch role {
             case .drill:
                 let b = polys.bounds
-                if !b.isEmpty { drills.append(b.center) }
+                if !b.isEmpty { drills.append((b.center, shape)) }
             case .pocket:
                 let depths = nestingDepth(polys)
                 // Outer edges shrink by the tool radius; islands grow.
@@ -275,6 +352,7 @@ public enum Planner {
                 for (k, region) in regions.enumerated() {
                     contours.append(region.0)
                     contourCuts.append(region.1 % 2 == 0 ? .hole : .part)
+                    contourOwners.append(shape)
                     prefixes.append(k == 0 ? clearing : [])
                 }
             case .part, .hole, .onLine, .auto:
@@ -298,6 +376,7 @@ public enum Planner {
                     if cut == .hole, abs(path.signedArea) < 1e-6 || path.signedArea * p.signedArea < 0 { continue } // smaller than the tool
                     contours.append(path)
                     contourCuts.append(cut)
+                    contourOwners.append(shape)
                     prefixes.append([])
                 }
             }
@@ -305,22 +384,26 @@ public enum Planner {
 
         var paths: [[Vec2]] = []
         var cuts: [MillCut] = []
+        var owners: [Artwork] = []
         var pos = start
         // Drill first, then contours with holes and pockets before the parts that contain them.
-        for d in drills {
+        for (d, shape) in drills {
             paths.append([d])
             cuts.append(.drill)
+            owners.append(shape)
             pos = d
         }
         for (idx, pts) in orderIndexed(contours, from: pos, innerFirst: true) {
             for row in prefixes[idx] {
                 paths.append(row)
                 cuts.append(.pocketClear)
+                owners.append(contourOwners[idx])
             }
             paths.append(pts)
             cuts.append(contourCuts[idx])
+            owners.append(contourOwners[idx])
         }
-        return (paths, cuts)
+        return (paths, cuts, owners)
     }
 
     /// Joins consecutive pocket rows into zig-zags where the link stays inside the pocket.
