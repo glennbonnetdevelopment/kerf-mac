@@ -256,7 +256,9 @@ public enum Rhinestone {
             let start = o.outlinePosition == .inside ? s.radius : 0
             for row in 0..<max(1, min(50, o.outlineRows)) {
                 let inset = start + Double(row) * pitch
-                let curves = inset < 1e-6 ? closed : StyleGeometry.offset(closed, by: -inset)
+                // An exact inset keeps sharp corners (so corners get stones) and the true length of each side.
+                let curves = inset < 1e-6 ? closed : closed.compactMap { insetLoop($0, by: inset, edges: edges) }
+                let before = placer.stones.count
                 // Open lines can't be inset: they get one row centred on the line.
                 if row == 0 {
                     for c in open {
@@ -268,6 +270,7 @@ public enum Rhinestone {
                     placeAlong(c, pitch: pitch, size: s, color: o.outlineColor, role: .outline,
                                edges: inset > 1e-6 ? edges : nil, placer: &placer)
                 }
+                if row > 0 && placer.stones.count == before { break }
                 nextInset = inset + s.radius + gap
             }
         }
@@ -355,7 +358,7 @@ public enum Rhinestone {
         let length = curve.length
         guard length > 1e-6, pitch > 1e-6 else { return }
         func tryPlace(_ p: Vec2) {
-            if let edges, edges.distance(p, limit: size.radius) < size.radius * 0.7 { return }
+            if let edges, !edges.inside(p) || edges.distance(p, limit: size.radius) < size.radius * 0.7 { return }
             _ = placer.place(Stone(center: p, size: size, color: color, role: role))
         }
         if curve.closed {
@@ -378,6 +381,48 @@ public enum Rhinestone {
             let step = length / Double(n)
             for p in pointsAlong(curve.points, every: step, count: n + 1) { tryPlace(p) }
         }
+    }
+
+    /// `loop` moved `d` mm into the area (even-odd, so a hole's loop moves out into the material), corner by
+    /// corner with mitred joins. Very sharp corners are capped. Parts that fold over where the shape is narrower
+    /// than `2d` are left to the edge and inside checks when stones are placed.
+    static func insetLoop(_ loop: Polyline, by d: Double, edges: EdgeIndex) -> Polyline? {
+        let pts = loop.deduplicated().points
+        let n = pts.count
+        guard n >= 3 else { return nil }
+        // Which side is inside: test just off the middle of the longest edge.
+        var longest = 0
+        for i in 0..<n where pts[i].distance(to: pts[(i + 1) % n]) > pts[longest].distance(to: pts[(longest + 1) % n]) {
+            longest = i
+        }
+        let a = pts[longest], b = pts[(longest + 1) % n]
+        let left = Vec2(-(b - a).y, (b - a).x).normalized
+        let probe = min(0.05, a.distance(to: b) * 0.01, d * 0.5)
+        let sign: Double = edges.inside((a + b) / 2 + left * probe) ? 1 : -1
+        var out: [Vec2] = []
+        out.reserveCapacity(n)
+        for i in 0..<n {
+            let prev = pts[(i - 1 + n) % n], cur = pts[i], next = pts[(i + 1) % n]
+            let e1 = (cur - prev).normalized, e2 = (next - cur).normalized
+            let n1 = Vec2(-e1.y, e1.x) * sign, n2 = Vec2(-e2.y, e2.x) * sign
+            let sum = n1 + n2
+            let len = sum.length
+            guard len > 1e-9 else {
+                out.append(cur + n1 * d)
+                continue
+            }
+            let bis = sum / len
+            let cosHalf = max(1e-9, bis.dot(n1))
+            let miter = d / cosHalf
+            if miter <= d * 3 {
+                out.append(cur + bis * miter)
+            } else {
+                // Too sharp to mitre: two points, one off each side.
+                out.append(cur + n1 * d)
+                out.append(cur + n2 * d)
+            }
+        }
+        return Polyline(out, closed: true)
     }
 
     /// Index of the point where a closed loop turns the most.
