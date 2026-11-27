@@ -258,6 +258,12 @@ struct CanvasView: View {
             ctx.stroke(weed, with: .color(.secondary), style: StrokeStyle(lineWidth: 0.8, dash: [5, 3]))
         }
 
+        // Panels for vinyl signs bigger than the cutter.
+        if model.panelsActive {
+            let layout = model.panelLayout
+            if layout.isSplit { drawPanels(layout, in: &ctx, vp: vp) }
+        }
+
         // Toolpath preview.
         if model.showToolpath {
             var travel = Path()
@@ -551,6 +557,50 @@ struct CanvasView: View {
     }
 
     /// Draws a shape's style parts in their layers' colours, under the shape's outline.
+    /// Panel outlines with their names, the overlaps shaded, the selected panel highlighted and alignment marks.
+    private func drawPanels(_ layout: PanelLayout, in ctx: inout GraphicsContext, vp: Viewport) {
+        func rect(_ r: Rect2) -> CGRect {
+            let a = vp.toView(r.origin)
+            return CGRect(x: a.x, y: a.y, width: r.width * vp.zoom, height: r.height * vp.zoom)
+        }
+        let current = model.currentPanel
+        for p in layout.panels {
+            let r = rect(p.rect)
+            if p.index == current?.index {
+                ctx.fill(Path(r), with: .color(Color.accentColor.opacity(0.08)))
+            }
+            // Overlaps with the panels to the right and below.
+            if p.column + 1 < layout.columns {
+                let n = layout.panels[p.index + 1].rect
+                ctx.fill(Path(rect(Rect2(minX: n.minX, minY: p.rect.minY, maxX: p.rect.maxX, maxY: p.rect.maxY))),
+                         with: .color(.purple.opacity(0.07)))
+            }
+            if p.row + 1 < layout.rows {
+                let n = layout.panels[p.index + layout.columns].rect
+                ctx.fill(Path(rect(Rect2(minX: p.rect.minX, minY: n.minY, maxX: p.rect.maxX, maxY: p.rect.maxY))),
+                         with: .color(.purple.opacity(0.07)))
+            }
+        }
+        for p in layout.panels {
+            let r = rect(p.rect)
+            let selected = p.index == current?.index
+            ctx.stroke(Path(r), with: .color(selected ? Color.accentColor : .purple.opacity(0.7)),
+                       style: StrokeStyle(lineWidth: selected ? 1.6 : 1, dash: [6, 4]))
+            let sent = model.isPanelSent(p)
+            ctx.draw(Text(sent ? "\(p.name) ✓" : p.name).font(.caption.bold())
+                        .foregroundColor(selected ? Color.accentColor : .purple),
+                     at: CGPoint(x: r.minX + 5, y: r.minY + 4), anchor: .topLeading)
+        }
+        var marks = Path()
+        for m in layout.marks {
+            for line in Panels.crosshair(at: m, size: layout.markSize) {
+                marks.move(to: vp.toView(line[0]))
+                marks.addLine(to: vp.toView(line[1]))
+            }
+        }
+        ctx.stroke(marks, with: .color(.orange), lineWidth: 1.2)
+    }
+
     private func drawStyle(_ style: ArtworkStyle, of shape: Artwork, path: Path, in ctx: inout GraphicsContext, vp: Viewport) {
         for part in style.enabledParts {
             guard let layer = model.document.layer(part.layerID) else { continue }

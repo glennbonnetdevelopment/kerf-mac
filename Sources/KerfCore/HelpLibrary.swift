@@ -90,6 +90,7 @@ public enum HelpLibrary {
         materials,
         laser,
         vinyl,
+        panels,
         cnc,
         printAndCut,
         embroidery,
@@ -283,9 +284,34 @@ public enum HelpLibrary {
                 "**Overcut** runs a little past the start of each closed shape so it fully separates.",
                 "Inner shapes are cut before outer ones so letters don't shift on the mat.",
                 "**Weeding border** adds a rectangle around the design, with the margin you set, to make weeding easier.",
+                "Signs bigger than the cutter can be cut as overlapping panels. See **Panel cutting (big signs)**.",
             ]),
             .tip("Cutters that appear as a USB printer (like the GCC Expert 24): add them in **System Settings › Printers** as a Generic PostScript printer, then choose that queue. KerfKutter sends raw cutter commands to it."),
             .text("Machines with no live connection, like the Brother ScanNCut, use **Export file…** to save an SVG that you load from a USB stick or the maker's app."),
+        ])
+
+    static let panels = HelpTopic(
+        id: "panels", title: "Panel cutting (big signs)", symbol: "rectangle.split.3x1",
+        summary: "Cutting a vinyl sign bigger than the cutter as overlapping panels, one at a time.",
+        blocks: [
+            .text("When a sign is wider or longer than your cutter, KerfKutter can split it into overlapping panels (tiling). You cut each panel on its own and line them up when you apply the vinyl."),
+            .steps([
+                "Pick your cutter, then in the **Machine** tab turn on **Split into panels** under **Panels (oversized signs)**.",
+                "Set **Panel width** (across the vinyl) and **Panel length** (along the roll). Leave them at 0 to use the machine's full work area.",
+                "Set the **Overlap**, for example 12 mm (about half an inch), so the panels sit on top of each other with no gap.",
+                "Check the panels on the canvas: dashed outlines named A1, A2, B1 and so on, with the overlaps shaded.",
+                "Pick a panel in the grid to preview it, load the vinyl, and click **Send panel A1**. KerfKutter ticks it off and moves on to the next panel.",
+            ]),
+            .bullets([
+                "Panels are equal in size, cut row by row from **A1** at the top left. Rows are letters, columns are numbers.",
+                "Each panel is moved so it starts at the cutter's origin, so load fresh vinyl at the same spot each time.",
+                "**Alignment marks** cuts small crosshairs in the middle of each overlap, at the same spot on both panels. Lay one panel over the next so the crosshairs match. Marks are never placed on the artwork; if a seam has no clear spot, KerfKutter tells you.",
+                "Weeding boxes and lines are added to each panel separately.",
+                "**Export panels…** saves one file per panel, such as sign-A1.plt and sign-A2.plt, in a folder you choose.",
+                "**Skip** moves on without sending, and **Start over** clears the ticks.",
+            ]),
+            .tip("A design that already fits the cutter is cut in one piece as usual, even with panels turned on."),
+            .warning("Panels longer than the bed rely on the cutter feeding vinyl off the roll. Check that your cutter tracks straight over that length before cutting a long panel."),
         ])
 
     static let cnc = HelpTopic(
