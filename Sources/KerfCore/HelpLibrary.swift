@@ -236,7 +236,7 @@ public enum HelpLibrary {
                 "In the layer's Material menu choose **Save these settings as a material…** and give it a material, operation and notes.",
                 "Next time, pick it from the layer's Material menu, or select it in the library and click **Apply to current layer**.",
             ]),
-            .text("Materials belong to a machine type (laser, cutter or CNC). If you change a layer after applying a material it shows as edited, and **Update "…" with these settings** saves the changes back. The library can import and export materials files to share or back up, and can restore the built-in xTool starter settings."),
+            .text("Materials belong to a machine type (laser, cutter or CNC). If you change a layer after applying a material it shows as edited, and **Update “…” with these settings** saves the changes back. The library can import and export materials files to share or back up, and can restore the built-in xTool starter settings."),
             .warning("Starter settings are a starting point. Test on a scrap of the same material first."),
         ])
 
