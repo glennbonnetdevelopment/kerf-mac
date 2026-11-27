@@ -258,11 +258,16 @@ public enum GCodeGenerator {
 // MARK: - Vinyl cutters (HPGL / GP-GL)
 
 public struct CutterJobOptions: Sendable {
-    /// Margin of a weeding border around the job, or nil for none.
-    public var weedBorder: Double?
+    /// Weeding box and weeding lines added after the design.
+    public var weeding: WeedingOptions
 
-    public init(weedBorder: Double? = nil) {
-        self.weedBorder = weedBorder
+    public init(weeding: WeedingOptions = .init()) {
+        self.weeding = weeding
+    }
+
+    /// A plain weeding box `margin` mm around the job (nil for none).
+    public init(weedBorder: Double?) {
+        self.weeding = WeedingOptions(box: weedBorder == nil ? .none : .job, margin: weedBorder ?? 3)
     }
 }
 
@@ -279,15 +284,16 @@ public enum PlotterGenerator {
             }
             jobs.append((tl.layer, prepared))
         }
-        if let margin = options.weedBorder, let last = jobs.last?.0 {
-            let b = tp.bounds
-            if !b.isEmpty {
-                let r = b.insetBy(-margin)
-                var box = [Vec2(r.minX, r.minY), Vec2(r.maxX, r.minY), Vec2(r.maxX, r.maxY), Vec2(r.minX, r.maxY), Vec2(r.minX, r.minY)]
+        if let last = jobs.last?.0, options.weeding.isActive {
+            let weeding = Weeding.cuts(for: tp, options: options.weeding)
+            // Lines are open cuts: blade offset only. Boxes are closed: overcut too.
+            var extra = weeding.lines.map { profile.bladeOffset > 0 ? bladeCompensate($0, offset: profile.bladeOffset) : $0 }
+            for var box in weeding.boxes {
                 if profile.overcut > 0 { box = addOvercut(box, distance: profile.overcut) }
                 if profile.bladeOffset > 0 { box = bladeCompensate(box, offset: profile.bladeOffset) }
-                jobs.append((last, [box]))
+                extra.append(box)
             }
+            if !extra.isEmpty { jobs.append((last, extra)) }
         }
 
         if profile.language == .svgFile {

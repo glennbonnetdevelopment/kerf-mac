@@ -53,11 +53,13 @@
 		173B8B79F880460B7E279E1F /* ShapeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */; };
 		81B17E230614B1BEF80A33EA /* ShapeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 531B4D11D8B0216BD395F12F /* ShapeStyle.swift */; };
 		93BF49C7874653269D9A6F99 /* StarterMaterials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5241C9D95C51B5B841046D27 /* StarterMaterials.swift */; };
+		6C0BEF973B7DEAD312D2C01D /* Weeding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390698DD051779D2D5215925 /* Weeding.swift */; };
 		0B543ACA72299A7B43F62D75 /* EmbroideryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */; };
 		0E80B7CC7F60ADBAC4E80E76 /* FreehandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64E347F90714F86D7645CF06 /* FreehandTests.swift */; };
 		54A8C95104371CFA19F6E6DA /* HoldingTabsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6339144B08447B305B34F59D /* HoldingTabsTests.swift */; };
 		C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 125BC4804EAD037CDE428879 /* KerfCoreTests.swift */; };
 		21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */; };
+		6B1C7B36FE999A7B57A5AA2E /* WeedingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7274E1EC283143FAAF08A /* WeedingTests.swift */; };
 		893EF6FE3F847DA65CD969FE /* KerfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; };
 		E1702234442CFA704BA06EFF /* KerfCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		BD54067B074BB2544118BDFD /* KerfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; };
@@ -142,11 +144,13 @@
 		7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeLibrary.swift; sourceTree = "<group>"; };
 		531B4D11D8B0216BD395F12F /* ShapeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyle.swift; sourceTree = "<group>"; };
 		5241C9D95C51B5B841046D27 /* StarterMaterials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterMaterials.swift; sourceTree = "<group>"; };
+		390698DD051779D2D5215925 /* Weeding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Weeding.swift; sourceTree = "<group>"; };
 		23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryTests.swift; sourceTree = "<group>"; };
 		64E347F90714F86D7645CF06 /* FreehandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreehandTests.swift; sourceTree = "<group>"; };
 		6339144B08447B305B34F59D /* HoldingTabsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingTabsTests.swift; sourceTree = "<group>"; };
 		125BC4804EAD037CDE428879 /* KerfCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfCoreTests.swift; sourceTree = "<group>"; };
 		FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyleTests.swift; sourceTree = "<group>"; };
+		D3A7274E1EC283143FAAF08A /* WeedingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeedingTests.swift; sourceTree = "<group>"; };
 		F91288DB192297DC903FE08C /* KerfKutter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KerfKutter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		240CB5B45D2EFCB17ED411CB /* KerfCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = KerfCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5400806AFA697D620185B72 /* KerfCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KerfCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -272,6 +276,7 @@
 				7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */,
 				531B4D11D8B0216BD395F12F /* ShapeStyle.swift */,
 				5241C9D95C51B5B841046D27 /* StarterMaterials.swift */,
+				390698DD051779D2D5215925 /* Weeding.swift */,
 			);
 			name = KerfCore;
 			path = Sources/KerfCore;
@@ -285,6 +290,7 @@
 				6339144B08447B305B34F59D /* HoldingTabsTests.swift */,
 				125BC4804EAD037CDE428879 /* KerfCoreTests.swift */,
 				FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */,
+				D3A7274E1EC283143FAAF08A /* WeedingTests.swift */,
 			);
 			name = KerfCoreTests;
 			path = Tests/KerfCoreTests;
@@ -465,6 +471,7 @@
 				173B8B79F880460B7E279E1F /* ShapeLibrary.swift in Sources */,
 				81B17E230614B1BEF80A33EA /* ShapeStyle.swift in Sources */,
 				93BF49C7874653269D9A6F99 /* StarterMaterials.swift in Sources */,
+				6C0BEF973B7DEAD312D2C01D /* Weeding.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -477,6 +484,7 @@
 				54A8C95104371CFA19F6E6DA /* HoldingTabsTests.swift in Sources */,
 				C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */,
 				21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */,
+				6B1C7B36FE999A7B57A5AA2E /* WeedingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
