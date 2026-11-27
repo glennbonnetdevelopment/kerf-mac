@@ -5,6 +5,8 @@ import SwiftUI
 struct EditorToolbar: View {
     @EnvironmentObject var model: AppModel
     @State private var fonts: [String] = []
+    @State private var showRotate = false
+    @State private var rotateAngle = 45.0
     @State private var showShapes = false
     @State private var showCurve = false
     @State private var showContour = false
@@ -12,10 +14,12 @@ struct EditorToolbar: View {
     @State private var freehandPopover: Tool?
 
     var body: some View {
-        HStack(spacing: 6) {
+        ToolbarFlowLayout(spacing: 6, rowSpacing: 4) {
             ForEach([Tool.select, .node, .tabs, .measure, .rectangle, .ellipse, .line]) { t in
                 toolButton(t.symbol, help: t.title, active: model.tool == t) { model.tool = t }
             }
+            Divider().frame(height: 22)
+            transformButtons
             Divider().frame(height: 22)
 
             toolButton(model.shapeKind.symbol, help: "Shapes: \(model.shapeKind.title)", active: model.tool == .shape) {
@@ -110,6 +114,47 @@ struct EditorToolbar: View {
                 fonts = list
             }
         }
+    }
+
+    /// Mirror and rotate the selection about its centre.
+    @ViewBuilder private var transformButtons: some View {
+        Group {
+            toolButton("arrow.left.and.right.righttriangle.left.righttriangle.right", help: "Mirror horizontally (flip left to right)",
+                       active: false) { model.mirrorSelection(horizontal: true) }
+            toolButton("arrow.up.and.down.righttriangle.up.righttriangle.down", help: "Mirror vertically (flip top to bottom)",
+                       active: false) { model.mirrorSelection(horizontal: false) }
+            toolButton("rotate.left", help: "Rotate 90° counter-clockwise", active: false) { model.rotateSelection(degrees: -90) }
+            toolButton("rotate.right", help: "Rotate 90° clockwise", active: false) { model.rotateSelection(degrees: 90) }
+            toolButton("angle", help: "Rotate by any angle", active: showRotate) { showRotate = true }
+                .popover(isPresented: $showRotate, arrowEdge: .bottom) { rotatePopover }
+        }
+        .disabled(model.selection.isEmpty)
+    }
+
+    private var rotatePopover: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Rotate").font(.headline)
+            HStack {
+                TextField("", value: $rotateAngle, format: .number.precision(.fractionLength(0...2)))
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 70)
+                Text("°")
+                Button("Rotate") { model.rotateSelection(degrees: rotateAngle) }
+                    .keyboardShortcut(.defaultAction)
+            }
+            HStack {
+                ForEach([-45.0, 45, 180], id: \.self) { a in
+                    Button("\(a, specifier: "%+g")°") { model.rotateSelection(degrees: a) }
+                }
+            }
+            Text("Positive turns clockwise, about the middle of the selection. You can also drag the round handle above the selection.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(14)
+        .frame(width: 280)
+        .disabled(model.selection.isEmpty)
     }
 
     /// The selected text, when it can be curved (text on a path follows its path instead).
@@ -257,5 +302,13 @@ struct EditorToolbar: View {
         }
         .padding(12)
         .frame(width: 260)
+    }
+}
+
+extension EditorToolbar {
+    /// Inside the toolbar, `Divider()` means the vertical toolbar separator: SwiftUI's own divider draws
+    /// horizontally in a custom layout. Shadowing the name keeps every `Divider().frame(height: 22)` working.
+    struct Divider: View {
+        var body: some View { ToolbarSeparator() }
     }
 }

@@ -86,6 +86,7 @@ struct LaserPanel: View {
             GroupBox("Job") {
                 VStack(alignment: .leading, spacing: 8) {
                     JobOriginPicker()
+                    MirrorOutputPicker()
                     let tp = model.toolpath
                     Text(tp.isEmpty ? "No enabled layers with shapes." : "Estimated time \(formatDuration(tp.estimatedSeconds(profile: model.profile)))")
                         .font(.caption)
@@ -287,7 +288,7 @@ struct LaserPanel: View {
     }
 
     private func frameLines() -> [String] {
-        let tp = model.toolpath
+        let tp = model.outputToolpath
         let offset = jobOffset()
         return GCodeGenerator.frame(tp.bounds, profile: model.profile, offset: offset, alignment: model.alignmentTransform,
                                     feed: model.profile.rapidSpeed)
@@ -306,6 +307,7 @@ struct CutterPanel: View {
             Form {
                 Toggle("Cut selected shapes only", isOn: $model.cutSelectionOnly)
                     .help("Send and export only the selected shapes")
+                MirrorOutputPicker()
                 if model.profile.language == .svgFile {
                     Text("This machine has no live connection. Export an SVG and load it with a USB stick or the maker's app.")
                         .font(.caption)
