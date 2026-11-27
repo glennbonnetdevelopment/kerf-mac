@@ -124,6 +124,12 @@ public enum GCodeGenerator {
 
                     let closed = path.first!.distance(to: path.last!) < 1e-6
                     if closed, cut == .part || cut == .hole {
+                        // Tabs were placed along the design path; scale them to the machine path
+                        // (print-and-cut alignment can stretch it slightly).
+                        let designTotal = HoldingTabs.cumulative(designPath).last ?? 0
+                        let machineTotal = HoldingTabs.cumulative(path).last ?? 0
+                        let k = designTotal > 0 ? machineTotal / designTotal : 1
+                        var tabs = tl.tabs(at: index).map { ($0.lowerBound * k)...($0.upperBound * k) }
                         // Spindle turns clockwise: climb milling runs clockwise around parts and
                         // counter-clockwise inside holes; conventional is the reverse.
                         let area = Polyline(Array(path.dropLast()), closed: true).signedArea
@@ -131,9 +137,8 @@ public enum GCodeGenerator {
                         if (area < 0) != wantClockwise {
                             path.reverse()
                             out[out.count - 1] = "G0 X\(fmt(path[0].x)) Y\(fmt(path[0].y))"
+                            tabs = tabs.map { (machineTotal - $0.upperBound)...(machineTotal - $0.lowerBound) }
                         }
-                        let tabs = (layer.tabsEnabled && cut == .part) ? tabIntervals(path, count: layer.tabCount,
-                                                                                         width: layer.tabWidth + layer.toolDiameter) : []
                         let tabTop = -(depth - max(0, min(layer.tabHeight, depth)))
                         var previous = 0.0
                         for level in levels {
@@ -174,18 +179,6 @@ public enum GCodeGenerator {
         }
         levels.append(depth)
         return levels
-    }
-
-    /// Evenly spaced tab intervals along a closed path, as arc-length ranges.
-    static func tabIntervals(_ path: [Vec2], count: Int, width: Double) -> [ClosedRange<Double>] {
-        var total = 0.0
-        for i in 1..<path.count { total += path[i].distance(to: path[i - 1]) }
-        let n = max(1, count)
-        guard total > Double(n) * width * 2 else { return [] }
-        return (0..<n).map { i in
-            let c = (Double(i) + 0.5) * total / Double(n)
-            return (c - width / 2)...(c + width / 2)
-        }
     }
 
     static func contains(_ tabs: [ClosedRange<Double>], _ s: Double) -> Bool {

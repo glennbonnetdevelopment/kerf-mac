@@ -139,11 +139,21 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
     public var millStyle: MillStyle
     /// Pocket stepover as a fraction of the tool diameter.
     public var stepover: Double
+    /// Holding tabs keep parts attached to the sheet: the laser skips short stretches of each part's
+    /// outline, and a CNC router leaves a thin bridge. Also the master switch for tabs placed by hand.
     public var tabsEnabled: Bool
-    /// Tabs per part.
+    /// Whether automatic tabs use a fixed count per part or a spacing along the outline.
+    public var tabPlacement: TabPlacement
+    /// Tabs per part (when placing by count).
     public var tabCount: Int
+    /// Outline length between automatic tabs in mm (when placing by spacing).
+    public var tabSpacing: Double
+    /// CNC tab width in mm (the bridge left between cuts, not counting the tool).
     public var tabWidth: Double
+    /// CNC tab height in mm, measured up from the bottom of the cut.
     public var tabHeight: Double
+    /// Laser tab width in mm: the length of outline left uncut.
+    public var laserTabWidth: Double
     /// Ramp into the cut along the path instead of plunging straight down (0 = plunge).
     public var rampLength: Double
     /// The material library entry these settings came from, if any.
@@ -158,8 +168,9 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
                 overscan: Double = 2.5, cutSpeed: Int = 20, cutForce: Int = 80, cutDepth: Double = 3,
                 stepDown: Double = 1, toolDiameter: Double = 3.175, millOffset: MillOffset = .onLine,
                 plungeRate: Double = 300, spindleSpeed: Double = 1000, defaultMillRole: MillRole = .auto,
-                millStyle: MillStyle = .climb, stepover: Double = 0.4, tabsEnabled: Bool = false, tabCount: Int = 4,
-                tabWidth: Double = 5, tabHeight: Double = 1.5, rampLength: Double = 0) {
+                millStyle: MillStyle = .climb, stepover: Double = 0.4, tabsEnabled: Bool = false,
+                tabPlacement: TabPlacement = .count, tabCount: Int = 4, tabSpacing: Double = 100,
+                tabWidth: Double = 5, tabHeight: Double = 1.5, laserTabWidth: Double = 0.5, rampLength: Double = 0) {
         self.id = id
         self.name = name
         self.colorHex = colorHex
@@ -188,17 +199,20 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         self.millStyle = millStyle
         self.stepover = stepover
         self.tabsEnabled = tabsEnabled
+        self.tabPlacement = tabPlacement
         self.tabCount = tabCount
+        self.tabSpacing = tabSpacing
         self.tabWidth = tabWidth
         self.tabHeight = tabHeight
+        self.laserTabWidth = laserTabWidth
         self.rampLength = rampLength
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, name, colorHex, mode, enabled, passes, speed, power, powerMin, airAssist, fillInterval, fillAngle,
              fillBidirectional, dither, invertImage, overscan, cutSpeed, cutForce, cutDepth, stepDown, toolDiameter,
-             millOffset, plungeRate, spindleSpeed, defaultMillRole, millStyle, stepover, tabsEnabled, tabCount,
-             tabWidth, tabHeight, rampLength, materialID, embroidery
+             millOffset, plungeRate, spindleSpeed, defaultMillRole, millStyle, stepover, tabsEnabled, tabPlacement, tabCount,
+             tabSpacing, tabWidth, tabHeight, laserTabWidth, rampLength, materialID, embroidery
     }
 
     /// Missing keys fall back to defaults so older project files still open.
@@ -233,9 +247,12 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         millStyle = try c.decodeIfPresent(MillStyle.self, forKey: .millStyle) ?? d.millStyle
         stepover = try c.decodeIfPresent(Double.self, forKey: .stepover) ?? d.stepover
         tabsEnabled = try c.decodeIfPresent(Bool.self, forKey: .tabsEnabled) ?? d.tabsEnabled
+        tabPlacement = try c.decodeIfPresent(TabPlacement.self, forKey: .tabPlacement) ?? d.tabPlacement
         tabCount = try c.decodeIfPresent(Int.self, forKey: .tabCount) ?? d.tabCount
+        tabSpacing = try c.decodeIfPresent(Double.self, forKey: .tabSpacing) ?? d.tabSpacing
         tabWidth = try c.decodeIfPresent(Double.self, forKey: .tabWidth) ?? d.tabWidth
         tabHeight = try c.decodeIfPresent(Double.self, forKey: .tabHeight) ?? d.tabHeight
+        laserTabWidth = try c.decodeIfPresent(Double.self, forKey: .laserTabWidth) ?? d.laserTabWidth
         rampLength = try c.decodeIfPresent(Double.self, forKey: .rampLength) ?? d.rampLength
         materialID = try c.decodeIfPresent(UUID.self, forKey: .materialID)
         embroidery = try c.decodeIfPresent(EmbroiderySettings.self, forKey: .embroidery)
@@ -341,6 +358,10 @@ public struct Artwork: Identifiable, Codable, Hashable, Sendable {
     public var stitches: [[Vec2]]?
     /// Stroke, fill and offset styles, each made on its own layer as a child of this shape.
     public var style: ArtworkStyle?
+    /// Holding tabs placed by hand, as points near the outline in the shape's own coordinates (each one
+    /// snaps to the nearest outline when the job is planned). Nil places tabs automatically from the
+    /// layer's settings; empty means no tabs on this shape.
+    public var tabs: [Vec2]?
 
     public init(id: UUID = UUID(), layerID: UUID, name: String, paths: [Polyline], transform: Affine = .identity,
                 text: TextSpec? = nil, image: RasterImage? = nil) {

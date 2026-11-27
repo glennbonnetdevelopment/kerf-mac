@@ -13,7 +13,7 @@ struct EditorToolbar: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            ForEach([Tool.select, .node, .measure, .rectangle, .ellipse, .line]) { t in
+            ForEach([Tool.select, .node, .tabs, .measure, .rectangle, .ellipse, .line]) { t in
                 toolButton(t.symbol, help: t.title, active: model.tool == t) { model.tool = t }
             }
             Divider().frame(height: 22)

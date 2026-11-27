@@ -130,6 +130,7 @@ struct LayerSettings: View {
             case .cut:
                 number("Speed (cm/s)", $layer.cutSpeed)
                 number("Force (g)", $layer.cutForce)
+                if kind == .grblLaser { tabSettings(cnc: false) }
             case .mill:
                 number("Feed (mm/min)", $layer.speed)
                 number("Plunge (mm/min)", $layer.plungeRate)
@@ -150,12 +151,7 @@ struct LayerSettings: View {
                     Slider(value: $layer.stepover, in: 0.1...0.9, step: 0.05).frame(width: 150)
                 }
                 number("Ramp length (mm)", $layer.rampLength)
-                Toggle("Holding tabs on parts", isOn: $layer.tabsEnabled)
-                if layer.tabsEnabled {
-                    Stepper("Tabs per part: \(layer.tabCount)", value: $layer.tabCount, in: 1...20)
-                    number("Tab width (mm)", $layer.tabWidth)
-                    number("Tab height (mm)", $layer.tabHeight)
-                }
+                tabSettings(cnc: true)
             case .line, .fill, .image:
                 number("Speed (mm/min)", $layer.speed)
                 LabeledContent(layer.mode == .image ? "Max power \(Int(layer.power))%" : "Power \(Int(layer.power))%") {
@@ -186,9 +182,39 @@ struct LayerSettings: View {
                     number("Angle (°)", $layer.fillAngle)
                     Toggle("Bidirectional", isOn: $layer.fillBidirectional)
                 }
+                if layer.mode == .line, kind == .grblLaser { tabSettings(cnc: false) }
             }
         }
         .formStyle(.grouped)
+    }
+
+    /// Holding tab settings: on a laser the tab is a short stretch left uncut; on a CNC a bridge left
+    /// standing at the bottom of the cut.
+    @ViewBuilder
+    private func tabSettings(cnc: Bool) -> some View {
+        Toggle("Holding tabs on parts", isOn: $layer.tabsEnabled)
+        if layer.tabsEnabled {
+            Picker("Place", selection: $layer.tabPlacement) {
+                Text("A number per part").tag(TabPlacement.count)
+                Text("By spacing").tag(TabPlacement.spacing)
+            }
+            if layer.tabPlacement == .count {
+                Stepper("Tabs per part: \(layer.tabCount)", value: $layer.tabCount, in: 1...20)
+            } else {
+                number("One tab every (mm)", $layer.tabSpacing)
+            }
+            if cnc {
+                number("Tab width (mm)", $layer.tabWidth)
+                number("Tab height (mm)", $layer.tabHeight)
+            } else {
+                number("Tab width (mm)", $layer.laserTabWidth)
+            }
+            Text(cnc
+                 ? "Tabs go on parts, away from corners. The tool lifts to leave a bridge this tall. Use the Holding tabs tool to add, move or remove tabs by hand."
+                 : "Tabs go on parts, away from corners, and are left uncut so pieces stay in the sheet. Use the Holding tabs tool to add, move or remove tabs by hand.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
     }
 
     private func number(_ title: String, _ value: Binding<Double>) -> some View {

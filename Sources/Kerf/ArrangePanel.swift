@@ -75,6 +75,30 @@ struct ArrangePanel: View {
                 }
             }
 
+            if model.tabsInUse, !model.selection.isEmpty {
+                Section("Holding tabs") {
+                    let mode = model.selectionTabMode
+                    LabeledContent("Tabs", value: "\(model.selectionTabCount) · " + {
+                        switch mode {
+                        case .automatic: return "automatic"
+                        case .manual: return "placed by hand"
+                        case .none: return "none"
+                        case .mixed: return "mixed"
+                        }
+                    }())
+                    HStack {
+                        Button("Automatic") { model.setSelectionTabsAutomatic() }
+                            .disabled(mode == .automatic)
+                        Button("No tabs") { model.setSelectionNoTabs() }
+                            .disabled(mode == .none)
+                        Button("Edit by hand") { model.tool = .tabs }
+                    }
+                    Text("Automatic tabs follow the layer's settings. With the Holding tabs tool, click an outline to add a tab, drag a tab to move it, and Command-click or press Delete to remove it.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
             if model.selection.count == 1, let shape = model.selectedShapes.first, shape.image == nil {
                 ShapeEmbroiderySection(shapeID: shape.id)
             }

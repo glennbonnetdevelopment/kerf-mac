@@ -4,7 +4,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 enum Tool: String, CaseIterable, Identifiable {
-    case select, node, rectangle, ellipse, line, shape, text, measure, pen, brush, eraser
+    case select, node, rectangle, ellipse, line, shape, text, measure, pen, brush, eraser, tabs
 
     var id: String { rawValue }
 
@@ -21,6 +21,7 @@ enum Tool: String, CaseIterable, Identifiable {
         case .pen: return "pencil.tip"
         case .brush: return "paintbrush.pointed"
         case .eraser: return "eraser"
+        case .tabs: return "square.dashed"
         }
     }
 
@@ -32,6 +33,7 @@ enum Tool: String, CaseIterable, Identifiable {
         case .pen: return "Pen: draw smooth freehand lines"
         case .brush: return "Brush: paint strokes that become filled outlines"
         case .eraser: return "Eraser: rub out parts of lines and shapes"
+        case .tabs: return "Holding tabs: click an outline to add a tab, drag a tab to move it, Command-click or Delete to remove it"
         default: return rawValue.capitalized
         }
     }
@@ -128,6 +130,8 @@ final class AppModel: ObservableObject {
     }
     /// The node picked with the node tool: shape, path index and point index.
     @Published var selectedNode: NodeRef?
+    /// The tab last clicked with the tabs tool.
+    @Published var selectedTab: TabMark?
     @Published var currentLayerID: UUID?
     @Published var tool: Tool = .select
     @Published var showToolpath = false
