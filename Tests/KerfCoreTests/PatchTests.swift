@@ -112,7 +112,7 @@ final class PatchTests: XCTestCase {
         XCTAssertEqual(back.output, .embroidery)
         XCTAssertTrue(back.embroideryStop)
         // Older files without the keys.
-        let old = try JSONDecoder().decode(Layer.self, from: Data(#"{"name":"a","colorHex":"#000000"}"#.utf8))
+        let old = try JSONDecoder().decode(Layer.self, from: Data(##"{"name":"a","colorHex":"#000000"}"##.utf8))
         XCTAssertEqual(old.output, .all)
         XCTAssertFalse(old.embroideryStop)
     }
