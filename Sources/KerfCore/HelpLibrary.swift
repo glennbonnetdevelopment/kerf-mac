@@ -325,8 +325,19 @@ public enum HelpLibrary {
             .steps([
                 "Pick your cutter in the **Device** picker and put the artwork on **Cut (vinyl)** layers.",
                 "In the **Machine** tab, set **Send via** to the serial port or the cutter's printer queue.",
-                "Check blade offset and overcut, then click **Send to cutter**.",
+                "Click **Send to cutter…** (⌘K). Check the material, force, blade, mirror and placement against the preview, then click **Send to cutter**.",
             ]),
+            .heading("Send to Cutter"),
+            .text("The Send to Cutter page gathers everything that changes how the job comes out, next to a preview of exactly what the cutter will get."),
+            .bullets([
+                "**Material** puts a saved vinyl setting on every cut layer. **Force**, **Speed** and **Passes** can then be changed per layer, and **Blade offset** and **Overcut** for the machine.",
+                "**Cut selected shapes only** sends just the shapes selected on the canvas.",
+                "**Mirror output** flips the cut for heat-transfer vinyl without changing the design.",
+                "**As placed (WYSIWYG)** cuts the job where it sits on the canvas, measured from the cutter's origin. **Align to home corner** moves it into the corner where you set the origin, with the gap you choose, so no vinyl is wasted.",
+                "The preview shows the vinyl from above with the front of the cutter at the bottom, the **Home** corner in blue, where the first cut starts in green, and which way the vinyl feeds. Turn on **Knife-up moves** to see the moves between cuts.",
+                "The preview is read back from the cutter data itself, so mirroring, placement, blade offset, overcut and weeding all show as they will be cut.",
+            ]),
+            .tip("Print and cut jobs, manual registration and panels always cut where the marks or panels put them, so **Align to home corner** is switched off for them."),
             .bullets([
                 "**Blade offset** corrects for the drag blade's tip trailing behind its centre, so corners come out sharp.",
                 "**Overcut** runs a little past the start of each closed shape so it fully separates.",
@@ -675,6 +686,7 @@ public enum HelpLibrary {
                 HelpKey("⌘I", "Import SVG, DXF, LightBurn or Easy Cut"),
                 HelpKey("⇧⌘I", "Import image to engrave"),
                 HelpKey("⌘E", "Export machine file"),
+                HelpKey("⌘K", "Send to Cutter"),
                 HelpKey("⌥⌘E", "Export embroidery"),
                 HelpKey("⌘P", "Print preview and print"),
             ]),

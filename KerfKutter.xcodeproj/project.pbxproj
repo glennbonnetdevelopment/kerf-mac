@@ -20,6 +20,7 @@
 		B972B8CE89D0548DA963E398 /* AppModel+Patch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 480897EE86AB2B0F4C05D3BC /* AppModel+Patch.swift */; };
 		3871119F34138F354675E701 /* AppModel+Print.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DF0E9C0BE0F58E441FB47D7 /* AppModel+Print.swift */; };
 		8DD6CC08722FCCD2B64D7E64 /* AppModel+Rhinestones.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F4A1ACC12482326FDFBBACD /* AppModel+Rhinestones.swift */; };
+		2DC817339EEED071F6B7BA2D /* AppModel+SendToCutter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE6D91B24F43DBE5753D64E /* AppModel+SendToCutter.swift */; };
 		38D649F1F3126A696B8CDFBA /* AppModel+StitchPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E627F7D742EF4CFAC9359FC /* AppModel+StitchPreview.swift */; };
 		F0FF9454A7FC4BCB68BED5AE /* AppModel+Style.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80D966CE6D41858560CD3BD2 /* AppModel+Style.swift */; };
 		358665C47F68532C6E1D26CA /* AppModel+Tabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791AAB2D83EE7D9C40C85893 /* AppModel+Tabs.swift */; };
@@ -47,6 +48,7 @@
 		134AB2ADA4FC1E17742669BF /* PatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFF2F4A9B62FD4FE26A083B /* PatchView.swift */; };
 		5E097F2BB69ED276741D28A5 /* PrintPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5275DC37D334BB468FAE8C /* PrintPreviewView.swift */; };
 		7C40AA3F2B4F02E4D050EF47 /* RhinestoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004A9381EA56EC12F851590F /* RhinestoneView.swift */; };
+		D3FBCCC33567EFE4C3D1E557 /* SendToCutterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DDBB32978FEA587108A8B5F /* SendToCutterView.swift */; };
 		EF8F4E75A41DCD59C40DC3AA /* ShapeStyleSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */; };
 		BA3AE8E421587C01568F3F3E /* StitchEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */; };
 		86BB428E2A5AF23F9FB4266B /* StitchPreviewRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F5F08BBC3B237B3AA5BE0AB /* StitchPreviewRenderer.swift */; };
@@ -57,6 +59,7 @@
 		FAFC7C85DD19F946DD75231C /* CameraTrace.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6CA6DE9DED0806A72A8DE37 /* CameraTrace.swift */; };
 		7BB7B1B0AF93E20445E64149 /* Checkerboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B7D39848B6D2B967055D61E /* Checkerboard.swift */; };
 		6070AFD5C6ADAB1941E6E387 /* Contour.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C254F75332D1142D62D6AC0 /* Contour.swift */; };
+		0D88CE28BC383AB336457EE9 /* CutterPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 357ACC20B2FF95C480CA3EC7 /* CutterPreview.swift */; };
 		447B7F830C5EAC20CD5BA649 /* DXFImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E50EAD27B27DED670614DD19 /* DXFImporter.swift */; };
 		29C795656B649632CE7E6D71 /* DeviceProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */; };
 		80141C005A0395D8E73FC5AE /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81C6A183E1B0D5E30B61251C /* Document.swift */; };
@@ -114,6 +117,7 @@
 		FD0D194FB21C2A75E99F3FA4 /* PatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F96AA7FEBD2D6BB0F683E4B /* PatchTests.swift */; };
 		581B9675F489881985235478 /* PrintAndCutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */; };
 		E1CDD52747690D1CFEE8DB13 /* RhinestoneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D11B2E9DA0E56CAC6296E9 /* RhinestoneTests.swift */; };
+		4D5358950BA35788AD7B0359 /* SendToCutterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D391B911F7F734680E0B0DE7 /* SendToCutterTests.swift */; };
 		21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */; };
 		6B1C7B36FE999A7B57A5AA2E /* WeedingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7274E1EC283143FAAF08A /* WeedingTests.swift */; };
 		7A8DC8E6ABE9395618D817FC /* WorkpieceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A23321060D0628F416154CE /* WorkpieceTests.swift */; };
@@ -169,6 +173,7 @@
 		480897EE86AB2B0F4C05D3BC /* AppModel+Patch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Patch.swift"; sourceTree = "<group>"; };
 		9DF0E9C0BE0F58E441FB47D7 /* AppModel+Print.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Print.swift"; sourceTree = "<group>"; };
 		4F4A1ACC12482326FDFBBACD /* AppModel+Rhinestones.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Rhinestones.swift"; sourceTree = "<group>"; };
+		9BE6D91B24F43DBE5753D64E /* AppModel+SendToCutter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+SendToCutter.swift"; sourceTree = "<group>"; };
 		3E627F7D742EF4CFAC9359FC /* AppModel+StitchPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+StitchPreview.swift"; sourceTree = "<group>"; };
 		80D966CE6D41858560CD3BD2 /* AppModel+Style.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Style.swift"; sourceTree = "<group>"; };
 		791AAB2D83EE7D9C40C85893 /* AppModel+Tabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Tabs.swift"; sourceTree = "<group>"; };
@@ -196,6 +201,7 @@
 		4EFF2F4A9B62FD4FE26A083B /* PatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchView.swift; sourceTree = "<group>"; };
 		DF5275DC37D334BB468FAE8C /* PrintPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrintPreviewView.swift; sourceTree = "<group>"; };
 		004A9381EA56EC12F851590F /* RhinestoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhinestoneView.swift; sourceTree = "<group>"; };
+		5DDBB32978FEA587108A8B5F /* SendToCutterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendToCutterView.swift; sourceTree = "<group>"; };
 		F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyleSection.swift; sourceTree = "<group>"; };
 		823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StitchEditorView.swift; sourceTree = "<group>"; };
 		5F5F08BBC3B237B3AA5BE0AB /* StitchPreviewRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StitchPreviewRenderer.swift; sourceTree = "<group>"; };
@@ -206,6 +212,7 @@
 		E6CA6DE9DED0806A72A8DE37 /* CameraTrace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraTrace.swift; sourceTree = "<group>"; };
 		0B7D39848B6D2B967055D61E /* Checkerboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Checkerboard.swift; sourceTree = "<group>"; };
 		4C254F75332D1142D62D6AC0 /* Contour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contour.swift; sourceTree = "<group>"; };
+		357ACC20B2FF95C480CA3EC7 /* CutterPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CutterPreview.swift; sourceTree = "<group>"; };
 		E50EAD27B27DED670614DD19 /* DXFImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DXFImporter.swift; sourceTree = "<group>"; };
 		3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceProfile.swift; sourceTree = "<group>"; };
 		81C6A183E1B0D5E30B61251C /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
@@ -263,6 +270,7 @@
 		3F96AA7FEBD2D6BB0F683E4B /* PatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchTests.swift; sourceTree = "<group>"; };
 		14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrintAndCutTests.swift; sourceTree = "<group>"; };
 		81D11B2E9DA0E56CAC6296E9 /* RhinestoneTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhinestoneTests.swift; sourceTree = "<group>"; };
+		D391B911F7F734680E0B0DE7 /* SendToCutterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendToCutterTests.swift; sourceTree = "<group>"; };
 		FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyleTests.swift; sourceTree = "<group>"; };
 		D3A7274E1EC283143FAAF08A /* WeedingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeedingTests.swift; sourceTree = "<group>"; };
 		0A23321060D0628F416154CE /* WorkpieceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkpieceTests.swift; sourceTree = "<group>"; };
@@ -351,6 +359,7 @@
 				480897EE86AB2B0F4C05D3BC /* AppModel+Patch.swift */,
 				9DF0E9C0BE0F58E441FB47D7 /* AppModel+Print.swift */,
 				4F4A1ACC12482326FDFBBACD /* AppModel+Rhinestones.swift */,
+				9BE6D91B24F43DBE5753D64E /* AppModel+SendToCutter.swift */,
 				3E627F7D742EF4CFAC9359FC /* AppModel+StitchPreview.swift */,
 				80D966CE6D41858560CD3BD2 /* AppModel+Style.swift */,
 				791AAB2D83EE7D9C40C85893 /* AppModel+Tabs.swift */,
@@ -378,6 +387,7 @@
 				4EFF2F4A9B62FD4FE26A083B /* PatchView.swift */,
 				DF5275DC37D334BB468FAE8C /* PrintPreviewView.swift */,
 				004A9381EA56EC12F851590F /* RhinestoneView.swift */,
+				5DDBB32978FEA587108A8B5F /* SendToCutterView.swift */,
 				F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */,
 				823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */,
 				5F5F08BBC3B237B3AA5BE0AB /* StitchPreviewRenderer.swift */,
@@ -396,6 +406,7 @@
 				E6CA6DE9DED0806A72A8DE37 /* CameraTrace.swift */,
 				0B7D39848B6D2B967055D61E /* Checkerboard.swift */,
 				4C254F75332D1142D62D6AC0 /* Contour.swift */,
+				357ACC20B2FF95C480CA3EC7 /* CutterPreview.swift */,
 				E50EAD27B27DED670614DD19 /* DXFImporter.swift */,
 				3FB494B3239C9ED60DE4D983 /* DeviceProfile.swift */,
 				81C6A183E1B0D5E30B61251C /* Document.swift */,
@@ -461,6 +472,7 @@
 				3F96AA7FEBD2D6BB0F683E4B /* PatchTests.swift */,
 				14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */,
 				81D11B2E9DA0E56CAC6296E9 /* RhinestoneTests.swift */,
+				D391B911F7F734680E0B0DE7 /* SendToCutterTests.swift */,
 				FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */,
 				D3A7274E1EC283143FAAF08A /* WeedingTests.swift */,
 				0A23321060D0628F416154CE /* WorkpieceTests.swift */,
@@ -605,6 +617,7 @@
 				B972B8CE89D0548DA963E398 /* AppModel+Patch.swift in Sources */,
 				3871119F34138F354675E701 /* AppModel+Print.swift in Sources */,
 				8DD6CC08722FCCD2B64D7E64 /* AppModel+Rhinestones.swift in Sources */,
+				2DC817339EEED071F6B7BA2D /* AppModel+SendToCutter.swift in Sources */,
 				38D649F1F3126A696B8CDFBA /* AppModel+StitchPreview.swift in Sources */,
 				F0FF9454A7FC4BCB68BED5AE /* AppModel+Style.swift in Sources */,
 				358665C47F68532C6E1D26CA /* AppModel+Tabs.swift in Sources */,
@@ -632,6 +645,7 @@
 				134AB2ADA4FC1E17742669BF /* PatchView.swift in Sources */,
 				5E097F2BB69ED276741D28A5 /* PrintPreviewView.swift in Sources */,
 				7C40AA3F2B4F02E4D050EF47 /* RhinestoneView.swift in Sources */,
+				D3FBCCC33567EFE4C3D1E557 /* SendToCutterView.swift in Sources */,
 				EF8F4E75A41DCD59C40DC3AA /* ShapeStyleSection.swift in Sources */,
 				BA3AE8E421587C01568F3F3E /* StitchEditorView.swift in Sources */,
 				86BB428E2A5AF23F9FB4266B /* StitchPreviewRenderer.swift in Sources */,
@@ -649,6 +663,7 @@
 				FAFC7C85DD19F946DD75231C /* CameraTrace.swift in Sources */,
 				7BB7B1B0AF93E20445E64149 /* Checkerboard.swift in Sources */,
 				6070AFD5C6ADAB1941E6E387 /* Contour.swift in Sources */,
+				0D88CE28BC383AB336457EE9 /* CutterPreview.swift in Sources */,
 				447B7F830C5EAC20CD5BA649 /* DXFImporter.swift in Sources */,
 				29C795656B649632CE7E6D71 /* DeviceProfile.swift in Sources */,
 				80141C005A0395D8E73FC5AE /* Document.swift in Sources */,
@@ -713,6 +728,7 @@
 				FD0D194FB21C2A75E99F3FA4 /* PatchTests.swift in Sources */,
 				581B9675F489881985235478 /* PrintAndCutTests.swift in Sources */,
 				E1CDD52747690D1CFEE8DB13 /* RhinestoneTests.swift in Sources */,
+				4D5358950BA35788AD7B0359 /* SendToCutterTests.swift in Sources */,
 				21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */,
 				6B1C7B36FE999A7B57A5AA2E /* WeedingTests.swift in Sources */,
 				7A8DC8E6ABE9395618D817FC /* WorkpieceTests.swift in Sources */,

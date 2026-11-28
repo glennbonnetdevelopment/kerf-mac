@@ -268,18 +268,36 @@ public struct CutterJobOptions: Sendable {
     /// Correction applied to cutter coordinates (mm, after moving to `origin`), such as the fit from
     /// manual registration onto measured marks.
     public var alignment: Affine
+    /// Where the job goes on the material when `origin` isn't set.
+    public var placement: CutterPlacement
+    /// With `.homeCorner`, how far the job sits in from the cutter's origin along both axes, mm.
+    public var homeMargin: Double
 
-    public init(weeding: WeedingOptions = .init(), origin: Vec2? = nil, preamble: String = "", alignment: Affine = .identity) {
+    public init(weeding: WeedingOptions = .init(), origin: Vec2? = nil, preamble: String = "", alignment: Affine = .identity,
+                placement: CutterPlacement = .asPlaced, homeMargin: Double = 0) {
         self.weeding = weeding
         self.origin = origin
         self.preamble = preamble
         self.alignment = alignment
+        self.placement = placement
+        self.homeMargin = homeMargin
     }
 
     /// A plain weeding box `margin` mm around the job (nil for none).
     public init(weedBorder: Double?) {
         self.init(weeding: WeedingOptions(box: weedBorder == nil ? .none : .job, margin: weedBorder ?? 3))
     }
+}
+
+/// Where a cutter job lands on the material.
+public enum CutterPlacement: String, Codable, CaseIterable, Identifiable, Sendable {
+    /// Where it sits on the canvas, measured from the cutter's origin (what you see is what you get).
+    case asPlaced
+    /// Moved into the cutter's origin (home) corner, wherever it sits on the canvas, to save material.
+    case homeCorner
+
+    public var id: String { rawValue }
+    public var title: String { self == .asPlaced ? "As placed (WYSIWYG)" : "Align to home corner" }
 }
 
 public enum PlotterGenerator {
@@ -313,7 +331,20 @@ public enum PlotterGenerator {
             return svg(jobs: jobs, profile: profile)
         }
 
-        let zero = options.origin.map(profile.toMachine) ?? .zero
+        var zero = options.origin.map(profile.toMachine) ?? .zero
+        if options.origin == nil, options.placement == .homeCorner {
+            // Move the job so its corner nearest the cutter's origin sits `homeMargin` in from it.
+            var lo = Vec2(Double.infinity, Double.infinity)
+            for (_, paths) in jobs {
+                for path in paths where path.count > 1 {
+                    for p in path {
+                        let m = profile.toMachine(p)
+                        lo = Vec2(min(lo.x, m.x), min(lo.y, m.y))
+                    }
+                }
+            }
+            if lo.x.isFinite { zero = lo - Vec2(options.homeMargin, options.homeMargin) }
+        }
         func u(_ p: Vec2) -> (Int, Int) {
             let q = options.alignment.apply(profile.toMachine(p) - zero)
             return (Int((q.x * profile.unitsPerMM).rounded()), Int((q.y * profile.unitsPerMM).rounded()))
