@@ -95,6 +95,7 @@ public enum HelpLibrary {
         cnc,
         printAndCut,
         gccOpticalMarks,
+        manualRegistration,
         rhinestones,
         embroidery,
         devices,
@@ -407,7 +408,7 @@ public enum HelpLibrary {
             .text("**File › Export Print PDF…** still saves a bed-sized PDF with the artwork where it sits on the bed."),
             .heading("Lining up the cut"),
             .text("**On a laser**: jog the laser dot to the centre of each mark, click **Record mark 1** and **Record mark 2**, and turn on **Align job to marks**. The job is moved and rotated to match the sheet."),
-            .text("**On a cutter without a sensor**: load the sheet with mark 1 at the cutter's origin."),
+            .text("**On a cutter without a sensor**: load the sheet with mark 1 at the cutter's origin, or move the head onto each mark from KerfKutter. See *Manual registration on a cutter*."),
             .text("**On a GCC LX cutter**: the cutter reads the marks itself. See *Optical marks on GCC cutters*."),
         ])
 
@@ -437,6 +438,30 @@ public enum HelpLibrary {
                 "Cut consistently shifted by the same amount: set **AAS Offset** on the cutter, using GCC's offset test.",
             ]),
             .warning("Optical registration is experimental. Cut a test sheet with **Print cut lines** on before using good media."),
+        ])
+
+    static let manualRegistration = HelpTopic(
+        id: "manual-registration", title: "Manual registration on a cutter", symbol: "scope",
+        summary: "Move the cutter head onto each printed mark with the laser pointer, then cut lined up with them.",
+        blocks: [
+            .text("Any cutter KerfKutter can talk to live can line a cut up with printed marks by hand: you move the head from KerfKutter until the laser pointer (or the blade tip) is on each mark and confirm it. Use it on cutters without an optical sensor, or on a GCC LX when the sensor can't read the sheet (glossy, laminated or coloured media)."),
+            .heading("Set the laser offset once"),
+            .steps([
+                "In **Machine › Manual registration…**, turn on **Sight marks with the laser pointer**.",
+                "Load scrap vinyl, move the head over it and click **Calibrate offset…**. The blade cuts a 6 mm cross.",
+                "Move the head with the arrows until the laser dot is on the centre of the cross, then click **The dot is on the cross**.",
+            ]),
+            .text("The offset is saved with the device (also under **Laser pointer** in the device settings). It's the dot's position relative to the blade along the cutter's own X and Y."),
+            .heading("Line up and cut"),
+            .steps([
+                "Add registration marks (any style, including GCC AAS L marks) and print the sheet at 100%.",
+                "Load the sheet, lower the pinch rollers, move the head near mark 1 and press **Origin Set** on the cutter. Click **I pressed Origin Set** so KerfKutter knows where the head is.",
+                "Move the pointer onto mark 1 with the arrows (or the arrow keys; Shift moves ten steps) and click **Pointer is on mark**. Use small steps for the last millimetre.",
+                "The head jumps to where the next mark should be. Fine-tune and confirm it, and so on for every mark.",
+                "With two or more marks, **Align the cut to these marks** turns on. Close the window and click **Send to cutter**.",
+            ]),
+            .text("A mark's point is its centre, or the outside corner of an L mark. Two marks correct position and rotation; three or four also correct stretch and skew, and show how well the marks agree."),
+            .warning("KerfKutter can't read the head position back from the cutter. If you move the head with the cutter's own keys, press Origin Set again and click **I pressed Origin Set** before carrying on."),
         ])
 
     static let rhinestones = HelpTopic(
