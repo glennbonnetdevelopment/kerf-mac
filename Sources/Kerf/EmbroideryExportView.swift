@@ -177,12 +177,22 @@ struct EmbroiderySettingsFields: View {
         }
         switch settings.stitchType {
         case .running, .bean:
-            number("Stitch length (mm)", s.stitchLength)
+            lineStylePicker
+            if settings.lineStyle != .rope {
+                number("Stitch length (mm)", s.stitchLength)
+            }
+            lineStyleFields
         case .satin:
-            number("Column width (mm)", s.satinWidth)
-            number("Density (mm between stitches)", s.density)
-            number("Pull compensation (mm)", s.pullCompensation)
-            Toggle("Centre-run underlay", isOn: s.underlay)
+            lineStylePicker
+            if settings.lineStyle == .plain {
+                number("Column width (mm)", s.satinWidth)
+                number("Density (mm between stitches)", s.density)
+                number("Pull compensation (mm)", s.pullCompensation)
+                Toggle("Centre-run underlay", isOn: s.underlay)
+            } else {
+                if settings.lineStyle != .rope { number("Stitch length (mm)", s.stitchLength) }
+                lineStyleFields
+            }
         case .auto:
             number("Satin and fill density (mm)", s.density)
             number("Widest satin column (mm)", s.maxColumnWidth)
@@ -190,7 +200,12 @@ struct EmbroiderySettingsFields: View {
             number("Fill angle (°)", s.fillAngle)
             number("Pull compensation (mm)", s.pullCompensation)
             Toggle("Underlay", isOn: s.underlay)
-            caption("Narrow parts of filled shapes become satin columns that turn with the stroke, wide parts are filled, and lines are sewn by their width from the SVG (satin, triple or running). Areas are sewn first, lines on top.")
+            lineStylePicker
+            if settings.lineStyle != .plain {
+                caption("Lines are sewn in this style, as wide as their stroke (or the style width for thin lines).")
+                number("Style width for thin lines (mm)", s.satinWidth)
+            }
+            caption("Narrow parts of filled shapes become satin columns that turn with the stroke, wide parts are filled, and lines are sewn by their width from the SVG (satin, triple or running). Areas are sewn first, lines on top. For a patterned fill (stars, waves, lines…), choose Fill.")
         case .satinColumns:
             number("Density (mm between stitches)", s.density)
             number("Widest column (mm)", s.maxColumnWidth)
@@ -199,12 +214,54 @@ struct EmbroiderySettingsFields: View {
             number("Fill angle for wide parts (°)", s.fillAngle)
             caption("Satin stitches cross each stroke and turn with it. Parts wider than the widest column are filled. Open lines are skipped.")
         case .fill:
-            number("Row spacing (mm)", s.density)
-            number("Angle (°)", s.fillAngle)
-            number("Stitch length (mm)", s.fillStitchLength)
-            number("Pull compensation (mm)", s.pullCompensation)
-            Toggle("Underlay", isOn: s.underlay)
+            Picker("Pattern", selection: s.fillPattern) {
+                ForEach(FillPattern.allCases) { Text($0.title).tag($0) }
+            }
+            PatternSwatch(settings: settings)
+            let pattern = settings.fillPattern
+            if pattern.isDense {
+                number("Row spacing (mm)", s.density)
+                number("Angle (°)", s.fillAngle)
+                number("Stitch length (mm)", s.fillStitchLength)
+                if pattern != .tatami { number(pattern == .waves ? "Wave length (mm)" : "Zig-zag length (mm)", s.patternSize) }
+                number("Pull compensation (mm)", s.pullCompensation)
+                Toggle("Underlay", isOn: s.underlay)
+            } else if pattern.isMotif {
+                number("Motif size (mm)", s.patternSize)
+                number("Gap between motifs (mm)", s.patternSpacing)
+                number("Row angle (°)", s.fillAngle)
+                number("Stitch length (mm)", s.stitchLength)
+                caption("Whole motifs that fit inside the shape are outlined in running stitch, row by row, with short joining stitches so each row sews without trims.")
+            } else {
+                number("Line spacing (mm)", s.patternSpacing)
+                number("Angle (°)", s.fillAngle)
+                number("Stitch length (mm)", s.stitchLength)
+                caption("An open fill: the fabric shows between the lines.")
+            }
             caption("Fill sews the inside of closed shapes. Open lines are skipped.")
+        }
+    }
+
+    private var lineStylePicker: some View {
+        Group {
+            Picker("Line style", selection: $settings.lineStyle) {
+                ForEach(LineStyle.allCases) { Text($0.title).tag($0) }
+            }
+            if settings.lineStyle != .plain { PatternSwatch(settings: settings) }
+        }
+    }
+
+    @ViewBuilder private var lineStyleFields: some View {
+        let s = $settings
+        if settings.lineStyle != .plain {
+            number("Style width (mm)", s.satinWidth)
+            if settings.lineStyle == .rope {
+                number("Density (mm between stitches)", s.density)
+                Toggle("Centre-run underlay", isOn: s.underlay)
+            }
+            if settings.stitchType == .bean && settings.lineStyle != .rope {
+                caption("Each stitch of the style is sewn three times.")
+            }
         }
     }
 
@@ -253,6 +310,48 @@ private struct SewingOrderList: View {
         Text("Layers sew top to bottom (reorder them in the Layers panel). Shapes sew in this order within their layer.")
             .font(.caption)
             .foregroundStyle(.secondary)
+    }
+}
+
+/// A small sample of a fill pattern or line style, drawn from the real stitches.
+struct PatternSwatch: View {
+    let settings: EmbroiderySettings
+
+    var body: some View {
+        let runs = Self.sample(settings)
+        Canvas { ctx, size in
+            ctx.fill(Path(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: 6), with: .color(Color(white: 0.95)))
+            let scale = min(size.width, size.height) / 34
+            let off = CGPoint(x: (size.width - 30 * scale) / 2, y: (size.height - 30 * scale) / 2)
+            var path = Path()
+            for run in runs {
+                guard let f = run.first else { continue }
+                path.move(to: CGPoint(x: off.x + f.x * scale, y: off.y + f.y * scale))
+                for p in run.dropFirst() { path.addLine(to: CGPoint(x: off.x + p.x * scale, y: off.y + p.y * scale)) }
+            }
+            ctx.stroke(path, with: .color(Color(white: 0.2)), lineWidth: 0.6)
+        }
+        .frame(width: 120, height: 120)
+        .accessibilityLabel(settings.stitchType == .fill ? settings.fillPattern.title : settings.lineStyle.title)
+    }
+
+    /// Stitches for a 30 mm sample: a filled square for fills, a curved line for line styles.
+    static func sample(_ settings: EmbroiderySettings) -> [[Vec2]] {
+        let s = settings.sanitized
+        if s.stitchType == .fill {
+            let square = Polyline([Vec2(0, 0), Vec2(30, 0), Vec2(30, 30), Vec2(0, 30)], closed: true)
+            var plain = s
+            plain.underlay = false
+            return EmbroideryPlanner.patternFill([square], settings: plain, from: .zero)
+        }
+        let line = (0...40).map { i -> Vec2 in
+            let t = Double(i) / 40
+            return Vec2(2 + 26 * t, 15 - 8 * sin(t * 2 * .pi))
+        }
+        var plain = s
+        plain.underlay = false
+        return EmbroideryPlanner.styledLine(line, style: s.lineStyle, width: s.lineStyle == .plain ? 3 : s.satinWidth,
+                                            settings: plain)
     }
 }
 
