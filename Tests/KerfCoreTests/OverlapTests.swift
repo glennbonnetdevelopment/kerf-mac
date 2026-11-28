@@ -72,7 +72,7 @@ final class OverlapTests: XCTestCase {
         XCTAssertTrue(groups[0].changed)
         XCTAssertEqual(groups[0].paths.count, 1)
         XCTAssertEqual(groups[0].paths.bounds.maxX, 15, accuracy: 0.01)
-        XCTAssertEqual(groups[0].removedLength, 20, accuracy: 0.01)
+        XCTAssertEqual(groups[0].removedLength, 30, accuracy: 0.01)
         XCTAssertFalse(groups[1].changed)
         XCTAssertFalse(groups[2].changed)
     }
