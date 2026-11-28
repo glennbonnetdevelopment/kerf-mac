@@ -58,7 +58,7 @@ extension EmbroideryPlanner {
                 var leftToRight = best.leftFirst
                 for row in rows {
                     let pts = tatamiRow(from: leftToRight ? row.x0 : row.x1, to: leftToRight ? row.x1 : row.x0,
-                                        y: row.y, row: row.row, length: s.fillStitchLength)
+                                        y: row.y, row: row.row, length: s.fillStitchLength, offset: s.tatamiOffset)
                     if let last = run.last, let first = pts.first {
                         run += split(from: last, to: first, max: s.fillStitchLength).dropFirst()
                         run += pts.dropFirst()

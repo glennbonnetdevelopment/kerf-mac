@@ -60,12 +60,22 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
     public var patternSize: Double
     /// Patterned fills: the gap between motifs, or between open lines.
     public var patternSpacing: Double
+    /// Fill: tatami, satin, embossed or motif. `fillPattern` picks the row shape (tatami) or the motif.
+    public var fillType: FillType
+    /// Tatami and embossed fills: how far each row's needle holes shift from the row before.
+    public var tatamiOffset: TatamiOffset
+    /// Embossed fills: the texture pressed into the tatami. Its size is `patternSize`.
+    public var embossPattern: EmbossPattern
+    /// Satin fills: stitches longer than this are split.
+    public var satinSplitLength: Double
 
     public init(stitchType: StitchType = .running, stitchLength: Double = 2.5, satinWidth: Double = 3,
                 density: Double = 0.4, fillAngle: Double = 45, fillStitchLength: Double = 3.5,
                 underlay: Bool = true, pullCompensation: Double = 0.2, maxColumnWidth: Double = 7,
                 fillPattern: FillPattern = .tatami, lineStyle: LineStyle = .plain,
-                patternSize: Double = 6, patternSpacing: Double = 2) {
+                patternSize: Double = 6, patternSpacing: Double = 2, fillType: FillType? = nil,
+                tatamiOffset: TatamiOffset = .third, embossPattern: EmbossPattern = .diamonds,
+                satinSplitLength: Double = 7) {
         self.stitchType = stitchType
         self.stitchLength = stitchLength
         self.satinWidth = satinWidth
@@ -79,11 +89,16 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
         self.lineStyle = lineStyle
         self.patternSize = patternSize
         self.patternSpacing = patternSpacing
+        self.fillType = fillType ?? .legacy(fillPattern)
+        self.tatamiOffset = tatamiOffset
+        self.embossPattern = embossPattern
+        self.satinSplitLength = satinSplitLength
     }
 
     private enum CodingKeys: String, CodingKey {
         case stitchType, stitchLength, satinWidth, density, fillAngle, fillStitchLength, underlay, pullCompensation, maxColumnWidth
         case fillPattern, lineStyle, patternSize, patternSpacing
+        case fillType, tatamiOffset, embossPattern, satinSplitLength
     }
 
     public init(from decoder: Decoder) throws {
@@ -103,6 +118,19 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
         lineStyle = (try? c.decodeIfPresent(LineStyle.self, forKey: .lineStyle)) ?? d.lineStyle
         patternSize = try c.decodeIfPresent(Double.self, forKey: .patternSize) ?? d.patternSize
         patternSpacing = try c.decodeIfPresent(Double.self, forKey: .patternSpacing) ?? d.patternSpacing
+        // Files from before fill types: the pattern says which type it was.
+        fillType = (try? c.decodeIfPresent(FillType.self, forKey: .fillType)) ?? .legacy(fillPattern)
+        tatamiOffset = (try? c.decodeIfPresent(TatamiOffset.self, forKey: .tatamiOffset)) ?? d.tatamiOffset
+        embossPattern = (try? c.decodeIfPresent(EmbossPattern.self, forKey: .embossPattern)) ?? d.embossPattern
+        satinSplitLength = try c.decodeIfPresent(Double.self, forKey: .satinSplitLength) ?? d.satinSplitLength
+    }
+
+    /// The settings with another fill type, keeping the pattern when it suits the new type.
+    public func withFillType(_ type: FillType) -> EmbroiderySettings {
+        var s = self
+        s.fillType = type
+        if !type.patterns.contains(s.fillPattern) { s.fillPattern = type == .motif ? .stars : .tatami }
+        return s
     }
 
     /// Settings a layer starts with: automatic digitizing.
@@ -125,6 +153,9 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
         s.maxColumnWidth = clamp(maxColumnWidth, 1, 12, 7)
         s.patternSize = clamp(patternSize, 2, 40, 6)
         s.patternSpacing = clamp(patternSpacing, 0.5, 20, 2)
+        s.satinSplitLength = clamp(satinSplitLength, 2, 12, 7)
+        // A pattern that doesn't belong to the fill type (from hand-edited files) falls back to the type's own.
+        if !s.fillType.patterns.contains(s.fillPattern) { s.fillPattern = s.fillType == .motif ? .stars : .tatami }
         return s
     }
 }
@@ -346,22 +377,9 @@ public enum EmbroideryPlanner {
                     if let last = cols.last?.last { cursor = last }
                     continue
                 }
-                if s.fillPattern != .tatami {
-                    let sewn = patternFill(polys, settings: s, from: cursor)
-                    runs += sewn
-                    if let last = sewn.last?.last { cursor = last }
-                    continue
-                }
-                if s.underlay {
-                    let under = fill(polys, angle: s.fillAngle + 90, spacing: max(1.5, s.density * 5),
-                                     stitchLength: 3.5, extend: -0.6, from: cursor)
-                    runs += under
-                    if let last = under.last?.last { cursor = last }
-                }
-                let top = fill(polys, angle: s.fillAngle, spacing: s.density, stitchLength: s.fillStitchLength,
-                               extend: s.pullCompensation / 2, from: cursor)
-                runs += top
-                if let last = top.last?.last { cursor = last }
+                let sewn = patternFill(polys, settings: s, from: cursor)
+                runs += sewn
+                if let last = sewn.last?.last { cursor = last }
             }
         }
         return runs.filter { $0.count >= 2 }
@@ -518,7 +536,9 @@ public enum EmbroideryPlanner {
     /// zig-zags). `stagger: false` puts every row's needle holes on the same grid instead of the tatami brick.
     public static func fill(_ polys: [Polyline], angle: Double, spacing: Double, stitchLength: Double,
                             extend: Double, from start: Vec2, warp: ((Double) -> Double)? = nil,
-                            stagger: Bool = true) -> [[Vec2]] {
+                            stagger: Bool = true, offset: TatamiOffset = .third,
+                            emboss: (pattern: EmbossPattern, size: Double)? = nil,
+                            satinSplit: Double? = nil) -> [[Vec2]] {
         guard spacing > 0.05, stitchLength > 0.2 else { return [] }
         let rad = angle * .pi / 180
         var rotated = polys.map { Polyline($0.points.map { $0.rotated(by: -rad) }, closed: true) }
@@ -535,6 +555,7 @@ public enum EmbroideryPlanner {
         }
         let b = rotated.bounds
         guard !b.isEmpty else { return [] }
+        let texture = emboss.map { FillTexture(pattern: $0.pattern, size: $0.size, centre: b.center, spacing: spacing) }
 
         // Scanline intersections.
         var edges: [(Vec2, Vec2)] = []
@@ -609,7 +630,9 @@ public enum EmbroideryPlanner {
             var leftToRight = best.leftFirst
             for row in reg {
                 let from = leftToRight ? row.x0 : row.x1, to = leftToRight ? row.x1 : row.x0
-                let pts = tatamiRow(from: from, to: to, y: row.y, row: stagger ? row.row : 0, length: stitchLength)
+                let pts = satinSplit.map { satinRow(from: from, to: to, y: row.y, row: row.row, split: $0) }
+                    ?? tatamiRow(from: from, to: to, y: row.y, row: stagger ? row.row : 0, length: stitchLength,
+                                 offset: offset, texture: texture)
                 if let last = run.last, let first = pts.first {
                     // Connect along the edge when the link stays inside the shape; otherwise start a new run.
                     let link = [0.25, 0.5, 0.75].map { last + (first - last) * $0 }
@@ -634,16 +657,35 @@ public enum EmbroideryPlanner {
 
     /// Stitch points along one fill row. Stitches fall on a grid shifted by a third each row, so the needle
     /// holes make a brick pattern instead of lines.
-    static func tatamiRow(from: Double, to: Double, y: Double, row: Int, length: Double) -> [Vec2] {
+    ///
+    /// `offset` sets the shift per row. With a `texture` (embossed fills), a very short stitch is placed where the
+    /// row crosses each groove, so the needle holes line up along the texture.
+    static func tatamiRow(from: Double, to: Double, y: Double, row: Int, length baseLength: Double,
+                          offset: TatamiOffset = .third, texture: FillTexture? = nil) -> [Vec2] {
         let dir: Double = to >= from ? 1 : -1
         var pts = [Vec2(from, y)]
-        let shift = Double(((row % 3) + 3) % 3) / 3 * length
+        var length = baseLength
+        if let texture, texture.isGroove(y) { length = min(length, 1) }
+        let shift = offset.fraction(row) * length
         let lo = min(from, to), hi = max(from, to)
         var grid: [Double] = []
         var g = (floor((lo - shift) / length) + 1) * length + shift
         while g < hi {
             if g - lo > length * 0.3 && hi - g > length * 0.3 { grid.append(g) }
             g += length
+        }
+        if let texture {
+            // A groove: two holes 0.6 mm apart either side of it, with the regular holes nearby moved out of the way.
+            var cuts: [Double] = []
+            for c in texture.crossings(y: y, lo: lo, hi: hi) {
+                for x in [c - 0.3, c + 0.3] where x - lo > 0.4 && hi - x > 0.4 {
+                    if let last = cuts.last, x - last < 0.25 { continue }
+                    cuts.append(x)
+                }
+            }
+            if !cuts.isEmpty {
+                grid = (grid.filter { g in cuts.allSatisfy { abs($0 - g) > length * 0.35 } } + cuts).sorted()
+            }
         }
         if dir < 0 { grid.reverse() }
         pts += grid.map { Vec2($0, y) }

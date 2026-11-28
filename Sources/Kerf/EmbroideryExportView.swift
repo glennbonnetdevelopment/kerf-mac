@@ -65,7 +65,12 @@ struct EmbroideryExportView: View {
                                 .foregroundStyle(.secondary)
                         }
                         ForEach(layers) { layer in
-                            EmbroideryLayerSettings(layerID: layer.id)
+                            EmbroideryLayerSummary(layer: layer)
+                        }
+                        if !layers.isEmpty {
+                            Text("Stitch type, fill and line style are set in **Arrange › Embroidery**: select a shape, or pick its layer, and the canvas stitch preview follows every change.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
                     Section("Sewing order") {
@@ -221,21 +226,18 @@ struct EmbroideryExportView: View {
     }
 }
 
-/// Stitch type and its settings for one layer.
-private struct EmbroideryLayerSettings: View {
-    @EnvironmentObject var model: AppModel
-    let layerID: UUID
+/// A layer's thread colour, name and how it is sewn.
+private struct EmbroideryLayerSummary: View {
+    let layer: Layer
 
     var body: some View {
-        if let s = model.embroiderySettingsBinding(layerID), let layer = model.document.layer(layerID) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    RoundedRectangle(cornerRadius: 3).fill(Color(hex: layer.colorHex)).frame(width: 14, height: 14)
-                    Text(layer.name).bold()
-                }
-                EmbroiderySettingsFields(settings: s)
-            }
-            .padding(.vertical, 2)
+        HStack(spacing: 8) {
+            RoundedRectangle(cornerRadius: 3).fill(Color(hex: layer.colorHex)).frame(width: 14, height: 14)
+            Text(layer.name).bold()
+            Spacer()
+            Text(layer.embroiderySettings.summary)
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 }
@@ -272,6 +274,9 @@ struct EmbroiderySettingsFields: View {
             number("Widest satin column (mm)", s.maxColumnWidth)
             number("Line stitch length (mm)", s.stitchLength)
             number("Fill angle (°)", s.fillAngle)
+            Picker("Stitch offset for wide parts", selection: s.tatamiOffset) {
+                ForEach(TatamiOffset.allCases) { Text($0.title).tag($0) }
+            }
             number("Pull compensation (mm)", s.pullCompensation)
             Toggle("Underlay", isOn: s.underlay)
             lineStylePicker
@@ -279,7 +284,7 @@ struct EmbroiderySettingsFields: View {
                 caption("Lines are sewn in this style, as wide as their stroke (or the style width for thin lines).")
                 number("Style width for thin lines (mm)", s.satinWidth)
             }
-            caption("Narrow parts of filled shapes become satin columns that turn with the stroke, wide parts are filled, and lines are sewn by their width from the SVG (satin, triple or running). Areas are sewn first, lines on top. For a patterned fill (stars, waves, lines…), choose Fill.")
+            caption("Narrow parts of filled shapes become satin columns that turn with the stroke, wide parts are filled, and lines are sewn by their width from the SVG (satin, triple or running). Areas are sewn first, lines on top. For tatami, satin, embossed or motif fills, choose Fill.")
         case .satinColumns:
             number("Density (mm between stitches)", s.density)
             number("Widest column (mm)", s.maxColumnWidth)
@@ -288,32 +293,76 @@ struct EmbroiderySettingsFields: View {
             number("Fill angle for wide parts (°)", s.fillAngle)
             caption("Satin stitches cross each stroke and turn with it. Parts wider than the widest column are filled. Open lines are skipped.")
         case .fill:
-            Picker("Pattern", selection: s.fillPattern) {
-                ForEach(FillPattern.allCases) { Text($0.title).tag($0) }
+            fillFields
+        }
+    }
+
+    /// Fill type, its pattern and its stitch settings.
+    @ViewBuilder private var fillFields: some View {
+        let s = $settings
+        let type = settings.fillType
+        Picker("Fill type", selection: Binding(get: { settings.fillType },
+                                               set: { settings = settings.withFillType($0) })) {
+            ForEach(FillType.allCases) { Text($0.title).tag($0) }
+        }
+        caption(type.detail)
+        switch type {
+        case .tatami:
+            Picker("Rows", selection: s.fillPattern) {
+                ForEach(FillType.tatami.patterns) { Text($0 == .tatami ? "Straight" : $0.title).tag($0) }
             }
-            PatternSwatch(settings: settings)
-            let pattern = settings.fillPattern
-            if pattern.isDense {
-                number("Row spacing (mm)", s.density)
-                number("Angle (°)", s.fillAngle)
-                number("Stitch length (mm)", s.fillStitchLength)
-                if pattern != .tatami { number(pattern == .waves ? "Wave length (mm)" : "Zig-zag length (mm)", s.patternSize) }
-                number("Pull compensation (mm)", s.pullCompensation)
-                Toggle("Underlay", isOn: s.underlay)
-            } else if pattern.isMotif {
+            if settings.fillPattern != .zigzag {
+                Picker("Stitch offset", selection: s.tatamiOffset) {
+                    ForEach(TatamiOffset.allCases) { Text($0.title).tag($0) }
+                }
+            }
+        case .embossed:
+            Picker("Texture", selection: s.embossPattern) {
+                ForEach(EmbossPattern.allCases) { Text($0.title).tag($0) }
+            }
+            number("Texture size (mm)", s.patternSize)
+            Picker("Stitch offset", selection: s.tatamiOffset) {
+                ForEach(TatamiOffset.allCases) { Text($0.title).tag($0) }
+            }
+        case .motif:
+            Picker("Pattern", selection: s.fillPattern) {
+                ForEach(FillType.motif.patterns) { Text($0.title).tag($0) }
+            }
+        case .satin:
+            EmptyView()
+        }
+        PatternSwatch(settings: settings)
+        switch type {
+        case .tatami, .embossed:
+            number("Stitch length (mm)", s.fillStitchLength)
+            number("Row spacing (mm)", s.density)
+            number("Angle (°)", s.fillAngle)
+            if type == .tatami && settings.fillPattern != .tatami {
+                number(settings.fillPattern == .waves ? "Wave length (mm)" : "Zig-zag length (mm)", s.patternSize)
+            }
+            number("Pull compensation (mm)", s.pullCompensation)
+            Toggle("Underlay", isOn: s.underlay)
+        case .satin:
+            number("Split stitches longer than (mm)", s.satinSplitLength)
+            number("Density (mm between stitches)", s.density)
+            number("Angle (°)", s.fillAngle)
+            number("Pull compensation (mm)", s.pullCompensation)
+            Toggle("Underlay", isOn: s.underlay)
+            caption("For satin that turns with each stroke of lettering, choose the Satin columns stitch instead.")
+        case .motif:
+            number("Stitch length (mm)", s.stitchLength)
+            if settings.fillPattern.isMotif {
                 number("Motif size (mm)", s.patternSize)
                 number("Gap between motifs (mm)", s.patternSpacing)
                 number("Row angle (°)", s.fillAngle)
-                number("Stitch length (mm)", s.stitchLength)
                 caption("Whole motifs that fit inside the shape are outlined in running stitch, row by row, with short joining stitches so each row sews without trims.")
             } else {
                 number("Line spacing (mm)", s.patternSpacing)
                 number("Angle (°)", s.fillAngle)
-                number("Stitch length (mm)", s.stitchLength)
-                caption("An open fill: the fabric shows between the lines.")
+                caption("Running-stitch lines repeated across the shape; the fabric shows between them.")
             }
-            caption("Fill sews the inside of closed shapes. Open lines are skipped.")
         }
+        caption("Fill sews the inside of closed shapes. Open lines are skipped.")
     }
 
     private var lineStylePicker: some View {

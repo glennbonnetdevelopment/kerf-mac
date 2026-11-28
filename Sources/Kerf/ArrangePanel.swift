@@ -99,8 +99,8 @@ struct ArrangePanel: View {
                 }
             }
 
-            if model.selection.count == 1, let shape = model.selectedShapes.first, shape.image == nil {
-                ShapeEmbroiderySection(shapeID: shape.id)
+            if model.showStitchPreview || model.selectedShapes.contains(where: { $0.image == nil }) {
+                EmbroiderySection()
             }
 
             WorkpieceSection()
@@ -289,25 +289,50 @@ struct WorkpieceSection: View {
     }
 }
 
-/// Embroidery settings for one shape, and the way into the stitch editor.
-private struct ShapeEmbroiderySection: View {
+/// How the selection sews: stitch type, fill type and pattern, line style and stitch lengths for its layers (or the
+/// current layer when nothing is selected), a single shape's own settings, and the way into the stitch editor.
+/// Every change goes into the document, so the canvas stitch preview redraws as you edit.
+struct EmbroiderySection: View {
     @EnvironmentObject var model: AppModel
     @Environment(\.openWindow) private var openWindow
-    let shapeID: UUID
 
     var body: some View {
-        if let shape = model.shape(shapeID) {
-            Section("Embroidery") {
-                Toggle("Own stitch settings", isOn: Binding(get: { shape.embroidery != nil },
-                                                            set: { model.setOwnEmbroidery(shapeID, $0) }))
+        let shapes = model.selectedShapes.filter { $0.image == nil }
+        let single = shapes.count == 1 ? shapes.first : nil
+        let layers = targetLayers(shapes)
+        Section("Embroidery") {
+            Toggle("Show stitches on canvas", isOn: $model.showStitchPreview)
+                .help("Draw the design as it will sew (⌥⌘T). The stitches update as you change the settings below.")
+            if let shape = single {
+                Toggle("Own stitch settings for this shape", isOn: Binding(get: { shape.embroidery != nil },
+                                                                          set: { model.setOwnEmbroidery(shape.id, $0) }))
                     .help("Sew this shape differently from the rest of its layer")
-                if let binding = model.shapeEmbroideryBinding(shapeID) {
-                    EmbroiderySettingsFields(settings: binding)
+            }
+            if let shape = single, let binding = model.shapeEmbroideryBinding(shape.id) {
+                header(color: model.document.layer(shape.layerID)?.colorHex ?? "#000000", title: "This shape only")
+                EmbroiderySettingsFields(settings: binding)
+            } else if layers.isEmpty {
+                Text(shapes.isEmpty ? "Select a shape, or pick a layer in the Layers panel, to set how it sews."
+                                    : "These shapes are on a layer that isn't sewn (print-only, image, machine-only or turned off).")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(layers) { layer in
+                    if let binding = model.embroiderySettingsBinding(layer.id) {
+                        header(color: layer.colorHex, title: "Layer: \(layer.name)")
+                        EmbroiderySettingsFields(settings: binding)
+                    }
                 }
+                Text(layers.count > 1 ? "The selection is on \(layers.count) layers; each layer's settings apply to all of its shapes."
+                                      : "These settings apply to every shape on the layer.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            if let shape = single {
                 HStack {
-                    Button("Edit stitches…") { model.stitchEditorShapeID = shapeID; openWindow(id: "stitch-editor") }
+                    Button("Edit stitches…") { model.stitchEditorShapeID = shape.id; openWindow(id: "stitch-editor") }
                     if shape.stitches != nil {
-                        Button("Discard hand edits") { model.setEditedStitches(shapeID, nil) }
+                        Button("Discard hand edits") { model.setEditedStitches(shape.id, nil) }
                     }
                 }
                 if shape.stitches != nil {
@@ -316,6 +341,25 @@ private struct ShapeEmbroiderySection: View {
                         .foregroundStyle(.secondary)
                 }
             }
+        }
+    }
+
+    /// The sewn layers of the selected shapes, in layer order, or the current layer when nothing is selected.
+    private func targetLayers(_ shapes: [Artwork]) -> [Layer] {
+        let ids: Set<UUID>
+        if shapes.isEmpty {
+            guard let current = model.currentLayerID else { return [] }
+            ids = [current]
+        } else {
+            ids = Set(shapes.map(\.layerID))
+        }
+        return model.document.layers.filter { ids.contains($0.id) && $0.isEmbroidered }
+    }
+
+    private func header(color: String, title: String) -> some View {
+        HStack(spacing: 8) {
+            RoundedRectangle(cornerRadius: 3).fill(Color(hex: color)).frame(width: 14, height: 14)
+            Text(title).bold()
         }
     }
 }
