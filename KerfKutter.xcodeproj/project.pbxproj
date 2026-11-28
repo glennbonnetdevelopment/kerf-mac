@@ -52,6 +52,7 @@
 		86BB428E2A5AF23F9FB4266B /* StitchPreviewRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F5F08BBC3B237B3AA5BE0AB /* StitchPreviewRenderer.swift */; };
 		781DFF03E099FAFD930B9A5D /* TextOutliner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39582999A1293C2FF83451F /* TextOutliner.swift */; };
 		B61D8B2E0EE2B585B5A9D271 /* ToolbarFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C9F4290FC2DBD5A313078D /* ToolbarFlowLayout.swift */; };
+		90E3FF93B368E739B521E5DF /* XToolWiFiClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3EDC001FC8A71E50D18BCDF /* XToolWiFiClient.swift */; };
 		227B6ACE67D9F5FF016F09CF /* CameraCalibration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A8CC836E1C5F45E195DDEA /* CameraCalibration.swift */; };
 		FAFC7C85DD19F946DD75231C /* CameraTrace.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6CA6DE9DED0806A72A8DE37 /* CameraTrace.swift */; };
 		7BB7B1B0AF93E20445E64149 /* Checkerboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B7D39848B6D2B967055D61E /* Checkerboard.swift */; };
@@ -92,6 +93,7 @@
 		81B17E230614B1BEF80A33EA /* ShapeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 531B4D11D8B0216BD395F12F /* ShapeStyle.swift */; };
 		93BF49C7874653269D9A6F99 /* StarterMaterials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5241C9D95C51B5B841046D27 /* StarterMaterials.swift */; };
 		6C0BEF973B7DEAD312D2C01D /* Weeding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390698DD051779D2D5215925 /* Weeding.swift */; };
+		B3E8223EC02CE57B1C16D29F /* XToolWiFi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21157EAA629DA8E19F8E5516 /* XToolWiFi.swift */; };
 		4D91C8E4A7CDCF6975A441ED /* CameraTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8778141C1580672BFF2F6FA2 /* CameraTests.swift */; };
 		7836B725EAF1814F47B94455 /* EmbroideryFillTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29D0FDA427BC4F5EED94ED9 /* EmbroideryFillTypeTests.swift */; };
 		B8069BB6DBAB71F53C89C9AC /* EmbroideryPatternTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A54CE00DB8D52EC4C772CE /* EmbroideryPatternTests.swift */; };
@@ -111,6 +113,7 @@
 		21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */; };
 		6B1C7B36FE999A7B57A5AA2E /* WeedingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7274E1EC283143FAAF08A /* WeedingTests.swift */; };
 		7A8DC8E6ABE9395618D817FC /* WorkpieceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A23321060D0628F416154CE /* WorkpieceTests.swift */; };
+		21259E0DC77895D000F22630 /* XToolWiFiTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65FF2B6FE3762375BAB4F13A /* XToolWiFiTests.swift */; };
 		893EF6FE3F847DA65CD969FE /* KerfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; };
 		E1702234442CFA704BA06EFF /* KerfCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		BD54067B074BB2544118BDFD /* KerfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 240CB5B45D2EFCB17ED411CB /* KerfCore.framework */; };
@@ -194,6 +197,7 @@
 		5F5F08BBC3B237B3AA5BE0AB /* StitchPreviewRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StitchPreviewRenderer.swift; sourceTree = "<group>"; };
 		F39582999A1293C2FF83451F /* TextOutliner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextOutliner.swift; sourceTree = "<group>"; };
 		C1C9F4290FC2DBD5A313078D /* ToolbarFlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarFlowLayout.swift; sourceTree = "<group>"; };
+		B3EDC001FC8A71E50D18BCDF /* XToolWiFiClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XToolWiFiClient.swift; sourceTree = "<group>"; };
 		F1A8CC836E1C5F45E195DDEA /* CameraCalibration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCalibration.swift; sourceTree = "<group>"; };
 		E6CA6DE9DED0806A72A8DE37 /* CameraTrace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraTrace.swift; sourceTree = "<group>"; };
 		0B7D39848B6D2B967055D61E /* Checkerboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Checkerboard.swift; sourceTree = "<group>"; };
@@ -234,6 +238,7 @@
 		531B4D11D8B0216BD395F12F /* ShapeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyle.swift; sourceTree = "<group>"; };
 		5241C9D95C51B5B841046D27 /* StarterMaterials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterMaterials.swift; sourceTree = "<group>"; };
 		390698DD051779D2D5215925 /* Weeding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Weeding.swift; sourceTree = "<group>"; };
+		21157EAA629DA8E19F8E5516 /* XToolWiFi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XToolWiFi.swift; sourceTree = "<group>"; };
 		8778141C1580672BFF2F6FA2 /* CameraTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraTests.swift; sourceTree = "<group>"; };
 		D29D0FDA427BC4F5EED94ED9 /* EmbroideryFillTypeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryFillTypeTests.swift; sourceTree = "<group>"; };
 		60A54CE00DB8D52EC4C772CE /* EmbroideryPatternTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryPatternTests.swift; sourceTree = "<group>"; };
@@ -253,6 +258,7 @@
 		FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyleTests.swift; sourceTree = "<group>"; };
 		D3A7274E1EC283143FAAF08A /* WeedingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeedingTests.swift; sourceTree = "<group>"; };
 		0A23321060D0628F416154CE /* WorkpieceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkpieceTests.swift; sourceTree = "<group>"; };
+		65FF2B6FE3762375BAB4F13A /* XToolWiFiTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XToolWiFiTests.swift; sourceTree = "<group>"; };
 		F91288DB192297DC903FE08C /* KerfKutter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KerfKutter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		240CB5B45D2EFCB17ED411CB /* KerfCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = KerfCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5400806AFA697D620185B72 /* KerfCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KerfCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -369,6 +375,7 @@
 				5F5F08BBC3B237B3AA5BE0AB /* StitchPreviewRenderer.swift */,
 				F39582999A1293C2FF83451F /* TextOutliner.swift */,
 				C1C9F4290FC2DBD5A313078D /* ToolbarFlowLayout.swift */,
+				B3EDC001FC8A71E50D18BCDF /* XToolWiFiClient.swift */,
 			);
 			name = KerfKutter;
 			path = Sources/Kerf;
@@ -417,6 +424,7 @@
 				531B4D11D8B0216BD395F12F /* ShapeStyle.swift */,
 				5241C9D95C51B5B841046D27 /* StarterMaterials.swift */,
 				390698DD051779D2D5215925 /* Weeding.swift */,
+				21157EAA629DA8E19F8E5516 /* XToolWiFi.swift */,
 			);
 			name = KerfCore;
 			path = Sources/KerfCore;
@@ -444,6 +452,7 @@
 				FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */,
 				D3A7274E1EC283143FAAF08A /* WeedingTests.swift */,
 				0A23321060D0628F416154CE /* WorkpieceTests.swift */,
+				65FF2B6FE3762375BAB4F13A /* XToolWiFiTests.swift */,
 			);
 			name = KerfCoreTests;
 			path = Tests/KerfCoreTests;
@@ -616,6 +625,7 @@
 				86BB428E2A5AF23F9FB4266B /* StitchPreviewRenderer.swift in Sources */,
 				781DFF03E099FAFD930B9A5D /* TextOutliner.swift in Sources */,
 				B61D8B2E0EE2B585B5A9D271 /* ToolbarFlowLayout.swift in Sources */,
+				90E3FF93B368E739B521E5DF /* XToolWiFiClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -663,6 +673,7 @@
 				81B17E230614B1BEF80A33EA /* ShapeStyle.swift in Sources */,
 				93BF49C7874653269D9A6F99 /* StarterMaterials.swift in Sources */,
 				6C0BEF973B7DEAD312D2C01D /* Weeding.swift in Sources */,
+				B3E8223EC02CE57B1C16D29F /* XToolWiFi.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -689,6 +700,7 @@
 				21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */,
 				6B1C7B36FE999A7B57A5AA2E /* WeedingTests.swift in Sources */,
 				7A8DC8E6ABE9395618D817FC /* WorkpieceTests.swift in Sources */,
+				21259E0DC77895D000F22630 /* XToolWiFiTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -756,6 +768,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.graphics-design";
 				INFOPLIST_KEY_NSCameraUsageDescription = "KerfKutter shows the camera above your laser bed on the canvas so you can place designs on the material.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "KerfKutter sends jobs to your laser over your local network.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -780,6 +793,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.graphics-design";
 				INFOPLIST_KEY_NSCameraUsageDescription = "KerfKutter shows the camera above your laser bed on the canvas so you can place designs on the material.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "KerfKutter sends jobs to your laser over your local network.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
