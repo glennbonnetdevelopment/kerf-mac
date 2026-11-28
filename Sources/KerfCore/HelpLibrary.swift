@@ -210,6 +210,7 @@ public enum HelpLibrary {
             .text("**Nest** packs shapes on the bed by their bounding boxes, tallest first, with the spacing you set. Tick **Allow 90° rotation** to let it turn pieces. With nothing selected it nests everything."),
             .heading("Workpiece"),
             .text("Turn on **Show a workpiece on the bed** to draw your stock, cutting mat, vinyl sheet or embroidery hoop at its real size. **Fit to artwork** sizes it around the design. Nest and Centre then use the workpiece instead of the whole bed, and the job's zero point can be set on it."),
+            .text("Type any **Width** and **Height** for your own material, and pick its **Colour** (for a hoop, the fabric colour) from the colour well or the list of common fabrics, vinyls and woods. **Save as My Workpiece…** keeps the size, kind and colour; saved pieces appear under **My workpieces** at the top of the preset menu, where you can also delete them."),
         ])
 
     static let layers = HelpTopic(
@@ -495,6 +496,8 @@ public enum HelpLibrary {
             .text("**Underlay** stitches go down first to stabilise the fabric. **Group same colours** sews layers of the same thread together when nothing in between overlaps, for fewer thread changes."),
             .heading("Sewing order"),
             .text("**Optimize order** sews similar shapes together, nearest first. Turn it off to set the order yourself with the up and down arrows. Reorder whole colours in the Layers panel."),
+            .heading("Stitch preview on the canvas"),
+            .text("Click **Stitches** in the toolbar, or choose **View › Embroidery Stitch Preview** (⌥⌘T), to see the design as it will sew: every stitch drawn in its thread colour with shading, on the workpiece's fabric colour. Zoom in to see single stitches and needle holes. You can keep moving and editing shapes; the stitches update a moment after you stop. Turn it off to go back to outlines."),
             .heading("Hand tweaking"),
             .text("Select a shape and, in **Arrange › Embroidery**, tick **Own stitch settings** to sew it differently from its layer. **Edit stitches…** opens the stitch editor, where you can move, add and delete stitch points, split a run with a trim and jump, or join runs. Saved stitches sew exactly as edited; **Discard hand edits** goes back to automatic stitches."),
         ])
@@ -564,6 +567,7 @@ public enum HelpLibrary {
             ]),
             .heading("Windows"),
             .keys([
+                HelpKey("⌥⌘T", "Embroidery stitch preview on the canvas"),
                 HelpKey("⌥⌘P", "Material Preview"),
                 HelpKey("⌥⌘L", "Material Library"),
                 HelpKey("⌥⌘C", "Camera window"),

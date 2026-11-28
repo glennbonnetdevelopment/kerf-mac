@@ -111,7 +111,10 @@ enum OriginReference: String, CaseIterable, Identifiable {
 @MainActor
 final class AppModel: ObservableObject {
     @Published var document = KerfDocument() {
-        didSet { cachedToolpath = nil }
+        didSet {
+            cachedToolpath = nil
+            if showStitchPreview { scheduleStitchPreview() }
+        }
     }
     @Published var selection: Set<UUID> = [] {
         didSet {
@@ -183,6 +186,27 @@ final class AppModel: ObservableObject {
     @Published var showRhinestones = false
     /// The shape open in the stitch editor window.
     @Published var stitchEditorShapeID: UUID?
+    /// Draws the design as sewn stitches on the canvas instead of vector outlines (see AppModel+StitchPreview).
+    @Published var showStitchPreview = false {
+        didSet {
+            guard showStitchPreview != oldValue else { return }
+            if showStitchPreview { scheduleStitchPreview(immediately: true) } else { cancelStitchPreview() }
+        }
+    }
+    /// The stitches drawn by the stitch preview, and the document they were made from.
+    @Published var stitchPreview: (source: KerfDocument, plan: EmbroideryPlan)?
+    /// The document the preview is being (or was last) digitized from.
+    var stitchPreviewSource: KerfDocument?
+    var stitchPreviewTask: Task<Void, Never>?
+    /// Workpieces saved with the user's own sizes and colours, remembered between launches.
+    @Published var savedWorkpieces: WorkpieceLibrary = AppModel.loadSavedWorkpieces() {
+        didSet {
+            guard savedWorkpieces != oldValue else { return }
+            if let data = try? JSONEncoder().encode(savedWorkpieces) { UserDefaults.standard.set(data, forKey: "savedWorkpieces") }
+        }
+    }
+    /// When the workpiece colour was last changed, so dragging in the colour picker is one undo step.
+    var lastWorkpieceColorEdit: Date?
     /// The last embroidery pattern and what it was made from, so the export sheet doesn't redigitize on every redraw.
     var embroideryCache: (document: KerfDocument, shapes: Set<UUID>?, groupColors: Bool, optimizeOrder: Bool, name: String,
                           pattern: StitchPattern)?

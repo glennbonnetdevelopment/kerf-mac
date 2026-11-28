@@ -86,6 +86,8 @@ struct KerfApp: App {
                     .keyboardShortcut("k", modifiers: [.command, .option])
             }
             CommandGroup(after: .toolbar) {
+                Toggle("Embroidery Stitch Preview", isOn: $model.showStitchPreview)
+                    .keyboardShortcut("t", modifiers: [.command, .option])
                 OpenPreviewButton()
                 CameraMenuItems(overlay: camera.overlay, camera: camera, model: model)
             }
@@ -204,6 +206,8 @@ struct ContentView: View {
                     .help("Import an image to engrave")
                 Toggle(isOn: $model.showToolpath) { Label("Preview", systemImage: "point.topleft.down.to.point.bottomright.curvepath") }
                     .help("Show toolpath order and travel moves")
+                Toggle(isOn: $model.showStitchPreview) { Label("Stitches", systemImage: "scribble.variable") }
+                    .help("Show the design as embroidery stitches in thread colours (⌥⌘T)")
                 CameraToolbarItems()
                 if model.profile.kind == .cncRouter {
                     MaterialPreviewToolbarButton()

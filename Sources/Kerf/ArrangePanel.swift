@@ -161,6 +161,7 @@ struct ArrangePanel: View {
 /// The material piece (CNC stock or cutter mat) shown on the canvas.
 struct WorkpieceSection: View {
     @EnvironmentObject var model: AppModel
+    @State private var savingName: String?
 
     var body: some View {
         Section("Workpiece") {
@@ -180,13 +181,21 @@ struct WorkpieceSection: View {
                 }))
             if let w = model.document.workpiece {
                 Menu("Size preset: \(w.name)") {
-                    ForEach(Workpiece.presets, id: \.name) { preset in
-                        Button(preset.name) {
-                            var n = preset
-                            n.x = w.x
-                            n.y = w.y
-                            model.setWorkpiece(n)
+                    if !model.savedWorkpieces.items.isEmpty {
+                        Section("My workpieces") {
+                            ForEach(model.savedWorkpieces.items, id: \.name) { saved in
+                                Button(saved.name) { model.setWorkpiece(w.resized(like: saved)) }
+                            }
                         }
+                        Menu("Delete a saved workpiece") {
+                            ForEach(model.savedWorkpieces.items, id: \.name) { saved in
+                                Button(saved.name) { model.deleteSavedWorkpiece(named: saved.name) }
+                            }
+                        }
+                        Divider()
+                    }
+                    ForEach(Workpiece.presets, id: \.name) { preset in
+                        Button(preset.name) { model.setWorkpiece(w.resized(like: preset)) }
                     }
                 }
                 Picker("Kind", selection: field(\.kind)) {
@@ -194,6 +203,25 @@ struct WorkpieceSection: View {
                 }
                 number("Width (mm)", \.width)
                 number("Height (mm)", \.height)
+                LabeledContent(w.kind == .hoop ? "Fabric colour" : "Colour") {
+                    HStack(spacing: 6) {
+                        ColorPicker("", selection: Binding(
+                            get: { Color(hex: w.colorHex ?? Workpiece.defaultColorHex(for: w.kind)) },
+                            set: { model.setWorkpieceColor($0.hexString) }), supportsOpacity: false)
+                            .labelsHidden()
+                        Menu {
+                            ForEach(Workpiece.colorSwatches, id: \.hex) { swatch in
+                                Button(swatch.name) { model.setWorkpieceColor(swatch.hex) }
+                            }
+                            Divider()
+                            Button("Usual tint") { model.setWorkpieceColor(nil) }
+                        } label: {
+                            Text(w.colorHex.flatMap { hex in Workpiece.colorSwatches.first { $0.hex == hex }?.name }
+                                 ?? (w.colorHex == nil ? "Usual tint" : "Custom"))
+                        }
+                        .fixedSize()
+                    }
+                }
                 if w.kind == .stock { number("Thickness (mm)", \.thickness) }
                 number("Left edge X (mm)", \.x)
                 number("Top edge Y (mm)", \.y)
@@ -218,6 +246,8 @@ struct WorkpieceSection: View {
                         model.setWorkpiece(n)
                     }
                 }
+                Button("Save as My Workpiece…") { savingName = w.name }
+                    .help("Keep this size, kind and colour in the preset menu")
                 let outside = model.shapesOutsideWorkpiece
                 if outside > 0 {
                     Label("\(outside) shape\(outside == 1 ? "" : "s") reach outside the workpiece", systemImage: "exclamationmark.triangle")
@@ -228,6 +258,18 @@ struct WorkpieceSection: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+        }
+        .alert("Save Workpiece", isPresented: Binding(get: { savingName != nil }, set: { if !$0 { savingName = nil } })) {
+            TextField("Name", text: Binding(get: { savingName ?? "" }, set: { savingName = $0 }))
+            Button("Save") {
+                if let name = savingName { model.saveCurrentWorkpiece(as: name) }
+                savingName = nil
+            }
+            Button("Cancel", role: .cancel) { savingName = nil }
+        } message: {
+            Text(model.savedWorkpieces.contains(named: savingName ?? "")
+                 ? "A saved workpiece with this name will be replaced."
+                 : "Its size, kind, thickness and colour appear under My workpieces in the preset menu.")
         }
     }
 
