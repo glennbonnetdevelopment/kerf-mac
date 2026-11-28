@@ -30,8 +30,9 @@ final class ScreenPrintTests: XCTestCase {
     }
 
     /// Renders a film to a grey bitmap at `ppm` pixels per mm; returns a lookup for bed coordinates.
-    private func render(_ set: FilmSet, film: Int, ppm: Double = 4) -> (Double, Double) -> UInt8 {
-        let e = set.extent.insetBy(-2)
+    private func render(_ set: FilmSet, film: Int, ppm: Double = 4, area: Rect2? = nil) -> (Double, Double) -> UInt8 {
+        // A film with nothing on it has no extent, so a test can name the area to draw.
+        let e = area ?? set.extent.insetBy(-2)
         let w = Int((e.width * ppm).rounded(.up)), h = Int((e.height * ppm).rounded(.up))
         let ctx = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w,
                             space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGImageAlphaInfo.none.rawValue)!
@@ -186,7 +187,7 @@ final class ScreenPrintTests: XCTestCase {
                 o.dotShape = shape
                 o.halftoneLPI = 30
                 let set = ScreenPrint.films(for: doc, options: o)
-                let px = render(set, film: 0, ppm: 20)
+                let px = render(set, film: 0, ppm: 20, area: Rect2(minX: -2, minY: -2, maxX: 42, maxY: 42))
                 var black = 0, total = 0
                 var y = 5.0
                 while y < 35 {
