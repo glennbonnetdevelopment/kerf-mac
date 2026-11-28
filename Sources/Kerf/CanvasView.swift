@@ -185,14 +185,22 @@ struct CanvasView: View {
         // Workpiece: the material sitting on the bed.
         if let w = model.document.workpiece {
             let r = CGRect(origin: vp.toView(Vec2(w.x, w.y)), size: CGSize(width: w.width * vp.zoom, height: w.height * vp.zoom))
-            let fill: Color, edge: Color
+            var fill: Color, edge: Color
             switch w.kind {
             case .stock: fill = Color(red: 0.87, green: 0.72, blue: 0.52).opacity(0.35); edge = Color(red: 0.55, green: 0.36, blue: 0.18)
             case .mat: fill = Color(red: 0.55, green: 0.78, blue: 0.85).opacity(0.25); edge = Color(red: 0.2, green: 0.45, blue: 0.55)
             case .sheet: fill = Color.white.opacity(0.6); edge = Color.gray
             case .hoop: fill = Color.white.opacity(0.35); edge = Color(red: 0.45, green: 0.3, blue: 0.6)
             }
+            if let hex = w.colorHex {
+                // The user's own material colour, drawn solid like the real thing.
+                fill = Color(hex: hex)
+                edge = Color(thread: w.edgeColor)
+            }
             ctx.fill(Path(r), with: .color(fill))
+            if model.showStitchPreview && w.kind == .hoop && vp.zoom >= 5 {
+                drawWeave(in: r, color: ThreadColor(hex: w.colorHex ?? Workpiece.defaultColorHex(for: .hoop)), ctx: &ctx, size: size)
+            }
             if w.kind == .mat {
                 // Cutting mats carry a 1 inch grid.
                 var g = Path()
@@ -229,9 +237,11 @@ struct CanvasView: View {
         let o = vp.toView(originDoc)
         ctx.fill(Path(ellipseIn: CGRect(x: o.x - 4, y: o.y - 4, width: 8, height: 8)), with: .color(.orange))
 
-        // Shapes.
+        // Shapes. With the stitch preview on, sewn shapes are drawn as thread instead.
+        let stitchPreview = model.showStitchPreview
         for shape in model.document.shapes {
             guard let layer = model.document.layer(shape.layerID) else { continue }
+            if stitchPreview && layer.isEmbroidered && shape.image == nil { continue }
             let path = viewPath(shape.style?.roundedCorners != nil ? shape.placedStyledPaths : shape.placedPaths)
             if let style = shape.style { drawStyle(style, of: shape, path: path, in: &ctx, vp: vp) }
             let color = Color(hex: layer.colorHex).opacity(layer.enabled ? 1 : 0.3)
@@ -255,6 +265,12 @@ struct CanvasView: View {
                 // Not made: a faint guide so the shape can still be seen and picked.
                 ctx.stroke(path, with: .color(color.opacity(0.45)), style: StrokeStyle(lineWidth: width, dash: [3, 3]))
             }
+        }
+
+        if stitchPreview, let plan = model.stitchPreview?.plan {
+            let a = vp.toDoc(.zero), b = vp.toDoc(CGPoint(x: size.width, y: size.height))
+            StitchPreviewRenderer.draw(plan, in: &ctx, zoom: vp.zoom,
+                                       visible: Rect2(minX: a.x, minY: a.y, maxX: b.x, maxY: b.y), toView: vp.toView)
         }
 
         // Vinyl weeding box and lines.
@@ -498,6 +514,28 @@ struct CanvasView: View {
         let bg = CGRect(x: center.x - sz.width / 2 - 6, y: center.y - sz.height / 2 - 3, width: sz.width + 12, height: sz.height + 6)
         ctx.fill(Path(roundedRect: bg, cornerRadius: 5), with: .color(Color.black.opacity(0.75)))
         ctx.draw(text, at: center)
+    }
+
+    /// A fine fabric weave on an embroidery hoop's fabric for the stitch preview, only over the part on screen.
+    private func drawWeave(in r: CGRect, color: ThreadColor, ctx: inout GraphicsContext, size: CGSize) {
+        let area = r.intersection(CGRect(origin: .zero, size: size))
+        guard !area.isNull, !area.isEmpty else { return }
+        let step = max(3, 0.6 * viewport.zoom)
+        let line = color.luminance > 0.45 ? color.darkened(by: 0.12) : color.lightened(by: 0.12)
+        var weave = Path()
+        var x = r.minX + (((area.minX - r.minX) / step).rounded(.down)) * step
+        while x <= area.maxX {
+            weave.move(to: CGPoint(x: x, y: area.minY))
+            weave.addLine(to: CGPoint(x: x, y: area.maxY))
+            x += step
+        }
+        var y = r.minY + (((area.minY - r.minY) / step).rounded(.down)) * step
+        while y <= area.maxY {
+            weave.move(to: CGPoint(x: area.minX, y: y))
+            weave.addLine(to: CGPoint(x: area.maxX, y: y))
+            y += step
+        }
+        ctx.stroke(weave, with: .color(Color(thread: line).opacity(0.5)), lineWidth: max(0.5, step * 0.18))
     }
 
     /// Rulers along the top and left edges, in the chosen units, measured from the bed's top-left.
@@ -996,7 +1034,10 @@ struct CanvasView: View {
         let sb = model.selectionBounds
         let text: String
         if sb.isEmpty {
-            text = "\(model.document.shapes.count) shapes · \(Int(model.profile.bedWidth))×\(Int(model.profile.bedHeight)) mm bed"
+            text = (model.showStitchPreview
+                ? (model.stitchPreviewIsStale ? "Updating stitches… · " : "Stitch preview · \(model.stitchPreviewCount) stitches · ")
+                : "")
+                + "\(model.document.shapes.count) shapes · \(Int(model.profile.bedWidth))×\(Int(model.profile.bedHeight)) mm bed"
                 + (model.document.workpiece.map { String(format: " · workpiece %.0f×%.0f mm", $0.width, $0.height) } ?? "")
                 + (model.shapesOutsideWorkpiece > 0 ? " · \(model.shapesOutsideWorkpiece) outside workpiece" : "")
         } else {

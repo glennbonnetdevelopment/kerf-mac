@@ -416,9 +416,11 @@ public struct Workpiece: Codable, Hashable, Sendable {
     public var height: Double
     /// Material thickness in mm (used by the CNC preview).
     public var thickness: Double
+    /// The material's colour on the canvas ("#RRGGBB"): fabric, vinyl, wood. Nil draws the kind's usual tint.
+    public var colorHex: String?
 
     public init(kind: Kind = .stock, name: String = "Workpiece", x: Double = 0, y: Double = 0,
-                width: Double, height: Double, thickness: Double = 18) {
+                width: Double, height: Double, thickness: Double = 18, colorHex: String? = nil) {
         self.kind = kind
         self.name = name
         self.x = x
@@ -426,9 +428,26 @@ public struct Workpiece: Codable, Hashable, Sendable {
         self.width = width
         self.height = height
         self.thickness = thickness
+        self.colorHex = colorHex
     }
 
     public var rect: Rect2 { Rect2(minX: x, minY: y, maxX: x + width, maxY: y + height) }
+
+    /// The same piece with its size, kind, thickness and colour from `preset`, keeping its place on the bed.
+    public func resized(like preset: Workpiece) -> Workpiece {
+        var n = preset
+        n.x = x
+        n.y = y
+        return n
+    }
+
+    /// Common material colours to pick from, with names.
+    public static let colorSwatches: [(name: String, hex: String)] = [
+        ("White", "#FFFFFF"), ("Natural cotton", "#F1E9D8"), ("Black", "#1C1C1E"), ("Charcoal", "#4A4A4F"),
+        ("Heather grey", "#A7A9AC"), ("Navy", "#1F2A44"), ("Royal blue", "#2B4DB0"), ("Denim", "#4F6D8F"),
+        ("Red", "#B3202A"), ("Pink", "#F2B5C4"), ("Forest green", "#2E5B3A"), ("Khaki", "#C3B091"),
+        ("Yellow", "#F3D34A"), ("Birch plywood", "#E3C99A"), ("Walnut", "#6B4A32"), ("Clear acrylic", "#E6F2F5"),
+    ]
 
     public static let presets: [Workpiece] = [
         Workpiece(kind: .mat, name: "12 × 12 in mat", width: 304.8, height: 304.8, thickness: 0.3),
@@ -441,6 +460,41 @@ public struct Workpiece: Codable, Hashable, Sendable {
         Workpiece(kind: .stock, name: "Board 600 × 150 × 19", width: 600, height: 150, thickness: 19),
         Workpiece(kind: .stock, name: "Acrylic 300 × 200 × 3", width: 300, height: 200, thickness: 3),
     ] + EmbroideryHoop.all.map { Workpiece(kind: .hoop, name: $0.name, width: $0.width, height: $0.height, thickness: 1) }
+}
+
+/// Workpieces the user saved with their own sizes and colours, offered next to the built-in presets.
+public struct WorkpieceLibrary: Codable, Hashable, Sendable {
+    public var items: [Workpiece]
+
+    public init(items: [Workpiece] = []) {
+        self.items = items
+    }
+
+    /// Saves `piece` under `name`, replacing a saved piece with the same name. The place on the bed isn't kept.
+    /// Returns false when the name is blank.
+    @discardableResult
+    public mutating func save(_ piece: Workpiece, as name: String) -> Bool {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        var w = piece
+        w.name = trimmed
+        w.x = 0
+        w.y = 0
+        if let i = items.firstIndex(where: { $0.name.caseInsensitiveCompare(trimmed) == .orderedSame }) {
+            items[i] = w
+        } else {
+            items.append(w)
+        }
+        return true
+    }
+
+    public mutating func remove(named name: String) {
+        items.removeAll { $0.name == name }
+    }
+
+    public func contains(named name: String) -> Bool {
+        items.contains { $0.name.caseInsensitiveCompare(name) == .orderedSame }
+    }
 }
 
 public struct KerfDocument: Codable, Hashable, Sendable {
