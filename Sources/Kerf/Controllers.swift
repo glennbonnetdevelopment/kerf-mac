@@ -273,6 +273,8 @@ final class CutterSender: ObservableObject {
     @Published private(set) var message = ""
 
     private var cancelFlag: CancelFlag?
+    /// A head move asked for while something was still sending; only the latest is kept.
+    private var pendingMove: (text: String, profile: DeviceProfile)?
 
     init() {
         refreshPorts()
@@ -283,6 +285,22 @@ final class CutterSender: ObservableObject {
         if !ports.contains(selectedPort) {
             selectedPort = ports.first { $0.contains("usb") || $0.contains("wch") || $0.contains("SLAB") } ?? ports.first ?? ""
         }
+    }
+
+    /// Sends a short command such as a head move. Moves are absolute, so while a send is still going only the
+    /// newest is kept and goes when it finishes; quick clicks on the jog arrows end at the right place.
+    func sendMove(_ text: String, profile: DeviceProfile) {
+        if isSending {
+            pendingMove = (text, profile)
+        } else {
+            send(text, profile: profile)
+        }
+    }
+
+    private func sendPendingMove() {
+        guard let next = pendingMove else { return }
+        pendingMove = nil
+        send(next.text, profile: next.profile)
     }
 
     static func printerQueues() -> [String] {
@@ -303,6 +321,7 @@ final class CutterSender: ObservableObject {
     }
 
     func cancel() {
+        pendingMove = nil
         cancelFlag?.set()
         message = "Stopping…"
     }
@@ -325,6 +344,7 @@ final class CutterSender: ObservableObject {
                     self.isSending = false
                     self.progress = result == nil ? 1 : 0
                     self.message = result ?? "Sent to \(queue)."
+                    self.sendPendingMove()
                 }
             }
         case .serial:
@@ -358,6 +378,7 @@ final class CutterSender: ObservableObject {
                 await MainActor.run {
                     self.isSending = false
                     self.message = finalMessage
+                    self.sendPendingMove()
                 }
             }
         }

@@ -265,11 +265,15 @@ public struct CutterJobOptions: Sendable {
     public var origin: Vec2?
     /// Commands sent after initialising and before the cut data (HPGL only), such as the GCC AAS command.
     public var preamble: String
+    /// Correction applied to cutter coordinates (mm, after moving to `origin`), such as the fit from
+    /// manual registration onto measured marks.
+    public var alignment: Affine
 
-    public init(weeding: WeedingOptions = .init(), origin: Vec2? = nil, preamble: String = "") {
+    public init(weeding: WeedingOptions = .init(), origin: Vec2? = nil, preamble: String = "", alignment: Affine = .identity) {
         self.weeding = weeding
         self.origin = origin
         self.preamble = preamble
+        self.alignment = alignment
     }
 
     /// A plain weeding box `margin` mm around the job (nil for none).
@@ -311,7 +315,7 @@ public enum PlotterGenerator {
 
         let zero = options.origin.map(profile.toMachine) ?? .zero
         func u(_ p: Vec2) -> (Int, Int) {
-            let q = profile.toMachine(p) - zero
+            let q = options.alignment.apply(profile.toMachine(p) - zero)
             return (Int((q.x * profile.unitsPerMM).rounded()), Int((q.y * profile.unitsPerMM).rounded()))
         }
 

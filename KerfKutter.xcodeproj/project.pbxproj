@@ -11,6 +11,7 @@
 		EA6BE4C36C2FEC4C6A4A2FC9 /* AppModel+Contour.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53471E61CF6162EB73992FF1 /* AppModel+Contour.swift */; };
 		B793E089DD67FCD724764323 /* AppModel+Embroidery.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0695B6768F238B4B5489063 /* AppModel+Embroidery.swift */; };
 		7C41531156A98234DDB6DAD0 /* AppModel+Freehand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED1F129F4E0E92C052A7034 /* AppModel+Freehand.swift */; };
+		A7074BFBE518702B995B1006 /* AppModel+ManualRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DA2412241B16EEF2CD0F040 /* AppModel+ManualRegistration.swift */; };
 		4D237E70D004B46A9AF04A4D /* AppModel+Materials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */; };
 		9CA40CEB1150ECEB91DE8E0E /* AppModel+Mirror.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87545F165D19018DFCB0BAFA /* AppModel+Mirror.swift */; };
 		09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */; };
@@ -35,6 +36,7 @@
 		E65D3FCA10468CBC245A8161 /* KerfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3252AF6C1D40D7FD1888A3B2 /* KerfApp.swift */; };
 		83F4F3EE03EC93A586F6D149 /* LayersPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9066F35D7FA64AD292915B81 /* LayersPanel.swift */; };
 		21B58757E253BC5BABEFE442 /* MachinePanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFDB58AEEFC43DA159C56114 /* MachinePanels.swift */; };
+		322E8A5D590983F73EC4BBFB /* ManualRegistrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5754181A3ECB283AE13FDD8A /* ManualRegistrationView.swift */; };
 		59B48F3495E1625031C3362A /* MaterialLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */; };
 		4F3B7E4FF0A12F0D9B0DDCEF /* MaterialPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = C314F862A43F8498C325A37A /* MaterialPreview.swift */; };
 		F765E64EED6C3083AA8CF0CA /* MirrorOutputPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653C322525E3193AF8D5325D /* MirrorOutputPicker.swift */; };
@@ -61,6 +63,7 @@
 		7F00E4948A3B7EBB96AC2C7A /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F957B3F4575CD538D71D4B0F /* Geometry.swift */; };
 		33BCED8A8024D3A98C5FC04C /* HelpLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = F821EA813212F29CC2B9ED62 /* HelpLibrary.swift */; };
 		BBCDE23BBA63C54EE7025B2E /* HoldingTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB69DF8B5377BF2D74E8D15 /* HoldingTabs.swift */; };
+		C89A6C133530AF15B0B35922 /* ManualRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E9F234FA690C55FD1A74F81 /* ManualRegistration.swift */; };
 		7CCB44524392862928918E5D /* MaterialColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 492CFAA587BEF86D363F9EC5 /* MaterialColors.swift */; };
 		6DC8D0E6C7C45753D94F1CAA /* MaterialLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B52EDCC1E37978B1DA777BA /* MaterialLibrary.swift */; };
 		BB2C4CFE8BFC425AC035C57C /* MillSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30BBBF1F89B105465D349229 /* MillSimulator.swift */; };
@@ -86,6 +89,7 @@
 		8000ED24F3E9C86A9803077B /* HelpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B1A10E8B190F8C16BF835A /* HelpTests.swift */; };
 		54A8C95104371CFA19F6E6DA /* HoldingTabsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6339144B08447B305B34F59D /* HoldingTabsTests.swift */; };
 		C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 125BC4804EAD037CDE428879 /* KerfCoreTests.swift */; };
+		00E4E4B3C556345D1BE31136 /* ManualRegistrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5954E8821B26F1CD11331757 /* ManualRegistrationTests.swift */; };
 		D67C569E491C5CF56FF144C5 /* OutputMirrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 691DE43C7B283D21C7703A59 /* OutputMirrorTests.swift */; };
 		E5ACF630F56D801801752D6E /* PanelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC0E3F341D22FD957514AE7 /* PanelsTests.swift */; };
 		581B9675F489881985235478 /* PrintAndCutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */; };
@@ -135,6 +139,7 @@
 		53471E61CF6162EB73992FF1 /* AppModel+Contour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Contour.swift"; sourceTree = "<group>"; };
 		C0695B6768F238B4B5489063 /* AppModel+Embroidery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Embroidery.swift"; sourceTree = "<group>"; };
 		CED1F129F4E0E92C052A7034 /* AppModel+Freehand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Freehand.swift"; sourceTree = "<group>"; };
+		6DA2412241B16EEF2CD0F040 /* AppModel+ManualRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+ManualRegistration.swift"; sourceTree = "<group>"; };
 		113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Materials.swift"; sourceTree = "<group>"; };
 		87545F165D19018DFCB0BAFA /* AppModel+Mirror.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Mirror.swift"; sourceTree = "<group>"; };
 		D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Nodes.swift"; sourceTree = "<group>"; };
@@ -159,6 +164,7 @@
 		3252AF6C1D40D7FD1888A3B2 /* KerfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfApp.swift; sourceTree = "<group>"; };
 		9066F35D7FA64AD292915B81 /* LayersPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayersPanel.swift; sourceTree = "<group>"; };
 		FFDB58AEEFC43DA159C56114 /* MachinePanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachinePanels.swift; sourceTree = "<group>"; };
+		5754181A3ECB283AE13FDD8A /* ManualRegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualRegistrationView.swift; sourceTree = "<group>"; };
 		4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialLibraryView.swift; sourceTree = "<group>"; };
 		C314F862A43F8498C325A37A /* MaterialPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialPreview.swift; sourceTree = "<group>"; };
 		653C322525E3193AF8D5325D /* MirrorOutputPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorOutputPicker.swift; sourceTree = "<group>"; };
@@ -185,6 +191,7 @@
 		F957B3F4575CD538D71D4B0F /* Geometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geometry.swift; sourceTree = "<group>"; };
 		F821EA813212F29CC2B9ED62 /* HelpLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpLibrary.swift; sourceTree = "<group>"; };
 		BBB69DF8B5377BF2D74E8D15 /* HoldingTabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingTabs.swift; sourceTree = "<group>"; };
+		3E9F234FA690C55FD1A74F81 /* ManualRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualRegistration.swift; sourceTree = "<group>"; };
 		492CFAA587BEF86D363F9EC5 /* MaterialColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialColors.swift; sourceTree = "<group>"; };
 		8B52EDCC1E37978B1DA777BA /* MaterialLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialLibrary.swift; sourceTree = "<group>"; };
 		30BBBF1F89B105465D349229 /* MillSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MillSimulator.swift; sourceTree = "<group>"; };
@@ -210,6 +217,7 @@
 		F6B1A10E8B190F8C16BF835A /* HelpTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpTests.swift; sourceTree = "<group>"; };
 		6339144B08447B305B34F59D /* HoldingTabsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingTabsTests.swift; sourceTree = "<group>"; };
 		125BC4804EAD037CDE428879 /* KerfCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfCoreTests.swift; sourceTree = "<group>"; };
+		5954E8821B26F1CD11331757 /* ManualRegistrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualRegistrationTests.swift; sourceTree = "<group>"; };
 		691DE43C7B283D21C7703A59 /* OutputMirrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMirrorTests.swift; sourceTree = "<group>"; };
 		CAC0E3F341D22FD957514AE7 /* PanelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelsTests.swift; sourceTree = "<group>"; };
 		14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrintAndCutTests.swift; sourceTree = "<group>"; };
@@ -292,6 +300,7 @@
 				53471E61CF6162EB73992FF1 /* AppModel+Contour.swift */,
 				C0695B6768F238B4B5489063 /* AppModel+Embroidery.swift */,
 				CED1F129F4E0E92C052A7034 /* AppModel+Freehand.swift */,
+				6DA2412241B16EEF2CD0F040 /* AppModel+ManualRegistration.swift */,
 				113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */,
 				87545F165D19018DFCB0BAFA /* AppModel+Mirror.swift */,
 				D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */,
@@ -316,6 +325,7 @@
 				3252AF6C1D40D7FD1888A3B2 /* KerfApp.swift */,
 				9066F35D7FA64AD292915B81 /* LayersPanel.swift */,
 				FFDB58AEEFC43DA159C56114 /* MachinePanels.swift */,
+				5754181A3ECB283AE13FDD8A /* ManualRegistrationView.swift */,
 				4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */,
 				C314F862A43F8498C325A37A /* MaterialPreview.swift */,
 				653C322525E3193AF8D5325D /* MirrorOutputPicker.swift */,
@@ -350,6 +360,7 @@
 				F957B3F4575CD538D71D4B0F /* Geometry.swift */,
 				F821EA813212F29CC2B9ED62 /* HelpLibrary.swift */,
 				BBB69DF8B5377BF2D74E8D15 /* HoldingTabs.swift */,
+				3E9F234FA690C55FD1A74F81 /* ManualRegistration.swift */,
 				492CFAA587BEF86D363F9EC5 /* MaterialColors.swift */,
 				8B52EDCC1E37978B1DA777BA /* MaterialLibrary.swift */,
 				30BBBF1F89B105465D349229 /* MillSimulator.swift */,
@@ -383,6 +394,7 @@
 				F6B1A10E8B190F8C16BF835A /* HelpTests.swift */,
 				6339144B08447B305B34F59D /* HoldingTabsTests.swift */,
 				125BC4804EAD037CDE428879 /* KerfCoreTests.swift */,
+				5954E8821B26F1CD11331757 /* ManualRegistrationTests.swift */,
 				691DE43C7B283D21C7703A59 /* OutputMirrorTests.swift */,
 				CAC0E3F341D22FD957514AE7 /* PanelsTests.swift */,
 				14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */,
@@ -521,6 +533,7 @@
 				EA6BE4C36C2FEC4C6A4A2FC9 /* AppModel+Contour.swift in Sources */,
 				B793E089DD67FCD724764323 /* AppModel+Embroidery.swift in Sources */,
 				7C41531156A98234DDB6DAD0 /* AppModel+Freehand.swift in Sources */,
+				A7074BFBE518702B995B1006 /* AppModel+ManualRegistration.swift in Sources */,
 				4D237E70D004B46A9AF04A4D /* AppModel+Materials.swift in Sources */,
 				9CA40CEB1150ECEB91DE8E0E /* AppModel+Mirror.swift in Sources */,
 				09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */,
@@ -545,6 +558,7 @@
 				E65D3FCA10468CBC245A8161 /* KerfApp.swift in Sources */,
 				83F4F3EE03EC93A586F6D149 /* LayersPanel.swift in Sources */,
 				21B58757E253BC5BABEFE442 /* MachinePanels.swift in Sources */,
+				322E8A5D590983F73EC4BBFB /* ManualRegistrationView.swift in Sources */,
 				59B48F3495E1625031C3362A /* MaterialLibraryView.swift in Sources */,
 				4F3B7E4FF0A12F0D9B0DDCEF /* MaterialPreview.swift in Sources */,
 				F765E64EED6C3083AA8CF0CA /* MirrorOutputPicker.swift in Sources */,
@@ -578,6 +592,7 @@
 				7F00E4948A3B7EBB96AC2C7A /* Geometry.swift in Sources */,
 				33BCED8A8024D3A98C5FC04C /* HelpLibrary.swift in Sources */,
 				BBCDE23BBA63C54EE7025B2E /* HoldingTabs.swift in Sources */,
+				C89A6C133530AF15B0B35922 /* ManualRegistration.swift in Sources */,
 				7CCB44524392862928918E5D /* MaterialColors.swift in Sources */,
 				6DC8D0E6C7C45753D94F1CAA /* MaterialLibrary.swift in Sources */,
 				BB2C4CFE8BFC425AC035C57C /* MillSimulator.swift in Sources */,
@@ -610,6 +625,7 @@
 				8000ED24F3E9C86A9803077B /* HelpTests.swift in Sources */,
 				54A8C95104371CFA19F6E6DA /* HoldingTabsTests.swift in Sources */,
 				C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */,
+				00E4E4B3C556345D1BE31136 /* ManualRegistrationTests.swift in Sources */,
 				D67C569E491C5CF56FF144C5 /* OutputMirrorTests.swift in Sources */,
 				E5ACF630F56D801801752D6E /* PanelsTests.swift in Sources */,
 				581B9675F489881985235478 /* PrintAndCutTests.swift in Sources */,

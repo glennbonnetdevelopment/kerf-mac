@@ -354,13 +354,14 @@ struct CutterPanel: View {
                     RegistrationSettings()
                     Button("Add registration marks") { model.addRegistrationMarks() }
                     Button("Print preview…") { model.showPrintPreview = true }
-                    if model.profile.aasEnabled {
+                    if model.profile.aasEnabled && !model.useManualRegistration {
                         AASControls()
-                    } else {
-                        Text("Print the sheet, then load it with mark 1 at the cutter's origin. For a GCC LX cutter, turn on optical marks in the device settings.")
+                    } else if !model.profile.aasEnabled {
+                        Text("Print the sheet, then load it with mark 1 at the cutter's origin, or line the cut up with Manual registration. For a GCC LX cutter, turn on optical marks in the device settings.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+                    ManualRegistrationSummary()
                 }
                 Section("Weeding") {
                     Picker("Weeding box", selection: $model.weeding.box) {
@@ -571,6 +572,16 @@ private struct ProfileForm: View {
                     LabeledContent("Overcut (mm)") { TextField("", value: $profile.overcut, format: .number).frame(width: 80) }
                     Toggle("Send speed and force", isOn: $profile.sendSpeedAndForce)
                 }
+                Section("Laser pointer") {
+                    Toggle("Head has a laser pointer", isOn: $profile.hasLaserPointer)
+                    if profile.hasLaserPointer {
+                        LabeledContent("Offset from blade X (mm)") { TextField("", value: $profile.laserOffsetX, format: .number).frame(width: 80) }
+                        LabeledContent("Offset from blade Y (mm)") { TextField("", value: $profile.laserOffsetY, format: .number).frame(width: 80) }
+                        Text("Where the laser dot is relative to the blade, along the cutter's own X and Y. Manual registration can measure it for you.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 Section("Optical registration (GCC AAS II)") {
                     Toggle("Reads printed marks (Expert II LX and similar)", isOn: $profile.aasEnabled)
                         .disabled(profile.language != .hpgl)
@@ -624,6 +635,22 @@ struct RegistrationSettings: View {
         }
         if model.registrationStyle == .gccAAS {
             Text("Four L marks, black on white. GCC allows 5–50 mm long, 1–2 mm thick and 1–50 mm from the art; 25, 1 and 5 work best. Mark 1, the thicker one, is the origin.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// The manual registration button and what it will do to the next cut.
+struct ManualRegistrationSummary: View {
+    @EnvironmentObject var model: AppModel
+
+    var body: some View {
+        Button("Manual registration…") { model.showManualRegistration = true }
+            .help("Move the head from KerfKutter onto each printed mark with the laser pointer, then cut aligned to them")
+            .disabled(!model.canJogCutter)
+        if model.manualRegistrationTransform != nil {
+            Text("The cut is aligned to \(model.manualMarks.count) mark\(model.manualMarks.count == 1 ? "" : "s") found by hand\(model.profile.aasEnabled ? "; the optical sensor isn't used" : "").")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
