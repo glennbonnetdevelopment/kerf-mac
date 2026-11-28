@@ -256,7 +256,7 @@ final class ScreenPrintTests: XCTestCase {
         XCTAssertTrue(o.knockout)
         XCTAssertEqual(o.paper, .letter)
         XCTAssertFalse(o.fitToArtwork)
-        let layer = try JSONDecoder().decode(Layer.self, from: Data(#"{"name":"A","colorHex":"#000000"}"#.utf8))
+        let layer = try JSONDecoder().decode(Layer.self, from: Data(##"{"name":"A","colorHex":"#000000"}"##.utf8))
         XCTAssertEqual(layer.screenSpread, 0)
         var l2 = layer
         l2.screenSpread = -0.3
