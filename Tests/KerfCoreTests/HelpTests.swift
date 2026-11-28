@@ -42,6 +42,7 @@ final class HelpTests: XCTestCase {
         XCTAssertTrue(HelpLibrary.search("WEEDING").contains { $0.id == "vinyl" })
         XCTAssertTrue(HelpLibrary.search("rhinestone template").contains { $0.id == "rhinestones" })
         XCTAssertTrue(HelpLibrary.search("camera checkerboard").contains { $0.id == "camera" })
+        XCTAssertTrue(HelpLibrary.search("overlapping cuts script").contains { $0.id == "vinyl" })
         XCTAssertTrue(HelpLibrary.search("zzqx nothing").isEmpty)
     }
 }

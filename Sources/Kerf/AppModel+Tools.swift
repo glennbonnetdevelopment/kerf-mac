@@ -120,9 +120,9 @@ extension AppModel {
             alertMessage = "Select two or more shapes to \(op.title.lowercased())."
             return
         }
-        var result = Self.cgPath(shapes[0].placedPaths.filter(\.closed)).normalized(using: .evenOdd)
+        var result = Self.cleanFill(shapes[0])
         for s in shapes.dropFirst() {
-            let other = Self.cgPath(s.placedPaths.filter(\.closed)).normalized(using: .evenOdd)
+            let other = Self.cleanFill(s)
             switch op {
             case .weld: result = result.union(other, using: .winding)
             case .subtract: result = result.subtracting(other, using: .winding)
@@ -140,6 +140,63 @@ extension AppModel {
         let combined = Artwork(layerID: shapes[0].layerID, name: op.title, paths: polys)
         document.shapes.append(combined)
         selection = [combined.id]
+    }
+
+    /// A shape's filled area with its own overlaps resolved, so overlapping strokes in script text are filled
+    /// instead of punched out as holes.
+    static func cleanFill(_ shape: Artwork) -> CGPath {
+        let cleaned = OverlapFixer.resolve(shape.placedPaths, trustWinding: shape.text != nil).paths.filter(\.closed)
+        return OverlapFixer.filledPath(OverlapFixer.orientedByNesting(cleaned)).normalized(using: .winding)
+    }
+
+    /// Shapes that Fix Overlaps works on: the selection, or with nothing selected every outline that gets cut,
+    /// engraved or sewn.
+    var overlapTargets: [Artwork] {
+        if !selection.isEmpty { return document.shapes.filter { selection.contains($0.id) && $0.image == nil } }
+        return document.shapes.filter { $0.image == nil && document.layer($0.layerID).map { $0.mode != .print } == true }
+    }
+
+    /// Merges outlines that overlap (script letters, joined letters, shapes laid over each other on the same
+    /// layer) into one clean outline each, so the blade only follows the outside edge. Real holes stay holes.
+    func fixOverlaps() {
+        let targets = overlapTargets.filter { $0.stitches == nil }
+        guard !targets.isEmpty else {
+            alertMessage = "There are no shapes to fix. Add text or shapes first."
+            return
+        }
+        let groups = OverlapFixer.fix(targets).filter(\.changed)
+        guard !groups.isEmpty else {
+            alertMessage = "No overlapping outlines found. Nothing was changed."
+            return
+        }
+        checkpoint()
+        var newSelection = selection
+        for g in groups {
+            let first = targets[g.members[0]]
+            guard let index = document.shapes.firstIndex(where: { $0.id == first.id }) else { continue }
+            var fixed = document.shapes[index]
+            fixed.paths = g.paths
+            fixed.text = nil
+            fixed.pathText = nil
+            fixed.tabs = nil
+            if g.members.count > 1 {
+                fixed.transform = .identity
+                fixed.name = "Welded"
+                let others = Set(g.members.dropFirst().map { targets[$0].id })
+                document.shapes.removeAll { others.contains($0.id) }
+                newSelection.subtract(others)
+            }
+            if let i = document.shapes.firstIndex(where: { $0.id == first.id }) { document.shapes[i] = fixed }
+        }
+        selection = newSelection
+        let removed = groups.reduce(0) { $0 + $1.removedLength }
+        let merged = groups.filter { $0.members.count > 1 }.reduce(0) { $0 + $1.members.count }
+        var parts = ["Removed \(Int(removed.rounded())) mm of overlapping cut lines from \(groups.count) shape\(groups.count == 1 ? "" : "s")."]
+        if merged > 0 { parts.append("\(merged) overlapping shapes were welded together.") }
+        if groups.contains(where: { g in g.members.contains { targets[$0].text != nil } }) {
+            parts.append("Fixed text is now outlines and can no longer be edited as text. Undo brings the text back.")
+        }
+        alertMessage = parts.joined(separator: " ")
     }
 
     /// Joins open paths whose ends touch (within 0.1 mm) into continuous paths, closing loops.
