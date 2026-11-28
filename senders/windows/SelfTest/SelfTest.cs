@@ -47,6 +47,8 @@ static class SelfTest
         s.Acknowledge(true);
         Check(s.IsIdle && s.Errors == 1 && s.Acknowledged == 3, "streamer finishes and counts errors");
 
+        CameraTests.Run(Check);
+
         Console.WriteLine(failures == 0 ? "All checks passed." : failures + " check(s) failed.");
         return failures == 0 ? 0 : 1;
     }

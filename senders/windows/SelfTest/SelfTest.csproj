@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Checks the job reader and streaming rules on any OS. Run: dotnet run (from this folder) -->
+  <!-- Checks the job reader, streaming rules and camera math on any OS. Run: dotnet run (from this folder) -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -10,5 +10,6 @@
     <Compile Include="../KerfSender/Json.cs" />
     <Compile Include="../KerfSender/Job.cs" />
     <Compile Include="../KerfSender/GrblStreamer.cs" />
+    <Compile Include="../KerfSender/CameraCore.cs" />
   </ItemGroup>
 </Project>

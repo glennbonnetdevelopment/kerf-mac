@@ -28,6 +28,8 @@
 	<true/>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSCameraUsageDescription</key>
+	<string>KerfSender shows the camera above the laser bed so you can line jobs up on the material.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Sends KerfKutter jobs to lasers, CNC routers and vinyl cutters.</string>
 	<key>CFBundleDocumentTypes</key>

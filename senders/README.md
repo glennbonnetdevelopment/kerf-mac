@@ -23,6 +23,11 @@ Both support:
 - Plain `.gc`, `.gcode`, `.nc`, `.plt` and `.hpgl` files too. These carry no machine settings, so
   the app guesses and asks you to check them.
 
+- **Camera registration for lasers** (fixed USB camera above the bed): calibrate the lens with a
+  printed checkerboard, align the camera to the bed by burning a target and clicking its marks,
+  then drag the job's outline onto the material in the live picture and run it there. See
+  [Camera registration](#camera-registration).
+
 ## Getting a job out of KerfKutter
 
 **File › Export for KerfSender…** (⇧⌘E) writes a `.kerfjob` for the selected machine. Copy it to
@@ -66,6 +71,35 @@ UTF-8 JSON. `data` is the exact text to send. Senders ignore keys they don't kno
 
 Sample jobs used by the tests are in `samples/`.
 
+## Camera registration
+
+The same workflow as KerfKutter's **View › Camera**, for a USB camera fixed above the laser bed.
+Open it with the **Camera…** button (Mac: also **Window › Camera…**, ⌥⌘C). Each camera remembers its
+own calibration (Windows: `%APPDATA%\KerfSender\camera\`, Mac: the app's preferences).
+
+1. **Lens** (optional, recommended): print a checkerboard, enter its inner corner count (a board of
+   10 × 7 squares has 9 × 6), and press **Capture board** with it in 8 to 15 places: middle, edges,
+   corners, some tilted. Then **Calibrate lens**. This removes the barrel distortion of webcam lenses.
+2. **Alignment**: home the laser, cover the bed with card or plywood, set the bed size, margin and a
+   low power, and **Burn target…**. It burns a grid of marks (cross in a circle; mark 1 has an
+   inner ring and is the one nearest X 0, Y 0). **Take snapshot**, click the marks in order
+   (clicks snap to the centre; after three, **Find the rest** finds the others), then **Save
+   alignment**. Redo this if the camera or its mount moves.
+3. **Place job**: the job's outline is drawn on the live picture where it will burn, and a red
+   cross shows the laser head. Drag the outline onto the material (or type a move and a turn).
+   With **Run the job where it's placed** ticked, **Start** in the main window sends the job moved
+   and turned to that spot. Jog the head and check the red cross follows it to confirm the alignment.
+
+Positions are tied to the machine itself: the target is burned in work coordinates and stored in
+machine coordinates using the work offset GRBL reports (`WCO`), so a later **Set origin here**
+doesn't break the alignment. The machine must be homed (or its origin otherwise repeatable) so
+machine coordinates mean the same place each session. Jobs that use relative moves (G91) can't be
+placed. Burning the target needs a GRBL laser; full power is `$30` (usually 1000).
+
+Windows captures through DirectShow (built into Windows 7 to 11, no download); the Mac uses
+AVFoundation (macOS 10.12 and later; on 10.14 and later macOS asks for camera permission the
+first time). Both use the camera's largest picture up to 1920 × 1080.
+
 ## Windows: build and test
 
 You don't need a Windows machine to build it.
@@ -77,7 +111,7 @@ You don't need a Windows machine to build it.
 - **Any computer with the .NET SDK** (Windows, Mac or Linux):
 
   ```sh
-  dotnet run --project senders/windows/SelfTest        # checks the job reader and streaming rules
+  dotnet run --project senders/windows/SelfTest        # checks the job reader, streaming rules and camera maths
   dotnet build senders/windows/KerfSender -c Release   # writes bin/Release/net40/KerfSender.exe
   ```
 
@@ -104,7 +138,9 @@ Objective-C and AppKit, built by a script with command-line clang. Any recent Xc
 senders/mac/build.sh
 ```
 
-It writes `senders/mac/build/KerfSender.app` and `KerfSender-mac.zip`. The Intel part targets
+It writes `senders/mac/build/KerfSender.app` and `KerfSender-mac.zip`. `senders/mac/build.sh test`
+runs the camera and toolpath self-tests instead (the camera maths in `KSCameraMath.c` is plain C, so
+`senders/mac/Tests/camera_math_test.c` also builds with any C compiler). The Intel part targets
 macOS 10.12 and the Apple silicon part 11.0, so the same app runs on the old Mac and on new ones.
 Copy the zip to the 10.12 Mac, unzip it, then right-click the app and choose **Open** the first
 time (it is ad-hoc signed, not notarised).

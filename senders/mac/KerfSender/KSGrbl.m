@@ -88,6 +88,8 @@
 }
 
 - (BOOL)isConnected { return _port != nil; }
+- (double)wcoX { return _wco[0]; }
+- (double)wcoY { return _wco[1]; }
 
 - (void)log:(NSString *)text error:(BOOL)isError { [self.delegate grblLog:text isError:isError]; }
 
@@ -137,6 +139,7 @@
     _port = nil;
     _isRunning = NO;
     _isPaused = NO;
+    _hasMachinePosition = NO;
     [_streamer reset];
     _state = @"Disconnected";
     [self log:reason error:NO];
@@ -222,6 +225,7 @@ static NSInteger KSCode(NSString *line) {
         else if ([key isEqualToString:@"WPos"]) wpos = v;
         else if ([key isEqualToString:@"WCO"]) {
             for (NSUInteger i = 0; i < 3; i++) _wco[i] = i < v.count ? v[i].doubleValue : 0;
+            _hasWorkOffset = YES;
         }
     }
     double pos[3] = { 0, 0, 0 };
@@ -232,6 +236,15 @@ static NSInteger KSCode(NSString *line) {
     } else if (mpos) {
         axes = MIN((NSUInteger)3, mpos.count);
         for (NSUInteger i = 0; i < axes; i++) pos[i] = mpos[i].doubleValue - _wco[i];
+    }
+    if (mpos.count >= 2) {
+        _machineX = mpos[0].doubleValue;
+        _machineY = mpos[1].doubleValue;
+        _hasMachinePosition = YES;
+    } else if (wpos.count >= 2) {
+        _machineX = wpos[0].doubleValue + _wco[0];
+        _machineY = wpos[1].doubleValue + _wco[1];
+        _hasMachinePosition = YES;
     }
     BOOL changed = ![state isEqualToString:_state];
     _state = [state copy];

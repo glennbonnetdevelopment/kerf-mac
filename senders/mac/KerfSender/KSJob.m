@@ -112,6 +112,11 @@ static NSInteger KSInteger(NSDictionary *d, NSString *key, NSInteger fallback) {
     job.flowControl = KSString(m, @"flowControl") ?: @"none";
     job.rxBufferSize = KSInteger(m, @"rxBufferSize", 127);
     job.printerOutput = [KSString(m, @"output") isEqualToString:@"printerQueue"];
+    id bw = m[@"bedWidth"], bh = m[@"bedHeight"];
+    if ([bw isKindOfClass:[NSNumber class]] && [bh isKindOfClass:[NSNumber class]]) {
+        job.bedWidth = [bw doubleValue];
+        job.bedHeight = [bh doubleValue];
+    }
     return job;
 }
 
