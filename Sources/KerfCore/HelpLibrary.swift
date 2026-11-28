@@ -97,6 +97,7 @@ public enum HelpLibrary {
         gccOpticalMarks,
         manualRegistration,
         rhinestones,
+        screenPrinting,
         monograms,
         embroidery,
         patches,
@@ -517,6 +518,56 @@ public enum HelpLibrary {
             .warning("Don't laser-cut vinyl-based (PVC) template materials. Use a laser-safe rubber or foam template sheet."),
         ])
 
+    static let screenPrinting = HelpTopic(
+        id: "screen-printing", title: "Screen printing", symbol: "square.stack.3d.down.right",
+        summary: "Black films for each colour, colour photo separations, negatives and stencils, halftones, trap, underbase and exposure tests.",
+        blocks: [
+            .text("**File › Screen Print Films…** (⇧⌘P) turns each colour of the design into its own film in solid black, ready to print on transparency film and expose a screen. Each layer is one colour."),
+            .steps([
+                "Put each ink colour on its own layer, in print order: the top of the Layers list prints first.",
+                "Open **Screen Print Films**. Pick a film in the preview, or **All colours** to see the finished print on the garment colour.",
+                "Turn on **Knock out colours underneath** and set the **Trap**, and add a **White underbase** for dark garments.",
+                "Click **Print Films…** (one page per film, at 100%) or **Save Films as PDF…**.",
+            ]),
+            .heading("Films"),
+            .bullets([
+                "Everything prints solid black, whatever the layer colour, with the same **registration marks** on every film so the screens line up.",
+                "**Negative** prints the artwork clear on a black frame, for blockout masks or checking a stencil.",
+                "**Mirror (emulsion side)** flips the films when you print on the back of the film.",
+                "**Label each film** prints the film number, colour name and colour code under the artwork.",
+                "**Paper** can be a standard sheet or **Fit to artwork** for a film just big enough for the design.",
+            ]),
+            .heading("Overlapping colours"),
+            .bullets([
+                "**Knock out** leaves a colour open wherever a colour printed later covers it, so inks don't pile up.",
+                "**Trap** is how far the colour underneath still runs under the one on top. 0.2 to 0.4 mm hides small shifts on press.",
+                "Each colour has its own **spread (+)** or **choke (−)** in mm, for fine lines that close up or colours that need to grow.",
+                "The **White underbase** is every colour together, pulled in by the **Underbase choke** so it hides under the top colours. It prints first.",
+            ]),
+            .heading("Halftones"),
+            .text("Photos and greys on image layers become halftone dots, since a screen can only print solid ink. 35 to 55 lines per inch suits inkjet film on 156 to 230 mesh. Keep the angle at 22.5° to avoid moiré with the mesh."),
+            .bullets([
+                "Pick your **Mesh** and the line count is set to one that the mesh holds (110 mesh 25 LPI up to 305 mesh 65 LPI).",
+                "Each colour with images can have its own **angle** (the ° box in the Colours list). Leave it empty to use the films' angle.",
+            ]),
+            .heading("Colour photos"),
+            .steps([
+                "Choose **File › Separate Colour Picture into Inks…**, or the button in Screen Print Films.",
+                "Set how many **Ink colours** to use. They're picked from the picture, lightest first; click a swatch to match the ink you have.",
+                "Set the **Garment colour**. Parts of the picture that match it get no ink, which saves a screen.",
+                "**Smooth tones** blends neighbouring inks as halftone dots, for photos. Slide it to the left for flat art, where each spot gets one ink.",
+                "Click **Add Ink Layers**. Each ink becomes an image layer, and Screen Print Films opens with a film for each one.",
+            ]),
+            .heading("Exposure test"),
+            .text("**Exposure test film** prints the same detail patches (fine lines, reversed lines, halftone patches, dots and small text) in several columns. Lay it on the screen, start the exposure, and slide a card over one more column each time the step passes. Column 1 gets the shortest time. Wash out the screen and use the shortest time where every patch holds and the emulsion feels hard."),
+            .heading("Stencils and masks"),
+            .bullets([
+                "**Add Stencil Cut Layers** puts each film's outlines on its own Cut layer (turned off), with the knockouts, trap and choke already in. Turn one on at a time to cut it from stencil vinyl.",
+                "**Arrange › Invert to Negative** replaces the selected shapes with a frame around them that has the shapes cut out. Right-click a layer for **Invert Layer to Negative**.",
+            ]),
+            .tip("For the darkest films, choose your printer's transparency or film paper setting and the highest quality. Hold a film up to the light: if you can see through the black, print it twice and stack them."),
+        ])
+
     static let embroidery = HelpTopic(
         id: "embroidery", title: "Embroidery", symbol: "circle.hexagongrid",
         summary: "Turning artwork into stitches and exporting PES, JEF or DST files.",
@@ -689,6 +740,7 @@ public enum HelpLibrary {
                 HelpKey("⌘K", "Send to Cutter"),
                 HelpKey("⌥⌘E", "Export embroidery"),
                 HelpKey("⌘P", "Print preview and print"),
+                HelpKey("⇧⌘P", "Screen print films"),
             ]),
             .heading("Edit and arrange"),
             .keys([

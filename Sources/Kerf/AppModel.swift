@@ -276,6 +276,15 @@ final class AppModel: ObservableObject {
     @Published var printSettings = PrintSettings.load() {
         didSet { printSettings.save() }
     }
+    /// Screen-print films sheet and its settings, remembered between launches (see AppModel+ScreenPrint).
+    @Published var showScreenPrint = false
+    @Published var screenPrint = ScreenPrintOptions.load() {
+        didSet { if screenPrint != oldValue { screenPrint.save() } }
+    }
+    /// The colour picture being separated into inks; non-nil shows the separation sheet.
+    @Published var colorSeparationSource: ColorSeparationSource?
+    /// Border around the artwork when inverting shapes to a negative, mm.
+    @Published var negativeMargin = 10.0
     @Published var measuredMark1: Vec2?
     @Published var measuredMark2: Vec2?
     @Published var useAlignment = false
