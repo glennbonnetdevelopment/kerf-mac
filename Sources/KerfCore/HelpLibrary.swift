@@ -205,6 +205,7 @@ public enum HelpLibrary {
             .heading("Combine"),
             .bullets([
                 "**Weld** merges overlapping shapes into one outline.",
+                "**Fix overlapping cuts** (⌥⌘O) cleans up outlines that cross, such as script text whose strokes and joined letters overlap, so the blade follows only the outside edge instead of cutting through the letters. Holes like the inside of an \"o\" stay. With nothing selected it fixes every shape, and shapes on the same layer that overlap are welded together. Text becomes plain outlines afterwards; Undo brings it back.",
                 "**Subtract** cuts the later shapes out of the first one.",
                 "**Intersect** keeps only where the shapes overlap.",
                 "**Exclude overlap** keeps everything except where they overlap.",
@@ -333,6 +334,7 @@ public enum HelpLibrary {
                 "**Weeding border** adds a rectangle around the design, with the margin you set, to make weeding easier.",
                 "Signs bigger than the cutter can be cut as overlapping panels. See **Panel cutting (big signs)**.",
             ]),
+            .tip("Script fonts draw letters as crossing strokes, so the blade would cut through the middle of them. Choose **Arrange › Fix Overlapping Cuts** (⌥⌘O) before cutting to merge them into one clean outline."),
             .heading("Vinyl presets"),
             .text("The material library comes with starter settings for vinyl cutters: adhesive vinyl (Oracal 651, 751 and 631, metallic, holographic), heat-transfer vinyl (standard, stretch, metallic, glitter, flock, puff, reflective), reflective sign vinyl, stencil and sandblast film, sticker paper, cardstock and magnet sheet. Pick one from a cut layer's **Material** menu to set its force, speed and passes."),
             .text("Thick or textured materials use a 60° blade, so their presets set the layer's own **blade offset** to 0.5 mm. Turn on **Own blade offset** on any cut layer to do the same for your own settings."),
@@ -683,6 +685,7 @@ public enum HelpLibrary {
                 HelpKey("⌘⌫", "Delete"),
                 HelpKey("⌘R / ⇧⌘R", "Rotate 90° clockwise / counter-clockwise"),
                 HelpKey("⌥⌘W", "Weld"),
+                HelpKey("⌥⌘O", "Fix overlapping cuts"),
                 HelpKey("⌘J", "Join open paths"),
                 HelpKey("⌥⌘K", "Rhinestone layout"),
                 HelpKey("Arrows / ⇧ arrows", "Nudge 1 mm / 10 mm"),

@@ -78,6 +78,7 @@
 		863663127E412BEDFB1185D1 /* Monogram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AAD1ED5261D978DEE66421E /* Monogram.swift */; };
 		4AB89F040E6699F811A09DD7 /* MultiHoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9C9B5DAB49A905BC15B0B2 /* MultiHoop.swift */; };
 		658D37C05D4AC167075F61C1 /* OutputMirror.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EF5EF79DBC93F1BFC27DC54 /* OutputMirror.swift */; };
+		514C5FB8874EC318BC5872DF /* Overlaps.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A74A60C22605983D8C67A3 /* Overlaps.swift */; };
 		DECBAE525F4265D971C65287 /* Panels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F159CD3136830C3B97051752 /* Panels.swift */; };
 		C5A152BBAF34E5E092B7F0B0 /* Patch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19428E51D7A7E78B01E54EDD /* Patch.swift */; };
 		B906C86C1DACE8F4A562B1DF /* PathText.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA5602941646C375BA84D3A2 /* PathText.swift */; };
@@ -108,6 +109,7 @@
 		F8C7987EBF18E28F1B8D9BBA /* MonogramTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33689A54BA2C7C29CB4F8EF1 /* MonogramTests.swift */; };
 		B3BD105F0798E44BCAE969E4 /* MultiHoopTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C1CA5214FAFA4BD1762C40E /* MultiHoopTests.swift */; };
 		D67C569E491C5CF56FF144C5 /* OutputMirrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 691DE43C7B283D21C7703A59 /* OutputMirrorTests.swift */; };
+		6EBAB1FC6647EBACC2C0AF9A /* OverlapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC65E3C2F383B1B98B6A027 /* OverlapTests.swift */; };
 		E5ACF630F56D801801752D6E /* PanelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC0E3F341D22FD957514AE7 /* PanelsTests.swift */; };
 		FD0D194FB21C2A75E99F3FA4 /* PatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F96AA7FEBD2D6BB0F683E4B /* PatchTests.swift */; };
 		581B9675F489881985235478 /* PrintAndCutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */; };
@@ -225,6 +227,7 @@
 		3AAD1ED5261D978DEE66421E /* Monogram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Monogram.swift; sourceTree = "<group>"; };
 		6B9C9B5DAB49A905BC15B0B2 /* MultiHoop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiHoop.swift; sourceTree = "<group>"; };
 		7EF5EF79DBC93F1BFC27DC54 /* OutputMirror.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMirror.swift; sourceTree = "<group>"; };
+		D4A74A60C22605983D8C67A3 /* Overlaps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Overlaps.swift; sourceTree = "<group>"; };
 		F159CD3136830C3B97051752 /* Panels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Panels.swift; sourceTree = "<group>"; };
 		19428E51D7A7E78B01E54EDD /* Patch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Patch.swift; sourceTree = "<group>"; };
 		FA5602941646C375BA84D3A2 /* PathText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathText.swift; sourceTree = "<group>"; };
@@ -255,6 +258,7 @@
 		33689A54BA2C7C29CB4F8EF1 /* MonogramTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonogramTests.swift; sourceTree = "<group>"; };
 		9C1CA5214FAFA4BD1762C40E /* MultiHoopTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiHoopTests.swift; sourceTree = "<group>"; };
 		691DE43C7B283D21C7703A59 /* OutputMirrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMirrorTests.swift; sourceTree = "<group>"; };
+		2AC65E3C2F383B1B98B6A027 /* OverlapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlapTests.swift; sourceTree = "<group>"; };
 		CAC0E3F341D22FD957514AE7 /* PanelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelsTests.swift; sourceTree = "<group>"; };
 		3F96AA7FEBD2D6BB0F683E4B /* PatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchTests.swift; sourceTree = "<group>"; };
 		14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrintAndCutTests.swift; sourceTree = "<group>"; };
@@ -413,6 +417,7 @@
 				3AAD1ED5261D978DEE66421E /* Monogram.swift */,
 				6B9C9B5DAB49A905BC15B0B2 /* MultiHoop.swift */,
 				7EF5EF79DBC93F1BFC27DC54 /* OutputMirror.swift */,
+				D4A74A60C22605983D8C67A3 /* Overlaps.swift */,
 				F159CD3136830C3B97051752 /* Panels.swift */,
 				19428E51D7A7E78B01E54EDD /* Patch.swift */,
 				FA5602941646C375BA84D3A2 /* PathText.swift */,
@@ -451,6 +456,7 @@
 				33689A54BA2C7C29CB4F8EF1 /* MonogramTests.swift */,
 				9C1CA5214FAFA4BD1762C40E /* MultiHoopTests.swift */,
 				691DE43C7B283D21C7703A59 /* OutputMirrorTests.swift */,
+				2AC65E3C2F383B1B98B6A027 /* OverlapTests.swift */,
 				CAC0E3F341D22FD957514AE7 /* PanelsTests.swift */,
 				3F96AA7FEBD2D6BB0F683E4B /* PatchTests.swift */,
 				14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */,
@@ -664,6 +670,7 @@
 				863663127E412BEDFB1185D1 /* Monogram.swift in Sources */,
 				4AB89F040E6699F811A09DD7 /* MultiHoop.swift in Sources */,
 				658D37C05D4AC167075F61C1 /* OutputMirror.swift in Sources */,
+				514C5FB8874EC318BC5872DF /* Overlaps.swift in Sources */,
 				DECBAE525F4265D971C65287 /* Panels.swift in Sources */,
 				C5A152BBAF34E5E092B7F0B0 /* Patch.swift in Sources */,
 				B906C86C1DACE8F4A562B1DF /* PathText.swift in Sources */,
@@ -701,6 +708,7 @@
 				F8C7987EBF18E28F1B8D9BBA /* MonogramTests.swift in Sources */,
 				B3BD105F0798E44BCAE969E4 /* MultiHoopTests.swift in Sources */,
 				D67C569E491C5CF56FF144C5 /* OutputMirrorTests.swift in Sources */,
+				6EBAB1FC6647EBACC2C0AF9A /* OverlapTests.swift in Sources */,
 				E5ACF630F56D801801752D6E /* PanelsTests.swift in Sources */,
 				FD0D194FB21C2A75E99F3FA4 /* PatchTests.swift in Sources */,
 				581B9675F489881985235478 /* PrintAndCutTests.swift in Sources */,

@@ -72,6 +72,8 @@ struct KerfApp: App {
                 Divider()
                 Button("Weld") { model.combineSelection(.weld) }
                     .keyboardShortcut("w", modifiers: [.command, .option])
+                Button("Fix Overlapping Cuts") { model.fixOverlaps() }
+                    .keyboardShortcut("o", modifiers: [.command, .option])
                 Button("Subtract") { model.combineSelection(.subtract) }
                 Button("Intersect") { model.combineSelection(.intersect) }
                 Button("Join Open Paths") { model.joinSelectedPaths() }
