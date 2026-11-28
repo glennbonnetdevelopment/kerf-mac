@@ -112,12 +112,14 @@ struct ArrangePanel: View {
                     }
                 }
                 .disabled(model.selection.count < 2)
+                Button(model.selection.isEmpty ? "Fix overlapping cuts in all shapes" : "Fix overlapping cuts") { model.fixOverlaps() }
+                    .help("Merges overlapping outlines, like the strokes of script letters, into one outline so the blade doesn't cut through them.")
                 HStack {
                     Button("Join open paths") { model.joinSelectedPaths() }
                     Button("Break apart") { model.breakApartSelection() }
                 }
                 .disabled(model.selection.isEmpty)
-                Text("Weld merges overlapping shapes into one outline. Subtract cuts the later shapes out of the first one.")
+                Text("Weld merges overlapping shapes into one outline. Fix overlapping cuts does the same inside a shape, such as script text whose letters cross. Subtract cuts the later shapes out of the first one.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
