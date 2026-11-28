@@ -96,7 +96,9 @@ public enum HelpLibrary {
         printAndCut,
         gccOpticalMarks,
         rhinestones,
+        monograms,
         embroidery,
+        multiHooping,
         devices,
         previewExport,
         shortcuts,
@@ -500,6 +502,46 @@ public enum HelpLibrary {
             .text("Click **Stitches** in the toolbar, or choose **View › Embroidery Stitch Preview** (⌥⌘T), to see the design as it will sew: every stitch drawn in its thread colour with shading, on the workpiece's fabric colour. Zoom in to see single stitches and needle holes. You can keep moving and editing shapes; the stitches update a moment after you stop. Turn it off to go back to outlines."),
             .heading("Hand tweaking"),
             .text("Select a shape and, in **Arrange › Embroidery**, tick **Own stitch settings** to sew it differently from its layer. **Edit stitches…** opens the stitch editor, where you can move, add and delete stitch points, split a run with a trim and jump, or join runs. Saved stitches sew exactly as edited; **Discard hand edits** goes back to automatic stitches."),
+        ])
+
+    static let monograms = HelpTopic(
+        id: "monograms", title: "Monograms", symbol: "textformat.abc.dottedunderline",
+        summary: "Initials from templates: classic, circle, diamond, vine wreath, scalloped and arched name.",
+        blocks: [
+            .text("Click **Monogram** above the canvas, or choose **Arrange › Monogram…**, to set initials in a ready-made style and add them to the design. They work for embroidery, vinyl and laser."),
+            .steps([
+                "Pick a template. The thumbnails show your own initials.",
+                "Type the initials. For a classic monogram the traditional order is first name, LAST name (in the larger middle), middle name.",
+                "Change the letter style, frame, font, width and frame band if you like, then click **Add Monogram**.",
+            ]),
+            .heading("Letter styles"),
+            .bullets([
+                "**Classic**: three initials, the middle one larger. **Side letters** sets how big the outer two are.",
+                "**Three in a row**: three initials the same size.",
+                "**Circle letters** and **Diamond letters**: the initials are stretched together to fill a circle or a diamond, the outer letters following its edge.",
+                "**Single initial**, and **Name over initial** with the name arched across the top.",
+            ]),
+            .heading("Frames"),
+            .text("Ring, double ring, diamond, rounded square, scalloped and vine wreath. Frames are bands with a width, so they sew as satin and cut as a weedable outline. The vine's stem and leaves are welded into one outline."),
+            .tip("The letters and the frame go on their own layers (**Monogram letters** and **Monogram frame**) set to **Auto (digitize)**, so they can be sewn in different thread colours. Classic, block, single and arched letters stay editable text; circle and diamond letters become outlines."),
+        ])
+
+    static let multiHooping = HelpTopic(
+        id: "multi-hooping", title: "Multi-hooping", symbol: "square.split.2x2",
+        summary: "Sewing a design bigger than the hoop in several hoopings, lined up with alignment marks.",
+        blocks: [
+            .text("In **File › Export Embroidery…** (⌥⌘E), turn on **Split across several hoopings** under **Multi-hooping**. The design is divided into a grid of hoopings that overlap a little, and each one is exported as its own file."),
+            .steps([
+                "Choose the format and hoop, then turn on **Split across several hoopings**. The preview shows each hooping's area and number over the design.",
+                "Set the **Overlap** (how far neighbouring hoopings reach into each other) and the **Margin** kept clear inside the hoop. **Hoop direction** can use the hoop upright, turned 90°, or whichever needs fewer hoopings.",
+                "Use **Show** to look at one hooping's stitches in the hoop.",
+                "Click **Export Files…** and choose a folder. You get one file per hooping (\"Design 1 of 4.pes\" and so on) and a hooping guide listing where each hoop centre sits on the design.",
+            ]),
+            .heading("How shapes are split"),
+            .text("A shape that fits inside one hooping is sewn whole in it. Bigger shapes are cut at the seam down the middle of each overlap, each part reaching a stitch past the seam so the parts meet."),
+            .heading("Alignment marks"),
+            .text("With **Alignment marks** on, every hooping starts with small crosses in their own colour, two in each overlap it shares with a neighbour. The first hooping sews them on the fabric. When you re-hoop for the next part, move the needle over the crosses already sewn (with the machine's layout or jog keys) and nudge the design until it lands on them, then sew on. Pick the crosses out at the end."),
+            .tip("**Baste each hooping** sews a long running-stitch box around the hooping's area first, to hold the fabric to the stabiliser. Use a stabiliser large enough for the whole design."),
         ])
 
     static let devices = HelpTopic(

@@ -84,6 +84,7 @@ struct KerfApp: App {
                 Button("Add Contour Cut Around Artwork") { model.addContourCut() }
                 Button("Rhinestone Layout…") { model.showRhinestones = true }
                     .keyboardShortcut("k", modifiers: [.command, .option])
+                Button("Monogram…") { model.showMonogram = true }
             }
             CommandGroup(after: .toolbar) {
                 Toggle("Embroidery Stitch Preview", isOn: $model.showStitchPreview)
@@ -229,6 +230,10 @@ struct ContentView: View {
         }
         .sheet(isPresented: $model.showRhinestones) {
             RhinestoneView()
+                .environmentObject(model)
+        }
+        .sheet(isPresented: $model.showMonogram) {
+            MonogramView()
                 .environmentObject(model)
         }
         .alert("KerfKutter", isPresented: Binding(get: { model.alertMessage != nil }, set: { if !$0 { model.alertMessage = nil } })) {

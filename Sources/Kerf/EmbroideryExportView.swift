@@ -9,6 +9,9 @@ struct EmbroideryExportView: View {
     @AppStorage("embroideryHoop") private var hoopName = EmbroideryHoop.brother[1].name
     @AppStorage("embroideryGroupColors") private var groupColors = true
     @AppStorage("embroideryOptimizeOrder") private var optimizeOrder = true
+    @AppStorage("embroideryMultiHoop") private var multiHoopOn = false
+    /// The hooping shown in the preview when the design is split, or nil for the whole design.
+    @State private var shownHooping: Int?
 
     private var format: EmbroideryFormat { EmbroideryFormat(rawValue: formatRaw) ?? .pes }
 
@@ -18,14 +21,20 @@ struct EmbroideryExportView: View {
     }
 
     var body: some View {
-        let pattern = model.embroideryPattern(groupColors: groupColors, optimizeOrder: optimizeOrder)
+        let (plan, pattern) = model.embroideryPlanAndPattern(groupColors: groupColors, optimizeOrder: optimizeOrder)
+        let layout = multiHoopOn ? MultiHoop.split(plan, hoop: hoop, options: model.multiHoop) : nil
         VStack(alignment: .leading, spacing: 12) {
             Text("Export Embroidery").font(.title3.bold())
             HStack(alignment: .top, spacing: 16) {
                 VStack(alignment: .leading, spacing: 10) {
-                    StitchPreview(pattern: pattern, hoop: hoop)
-                        .frame(width: 320, height: 320)
+                    if let layout {
+                        multiHoopPreview(layout, plan: plan)
+                    } else {
+                        StitchPreview(pattern: pattern, hoop: hoop)
+                            .frame(width: 320, height: 320)
+                    }
                     summary(pattern)
+                    if let layout { multiHoopSummary(layout) }
                 }
                 .frame(width: 320)
                 Form {
@@ -41,6 +50,13 @@ struct EmbroideryExportView: View {
                         }
                         Toggle("Group same colours", isOn: $groupColors)
                             .help("Sew a layer with an earlier layer of the same thread when nothing in between overlaps it, for fewer thread changes")
+                    }
+                    Section("Multi-hooping") {
+                        Toggle("Split across several hoopings", isOn: $multiHoopOn)
+                            .help("Sew a design bigger than the hoop in parts, re-hooping between them, with alignment marks in the overlaps")
+                        if multiHoopOn {
+                            MultiHoopSettings()
+                        }
                     }
                     Section("Layers") {
                         let layers = model.embroideredLayers
@@ -68,17 +84,28 @@ struct EmbroideryExportView: View {
                 .frame(width: 400, height: 470)
             }
             HStack {
-                Text("Each layer is one thread colour, sewn in layer order. The design is centred in the hoop.")
+                Text(multiHoopOn
+                     ? "Each hooping is its own file, centred in the hoop, with a hooping guide beside them."
+                     : "Each layer is one thread colour, sewn in layer order. The design is centred in the hoop.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button("Close", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button("Export \(format.fileExtension.uppercased())…") {
-                    if model.exportEmbroidery(pattern, format: format) { dismiss() }
+                if let layout {
+                    let n = layout.sewnHoopings.count
+                    Button("Export \(n) \(format.fileExtension.uppercased()) File\(n == 1 ? "" : "s")…") {
+                        if model.exportMultiHoop(layout, format: format, hoop: hoop) { dismiss() }
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(pattern.stitchCount == 0)
+                } else {
+                    Button("Export \(format.fileExtension.uppercased())…") {
+                        if model.exportEmbroidery(pattern, format: format) { dismiss() }
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(pattern.stitchCount == 0)
                 }
-                .keyboardShortcut(.defaultAction)
-                .disabled(pattern.stitchCount == 0)
             }
         }
         .padding(16)
@@ -107,8 +134,11 @@ struct EmbroideryExportView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             if pattern.stitchCount > 0 {
-                if !hoop.fits(width: size.width, height: size.height) {
-                    Label("Too big for this hoop. Scale the design down or pick a larger hoop.", systemImage: "exclamationmark.triangle.fill")
+                if multiHoopOn {
+                    EmptyView()
+                } else if !hoop.fits(width: size.width, height: size.height) {
+                    Label("Too big for this hoop. Scale the design down, pick a larger hoop, or turn on Split across several hoopings.",
+                          systemImage: "exclamationmark.triangle.fill")
                         .font(.caption)
                         .foregroundStyle(.red)
                 } else if !hoop.fitsUpright(width: size.width, height: size.height) {
@@ -118,6 +148,50 @@ struct EmbroideryExportView: View {
                 }
             }
             threadList(pattern)
+        }
+    }
+
+    /// The whole design with the hoopings over it, or one hooping's stitches in the hoop.
+    @ViewBuilder
+    private func multiHoopPreview(_ layout: MultiHoopLayout, plan: EmbroideryPlan) -> some View {
+        let sewn = layout.sewnHoopings
+        let shown = shownHooping.flatMap { i in sewn.first { $0.index == i } }
+        if let h = shown {
+            let turnedHoop = EmbroideryHoop(hoop.name, brand: hoop.brand, width: layout.hoopWidth + 2 * model.multiHoop.margin,
+                                            height: layout.hoopHeight + 2 * model.multiHoop.margin)
+            StitchPreview(pattern: MultiHoop.pattern(h, name: model.embroideryDesignName), hoop: turnedHoop)
+                .frame(width: 320, height: 290)
+        } else {
+            MultiHoopOverview(layout: layout, plan: plan)
+                .frame(width: 320, height: 290)
+        }
+        Picker("Show", selection: $shownHooping) {
+            Text("Whole design").tag(Int?.none)
+            ForEach(Array(sewn.enumerated()), id: \.element.index) { k, h in
+                Text("Hooping \(k + 1)").tag(Int?.some(h.index))
+            }
+        }
+        .labelsHidden()
+        .onChange(of: layout.count) { _, _ in shownHooping = nil }
+    }
+
+    @ViewBuilder
+    private func multiHoopSummary(_ layout: MultiHoopLayout) -> some View {
+        let sewn = layout.sewnHoopings
+        VStack(alignment: .leading, spacing: 2) {
+            Text("\(sewn.count) hooping\(sewn.count == 1 ? "" : "s") (\(layout.columns) × \(layout.rows))\(layout.turned ? ", hoop turned 90°" : "")")
+                .font(.callout.bold())
+            if sewn.count == 1 {
+                Text("The design fits one hooping, so there is nothing to split.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            if let h = shownHooping.flatMap({ i in sewn.first { $0.index == i } }) {
+                let p = MultiHoop.pattern(h, name: "")
+                Text("\(p.stitchCount) stitches, \(p.threads.count) colours (alignment marks and basting included)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
@@ -312,6 +386,91 @@ struct StitchPreview: View {
                 }
             }
             flush()
+        }
+    }
+}
+
+
+/// Overlap, margin, hoop direction and the alignment marks for splitting a design across hoopings.
+private struct MultiHoopSettings: View {
+    @EnvironmentObject var model: AppModel
+
+    var body: some View {
+        let o = $model.multiHoop
+        LabeledContent("Overlap (mm)") {
+            TextField("", value: o.overlap, format: .number.precision(.fractionLength(0...1))).frame(width: 70)
+        }
+        .help("How far neighbouring hoopings reach into each other. The seam runs down the middle.")
+        LabeledContent("Margin inside hoop (mm)") {
+            TextField("", value: o.margin, format: .number.precision(.fractionLength(0...1))).frame(width: 70)
+        }
+        .help("Keeps stitches this far in from the edge of the hoop's sewing area")
+        Picker("Hoop direction", selection: o.orientation) {
+            ForEach(HoopOrientation.allCases) { Text($0.title).tag($0) }
+        }
+        Toggle("Alignment marks", isOn: o.alignmentMarks)
+            .help("Small crosses in each overlap, sewn first in their own colour, to line up the next hooping")
+        if model.multiHoop.alignmentMarks {
+            LabeledContent("Mark size (mm)") {
+                TextField("", value: o.markSize, format: .number.precision(.fractionLength(0...1))).frame(width: 70)
+            }
+        }
+        Toggle("Baste each hooping", isOn: o.basting)
+            .help("A long running-stitch box around each hooping's area, sewn first, to hold fabric and stabiliser together")
+        Text("Shapes that fit in one hooping are sewn whole there; bigger ones are cut at the seams. Each part starts with its alignment crosses: in later hoopings, line the needle up with the crosses already sewn before sewing on.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+    }
+}
+
+/// The whole design in thread colours, with each hooping's area and number drawn over it.
+struct MultiHoopOverview: View {
+    let layout: MultiHoopLayout
+    let plan: EmbroideryPlan
+
+    var body: some View {
+        Canvas { ctx, size in
+            var all = layout.designBounds
+            for h in layout.hoopings { all = all.union(h.area) }
+            guard !all.isEmpty, all.width > 0, all.height > 0 else { return }
+            let scale = min(size.width / all.width, size.height / all.height) * 0.94
+            let ox = (size.width - all.width * scale) / 2 - all.minX * scale
+            let oy = (size.height - all.height * scale) / 2 - all.minY * scale
+            func pt(_ p: Vec2) -> CGPoint { CGPoint(x: ox + p.x * scale, y: oy + p.y * scale) }
+            func rect(_ r: Rect2) -> CGRect {
+                CGRect(x: ox + r.minX * scale, y: oy + r.minY * scale, width: r.width * scale, height: r.height * scale)
+            }
+
+            ctx.fill(Path(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: 8), with: .color(Color(white: 0.93)))
+            for block in plan.blocks {
+                var path = Path()
+                for run in block.runs where run.count >= 2 {
+                    path.move(to: pt(run[0]))
+                    for p in run.dropFirst() { path.addLine(to: pt(p)) }
+                }
+                ctx.stroke(path, with: .color(Color(thread: block.color)), lineWidth: 0.7)
+            }
+            let sewn = layout.sewnHoopings
+            for h in layout.hoopings {
+                let isSewn = sewn.contains { $0.index == h.index }
+                let r = rect(h.area)
+                ctx.fill(Path(r), with: .color(.accentColor.opacity(isSewn ? 0.05 : 0)))
+                ctx.stroke(Path(roundedRect: r, cornerRadius: 4), with: .color(isSewn ? .accentColor : .gray.opacity(0.5)),
+                           style: StrokeStyle(lineWidth: 1, dash: [5, 3]))
+                if let k = sewn.firstIndex(where: { $0.index == h.index }) {
+                    ctx.draw(Text("\(k + 1)").font(.system(size: 13, weight: .bold)).foregroundColor(.accentColor),
+                             at: CGPoint(x: r.minX + 10, y: r.minY + 10))
+                }
+                for m in h.marks {
+                    let c = pt(m), a: CGFloat = 4
+                    var cross = Path()
+                    cross.move(to: CGPoint(x: c.x - a, y: c.y))
+                    cross.addLine(to: CGPoint(x: c.x + a, y: c.y))
+                    cross.move(to: CGPoint(x: c.x, y: c.y - a))
+                    cross.addLine(to: CGPoint(x: c.x, y: c.y + a))
+                    ctx.stroke(cross, with: .color(Color(thread: MultiHoop.markColor)), lineWidth: 1.2)
+                }
+            }
         }
     }
 }

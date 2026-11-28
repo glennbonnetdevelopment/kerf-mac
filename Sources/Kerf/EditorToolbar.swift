@@ -84,6 +84,8 @@ struct EditorToolbar: View {
             Button { model.showRhinestones = true } label: { Label("Rhinestones", systemImage: "circle.grid.3x3.fill") }
                 .help("Lay rhinestones along and inside the selected shapes or text, and cut the template holes")
                 .disabled(model.rhinestoneTargets.isEmpty)
+            Button { model.showMonogram = true } label: { Label("Monogram", systemImage: "textformat.abc.dottedunderline") }
+                .help("Add a monogram from a template: classic, circle, diamond, vine wreath and more")
             Divider().frame(height: 22)
 
             colorSwatches
