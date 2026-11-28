@@ -59,6 +59,7 @@
 		80141C005A0395D8E73FC5AE /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81C6A183E1B0D5E30B61251C /* Document.swift */; };
 		13B3985D3122CBC310AF3941 /* Embroidery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A09A4573DE0FA2583AC705D8 /* Embroidery.swift */; };
 		D9AA76938F0F95FB82E8129F /* EmbroideryFormats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E6BF1284A98FC05B2B0A8FD /* EmbroideryFormats.swift */; };
+		9AF34E3125FB875944567127 /* EmbroideryPatterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F80F0BE0E7655F5F42F84CF /* EmbroideryPatterns.swift */; };
 		B7EB475A2BC47FA78E649FDE /* Freehand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20D75DACEE3597DA39FCBD5C /* Freehand.swift */; };
 		CB5DF4C92B7D89238618208F /* GRBLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */; };
 		9E1E7C74848252EBA2F98FE3 /* Generators.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA00D3AEA459E1003D3A8E03 /* Generators.swift */; };
@@ -87,6 +88,7 @@
 		93BF49C7874653269D9A6F99 /* StarterMaterials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5241C9D95C51B5B841046D27 /* StarterMaterials.swift */; };
 		6C0BEF973B7DEAD312D2C01D /* Weeding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390698DD051779D2D5215925 /* Weeding.swift */; };
 		4D91C8E4A7CDCF6975A441ED /* CameraTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8778141C1580672BFF2F6FA2 /* CameraTests.swift */; };
+		B8069BB6DBAB71F53C89C9AC /* EmbroideryPatternTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A54CE00DB8D52EC4C772CE /* EmbroideryPatternTests.swift */; };
 		0B543ACA72299A7B43F62D75 /* EmbroideryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */; };
 		0E80B7CC7F60ADBAC4E80E76 /* FreehandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64E347F90714F86D7645CF06 /* FreehandTests.swift */; };
 		8000ED24F3E9C86A9803077B /* HelpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B1A10E8B190F8C16BF835A /* HelpTests.swift */; };
@@ -191,6 +193,7 @@
 		81C6A183E1B0D5E30B61251C /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
 		A09A4573DE0FA2583AC705D8 /* Embroidery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Embroidery.swift; sourceTree = "<group>"; };
 		0E6BF1284A98FC05B2B0A8FD /* EmbroideryFormats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryFormats.swift; sourceTree = "<group>"; };
+		5F80F0BE0E7655F5F42F84CF /* EmbroideryPatterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryPatterns.swift; sourceTree = "<group>"; };
 		20D75DACEE3597DA39FCBD5C /* Freehand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Freehand.swift; sourceTree = "<group>"; };
 		AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRBLProtocol.swift; sourceTree = "<group>"; };
 		FA00D3AEA459E1003D3A8E03 /* Generators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Generators.swift; sourceTree = "<group>"; };
@@ -219,6 +222,7 @@
 		5241C9D95C51B5B841046D27 /* StarterMaterials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterMaterials.swift; sourceTree = "<group>"; };
 		390698DD051779D2D5215925 /* Weeding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Weeding.swift; sourceTree = "<group>"; };
 		8778141C1580672BFF2F6FA2 /* CameraTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraTests.swift; sourceTree = "<group>"; };
+		60A54CE00DB8D52EC4C772CE /* EmbroideryPatternTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryPatternTests.swift; sourceTree = "<group>"; };
 		23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryTests.swift; sourceTree = "<group>"; };
 		64E347F90714F86D7645CF06 /* FreehandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreehandTests.swift; sourceTree = "<group>"; };
 		F6B1A10E8B190F8C16BF835A /* HelpTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpTests.swift; sourceTree = "<group>"; };
@@ -364,6 +368,7 @@
 				81C6A183E1B0D5E30B61251C /* Document.swift */,
 				A09A4573DE0FA2583AC705D8 /* Embroidery.swift */,
 				0E6BF1284A98FC05B2B0A8FD /* EmbroideryFormats.swift */,
+				5F80F0BE0E7655F5F42F84CF /* EmbroideryPatterns.swift */,
 				20D75DACEE3597DA39FCBD5C /* Freehand.swift */,
 				AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */,
 				FA00D3AEA459E1003D3A8E03 /* Generators.swift */,
@@ -400,6 +405,7 @@
 			isa = PBXGroup;
 			children = (
 				8778141C1580672BFF2F6FA2 /* CameraTests.swift */,
+				60A54CE00DB8D52EC4C772CE /* EmbroideryPatternTests.swift */,
 				23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */,
 				64E347F90714F86D7645CF06 /* FreehandTests.swift */,
 				F6B1A10E8B190F8C16BF835A /* HelpTests.swift */,
@@ -600,6 +606,7 @@
 				80141C005A0395D8E73FC5AE /* Document.swift in Sources */,
 				13B3985D3122CBC310AF3941 /* Embroidery.swift in Sources */,
 				D9AA76938F0F95FB82E8129F /* EmbroideryFormats.swift in Sources */,
+				9AF34E3125FB875944567127 /* EmbroideryPatterns.swift in Sources */,
 				B7EB475A2BC47FA78E649FDE /* Freehand.swift in Sources */,
 				CB5DF4C92B7D89238618208F /* GRBLProtocol.swift in Sources */,
 				9E1E7C74848252EBA2F98FE3 /* Generators.swift in Sources */,
@@ -635,6 +642,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4D91C8E4A7CDCF6975A441ED /* CameraTests.swift in Sources */,
+				B8069BB6DBAB71F53C89C9AC /* EmbroideryPatternTests.swift in Sources */,
 				0B543ACA72299A7B43F62D75 /* EmbroideryTests.swift in Sources */,
 				0E80B7CC7F60ADBAC4E80E76 /* FreehandTests.swift in Sources */,
 				8000ED24F3E9C86A9803077B /* HelpTests.swift in Sources */,
