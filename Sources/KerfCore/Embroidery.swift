@@ -52,10 +52,20 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
     public var pullCompensation: Double
     /// Satin columns: strokes wider than this are filled instead, since long satin stitches snag.
     public var maxColumnWidth: Double
+    /// Fill: the design sewn inside shapes (plain tatami, waves, open lines, stars and other motifs).
+    public var fillPattern: FillPattern
+    /// Lines: a decorative style for running, triple and satin lines (rope, zig-zag, chain and so on).
+    public var lineStyle: LineStyle
+    /// Patterned fills: the size of each motif, or the length of one wave.
+    public var patternSize: Double
+    /// Patterned fills: the gap between motifs, or between open lines.
+    public var patternSpacing: Double
 
     public init(stitchType: StitchType = .running, stitchLength: Double = 2.5, satinWidth: Double = 3,
                 density: Double = 0.4, fillAngle: Double = 45, fillStitchLength: Double = 3.5,
-                underlay: Bool = true, pullCompensation: Double = 0.2, maxColumnWidth: Double = 7) {
+                underlay: Bool = true, pullCompensation: Double = 0.2, maxColumnWidth: Double = 7,
+                fillPattern: FillPattern = .tatami, lineStyle: LineStyle = .plain,
+                patternSize: Double = 6, patternSpacing: Double = 2) {
         self.stitchType = stitchType
         self.stitchLength = stitchLength
         self.satinWidth = satinWidth
@@ -65,10 +75,15 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
         self.underlay = underlay
         self.pullCompensation = pullCompensation
         self.maxColumnWidth = maxColumnWidth
+        self.fillPattern = fillPattern
+        self.lineStyle = lineStyle
+        self.patternSize = patternSize
+        self.patternSpacing = patternSpacing
     }
 
     private enum CodingKeys: String, CodingKey {
         case stitchType, stitchLength, satinWidth, density, fillAngle, fillStitchLength, underlay, pullCompensation, maxColumnWidth
+        case fillPattern, lineStyle, patternSize, patternSpacing
     }
 
     public init(from decoder: Decoder) throws {
@@ -83,6 +98,11 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
         underlay = try c.decodeIfPresent(Bool.self, forKey: .underlay) ?? d.underlay
         pullCompensation = try c.decodeIfPresent(Double.self, forKey: .pullCompensation) ?? d.pullCompensation
         maxColumnWidth = try c.decodeIfPresent(Double.self, forKey: .maxColumnWidth) ?? d.maxColumnWidth
+        // Unknown names (from a newer version) fall back to the plain stitch.
+        fillPattern = (try? c.decodeIfPresent(FillPattern.self, forKey: .fillPattern)) ?? d.fillPattern
+        lineStyle = (try? c.decodeIfPresent(LineStyle.self, forKey: .lineStyle)) ?? d.lineStyle
+        patternSize = try c.decodeIfPresent(Double.self, forKey: .patternSize) ?? d.patternSize
+        patternSpacing = try c.decodeIfPresent(Double.self, forKey: .patternSpacing) ?? d.patternSpacing
     }
 
     /// Settings a layer starts with: automatic digitizing.
@@ -103,6 +123,8 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
         s.fillStitchLength = clamp(fillStitchLength, 1, 7, 3.5)
         s.pullCompensation = clamp(pullCompensation, 0, 2, 0.2)
         s.maxColumnWidth = clamp(maxColumnWidth, 1, 12, 7)
+        s.patternSize = clamp(patternSize, 2, 40, 6)
+        s.patternSpacing = clamp(patternSpacing, 0.5, 20, 2)
         return s
     }
 }
@@ -115,7 +137,7 @@ public extension Layer {
     }
 
     /// Whether the layer is sewn when exporting embroidery (print-only and image layers are not).
-    var isEmbroidered: Bool { enabled && mode != .print && mode != .image }
+    var isEmbroidered: Bool { enabled && output != .machines && mode != .print && mode != .image }
 }
 
 // MARK: - Plan
@@ -193,6 +215,7 @@ public enum EmbroideryPlanner {
     public static func plan(_ doc: KerfDocument, shapeIDs: Set<UUID>? = nil, groupColors: Bool = true,
                             optimizeOrder: Bool = true) -> EmbroideryPlan {
         var blocks: [StitchBlock] = []
+        var stops: Set<Int> = []
         var cursor = Vec2.zero
         var started = false
         var source = doc
@@ -211,7 +234,8 @@ public enum EmbroideryPlanner {
             let box = block.bounds
             var target: Int?
             var j = blocks.count - 1
-            while j >= 0 {
+            // A stop layer is sewn on its own, and nothing moves past it.
+            while j >= 0 && !layer.embroideryStop && !stops.contains(j) {
                 if blocks[j].color == block.color { target = j; break }
                 // Only the block right before may be joined unless grouping; never move past an overlapping one.
                 if !groupColors || blocks[j].bounds.intersects(box) { break }
@@ -220,6 +244,7 @@ public enum EmbroideryPlanner {
             if let t = target {
                 blocks[t].runs += runs
             } else {
+                if layer.embroideryStop { stops.insert(blocks.count) }
                 blocks.append(block)
             }
         }
@@ -291,6 +316,12 @@ public enum EmbroideryPlanner {
         case .running, .bean, .satin:
             let polys = shapes.flatMap(\.placedPaths).map { $0.deduplicated() }.filter { $0.points.count >= 2 }
             for path in Planner.order(polys, from: cursor, innerFirst: true) {
+                if s.lineStyle != .plain {
+                    runs += styledLine(path, style: s.lineStyle, width: s.satinWidth, settings: s,
+                                       triple: s.stitchType == .bean)
+                    if let last = runs.last?.last { cursor = last }
+                    continue
+                }
                 switch s.stitchType {
                 case .bean:
                     runs.append(bean(running(path, length: s.stitchLength)))
@@ -313,6 +344,12 @@ public enum EmbroideryPlanner {
                     let cols = satinColumns(polys, settings: s, from: cursor)
                     runs += cols
                     if let last = cols.last?.last { cursor = last }
+                    continue
+                }
+                if s.fillPattern != .tatami {
+                    let sewn = patternFill(polys, settings: s, from: cursor)
+                    runs += sewn
+                    if let last = sewn.last?.last { cursor = last }
                     continue
                 }
                 if s.underlay {
@@ -362,7 +399,10 @@ public enum EmbroideryPlanner {
         }
         for (idx, pts) in Planner.orderIndexed(lines.map(\.path), from: cursor, innerFirst: false) {
             let w = lines[idx].width
-            if w >= 1.2 {
+            if s.lineStyle != .plain {
+                runs += styledLine(pts, style: s.lineStyle, width: w >= 1.2 ? min(w, 8) : s.satinWidth, settings: s,
+                                   triple: w >= 0.6 && w < 1.2)
+            } else if w >= 1.2 {
                 var ss = s
                 ss.satinWidth = min(w, 8)
                 runs += satin(pts, settings: ss)
@@ -473,11 +513,26 @@ public enum EmbroideryPlanner {
     /// Tatami fill of closed outlines (even-odd, so holes stay open). Rows are `spacing` apart at `angle`
     /// degrees, sewn back and forth with staggered stitches. `extend` lengthens (or with a negative value
     /// shortens) every row at both ends.
+    ///
+    /// With `warp`, rows bend: a row at height y follows y + warp(x) in the rows' own frame (for waves and
+    /// zig-zags). `stagger: false` puts every row's needle holes on the same grid instead of the tatami brick.
     public static func fill(_ polys: [Polyline], angle: Double, spacing: Double, stitchLength: Double,
-                            extend: Double, from start: Vec2) -> [[Vec2]] {
+                            extend: Double, from start: Vec2, warp: ((Double) -> Double)? = nil,
+                            stagger: Bool = true) -> [[Vec2]] {
         guard spacing > 0.05, stitchLength > 0.2 else { return [] }
         let rad = angle * .pi / 180
-        let rotated = polys.map { Polyline($0.points.map { $0.rotated(by: -rad) }, closed: true) }
+        var rotated = polys.map { Polyline($0.points.map { $0.rotated(by: -rad) }, closed: true) }
+        if let warp {
+            // Straight rows in the warped frame are bent rows on the design; edges are split so the warp stays exact.
+            rotated = rotated.map { poly in
+                var pts: [Vec2] = []
+                for i in poly.points.indices {
+                    let a = poly.points[i], c = poly.points[(i + 1) % poly.points.count]
+                    pts += split(from: a, to: c, max: 0.4).dropLast()
+                }
+                return Polyline(pts.map { Vec2($0.x, $0.y - warp($0.x)) }, closed: true)
+            }
+        }
         let b = rotated.bounds
         guard !b.isEmpty else { return [] }
 
@@ -537,6 +592,7 @@ public enum EmbroideryPlanner {
         // Sew regions nearest-first, entering each at whichever corner is closest.
         var runs: [[Vec2]] = []
         var pos = start.rotated(by: -rad)
+        if let warp { pos.y -= warp(pos.x) }
         while !regions.isEmpty {
             var best = (index: 0, reverse: false, leftFirst: true, dist: Double.infinity)
             for (i, reg) in regions.enumerated() {
@@ -553,7 +609,7 @@ public enum EmbroideryPlanner {
             var leftToRight = best.leftFirst
             for row in reg {
                 let from = leftToRight ? row.x0 : row.x1, to = leftToRight ? row.x1 : row.x0
-                let pts = tatamiRow(from: from, to: to, y: row.y, row: row.row, length: stitchLength)
+                let pts = tatamiRow(from: from, to: to, y: row.y, row: stagger ? row.row : 0, length: stitchLength)
                 if let last = run.last, let first = pts.first {
                     // Connect along the edge when the link stays inside the shape; otherwise start a new run.
                     let link = [0.25, 0.5, 0.75].map { last + (first - last) * $0 }
@@ -572,6 +628,7 @@ public enum EmbroideryPlanner {
             if !run.isEmpty { runs.append(run) }
             pos = runs.last?.last ?? pos
         }
+        if let warp { runs = runs.map { $0.map { Vec2($0.x, $0.y + warp($0.x)) } } }
         return runs.map { $0.map { $0.rotated(by: rad) } }
     }
 

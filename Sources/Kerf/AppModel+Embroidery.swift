@@ -11,15 +11,68 @@ extension AppModel {
     var embroideryDesignName: String { fileURL?.deletingPathExtension().lastPathComponent ?? "Design" }
 
     func embroideryPattern(groupColors: Bool = true, optimizeOrder: Bool = true) -> StitchPattern {
+        embroideryPlanAndPattern(groupColors: groupColors, optimizeOrder: optimizeOrder).pattern
+    }
+
+    /// The design's stitches on the bed (mm) and as a machine pattern centred on them.
+    func embroideryPlanAndPattern(groupColors: Bool = true, optimizeOrder: Bool = true) -> (plan: EmbroideryPlan, pattern: StitchPattern) {
         let ids = embroideryShapeIDs, name = embroideryDesignName
         if let c = embroideryCache, c.groupColors == groupColors, c.optimizeOrder == optimizeOrder, c.shapes == ids,
            c.name == name, c.document == document {
-            return c.pattern
+            return (c.plan, c.pattern)
         }
         let plan = EmbroideryPlanner.plan(document, shapeIDs: ids, groupColors: groupColors, optimizeOrder: optimizeOrder)
         let pattern = StitchPattern(plan: plan, name: name)
-        embroideryCache = (document, ids, groupColors, optimizeOrder, name, pattern)
-        return pattern
+        embroideryCache = (document, ids, groupColors, optimizeOrder, name, plan, pattern)
+        return (plan, pattern)
+    }
+
+    nonisolated static func loadMultiHoop() -> MultiHoopOptions {
+        guard let data = UserDefaults.standard.data(forKey: "multiHoop"),
+              let o = try? JSONDecoder().decode(MultiHoopOptions.self, from: data) else { return MultiHoopOptions() }
+        return o
+    }
+
+    /// File names for each sewn hooping, keyed by hooping index: "Design 1 of 4.pes" and so on.
+    func multiHoopFileNames(_ layout: MultiHoopLayout, format: EmbroideryFormat) -> [Int: String] {
+        let sewn = layout.sewnHoopings
+        var names: [Int: String] = [:]
+        for (k, h) in sewn.enumerated() {
+            names[h.index] = "\(embroideryDesignName) \(k + 1) of \(sewn.count).\(format.fileExtension)"
+        }
+        return names
+    }
+
+    /// Asks for a folder and writes one file per hooping plus a text guide. Returns true when written.
+    @discardableResult
+    func exportMultiHoop(_ layout: MultiHoopLayout, format: EmbroideryFormat, hoop: EmbroideryHoop) -> Bool {
+        let sewn = layout.sewnHoopings
+        guard !sewn.isEmpty else {
+            alertMessage = "Nothing to stitch: add shapes to an enabled layer first."
+            return false
+        }
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.prompt = "Export Here"
+        panel.message = "Choose a folder for the \(sewn.count) hooping files and the hooping guide."
+        guard panel.runModal() == .OK, let folder = panel.url else { return false }
+        let names = multiHoopFileNames(layout, format: format)
+        do {
+            for (k, h) in sewn.enumerated() {
+                guard let file = names[h.index] else { continue }
+                let pattern = MultiHoop.pattern(h, name: "\(embroideryDesignName) \(k + 1)")
+                try format.data(pattern).write(to: folder.appendingPathComponent(file), options: .atomic)
+            }
+            let guide = MultiHoop.guide(layout, name: embroideryDesignName, fileNames: names, hoop: hoop, options: multiHoop)
+            try guide.write(to: folder.appendingPathComponent("\(embroideryDesignName) hooping guide.txt"),
+                            atomically: true, encoding: .utf8)
+            return true
+        } catch {
+            alertMessage = "Could not export: \(error.localizedDescription)"
+            return false
+        }
     }
 
     /// The shapes of a layer that embroidery covers, in document (sewing) order.

@@ -97,7 +97,10 @@ public enum HelpLibrary {
         gccOpticalMarks,
         manualRegistration,
         rhinestones,
+        monograms,
         embroidery,
+        patches,
+        multiHooping,
         devices,
         previewExport,
         shortcuts,
@@ -518,6 +521,9 @@ public enum HelpLibrary {
                 "**Satin border** for smooth edges, **Fill (tatami)** for areas.",
                 "**Satin columns (lettering)** for text and narrow strokes.",
             ]),
+            .heading("Fill patterns and line styles"),
+            .text("With **Fill**, pick a **Pattern**: plain tatami, dense **Waves** or **Zig-zag** rows, open **Lines**, **Crosshatch** or **Diamond lattice**, or rows of **Stars**, **Hearts**, **Diamonds**, **Circles** or **Flowers**. Set the motif size and gap; only whole motifs that fit inside the shape are sewn. A sample of the pattern is shown under the menu."),
+            .text("Running, triple, satin and Auto lines take a **Line style**: **Rope**, **Zig-zag**, **Wave**, **Chain**, **Blanket (E stitch)** or **Cross stitch**, with a style width. With triple stitch each stitch of the style is sewn three times."),
             .text("**Underlay** stitches go down first to stabilise the fabric. **Group same colours** sews layers of the same thread together when nothing in between overlaps, for fewer thread changes."),
             .heading("Sewing order"),
             .text("**Optimize order** sews similar shapes together, nearest first. Turn it off to set the order yourself with the up and down arrows. Reorder whole colours in the Layers panel."),
@@ -525,6 +531,77 @@ public enum HelpLibrary {
             .text("Click **Stitches** in the toolbar, or choose **View › Embroidery Stitch Preview** (⌥⌘T), to see the design as it will sew: every stitch drawn in its thread colour with shading, on the workpiece's fabric colour. Zoom in to see single stitches and needle holes. You can keep moving and editing shapes; the stitches update a moment after you stop. Turn it off to go back to outlines."),
             .heading("Hand tweaking"),
             .text("Select a shape and, in **Arrange › Embroidery**, tick **Own stitch settings** to sew it differently from its layer. **Edit stitches…** opens the stitch editor, where you can move, add and delete stitch points, split a run with a trim and jump, or join runs. Saved stitches sew exactly as edited; **Discard hand edits** goes back to automatic stitches."),
+        ])
+
+    static let patches = HelpTopic(
+        id: "patches", title: "Embroidered patches", symbol: "shield.lefthalf.filled",
+        summary: "Making sew-on patches: shape, satin border, fabric or fill background, and cut lines.",
+        blocks: [
+            .text("**Patch** (above the canvas, or **Arrange › Make Embroidered Patch…**) builds a standalone patch around the selected design, to sew or iron on later. Each part goes on a layer of its own, in sewing order."),
+            .steps([
+                "Select the design (text, shapes or an imported SVG) and click **Patch**.",
+                "Pick a **Shape**: circle, oval, rounded rectangle, rectangle, shield, hexagon, or **Follow the design** for a die-cut look. It sizes itself around the design with the space you set, or turn that off and type the finished size.",
+                "Choose the **Border**: a satin edge (the merrowed look) or a triple stitch line, and its thread.",
+                "Choose the **Background**: fabric (twill appliqué), a stitched fill, or none.",
+                "Add **Cut lines** if you want the laser or cutter to cut the fabric piece or cut the patch out, then click **Add Patch** and export from **File › Export Embroidery**.",
+            ]),
+            .heading("Sewing order"),
+            .bullets([
+                "**Fabric**: a placement line, then the machine stops so you can lay the twill over it. A light zig-zag tackdown follows, and the machine stops again so you can trim the fabric close to it.",
+                "**Fill**: tatami fill covers the patch and runs a little under the border, so no gap shows.",
+                "Your design sews next, then the border last, over every raw edge.",
+                "The stops show as extra colour changes on the machine. Placement and tackdown are sewn on their own even when they share a thread with the design.",
+            ]),
+            .heading("Cut lines"),
+            .bullets([
+                "**Cut the fabric piece to shape** cuts the twill a little bigger than the tackdown, well inside the satin. Cut it first, lay it on the placement line, and skip the trimming.",
+                "**Cut out the finished patch** adds a line just outside the border to cut the patch free from the stabiliser or fabric after sewing.",
+                "Cut lines go on layers for the current machine and are never sewn. Sewing layers are set to **Embroidery only**, so the laser or cutter skips them. **Keep the design off the laser and cutter** does the same for your design's layers.",
+            ]),
+            .tip("Use a firm cut-away or tear-away stabiliser, and for iron-on patches add heat-activated adhesive film to the back after sewing."),
+            .warning("Only laser-cut fabrics that are safe to laser, such as polyester twill. Don't laser vinyl (PVC) or fabrics with PVC backing."),
+            .heading("Layer settings"),
+            .text("Any layer can be set to **Used for: Embroidery only** or **Machine only (not sewn)** in the Layers panel, and **Stop the embroidery machine before and after** gives your own appliqué steps a stop."),
+        ])
+
+    static let monograms = HelpTopic(
+        id: "monograms", title: "Monograms", symbol: "textformat.abc.dottedunderline",
+        summary: "Initials from templates: classic, circle, diamond, vine wreath, scalloped and arched name.",
+        blocks: [
+            .text("Click **Monogram** above the canvas, or choose **Arrange › Monogram…**, to set initials in a ready-made style and add them to the design. They work for embroidery, vinyl and laser."),
+            .steps([
+                "Pick a template. The thumbnails show your own initials.",
+                "Type the initials. For a classic monogram the traditional order is first name, LAST name (in the larger middle), middle name.",
+                "Change the letter style, frame, font, width and frame band if you like, then click **Add Monogram**.",
+            ]),
+            .heading("Letter styles"),
+            .bullets([
+                "**Classic**: three initials, the middle one larger. **Side letters** sets how big the outer two are.",
+                "**Three in a row**: three initials the same size.",
+                "**Circle letters** and **Diamond letters**: the initials are stretched together to fill a circle or a diamond, the outer letters following its edge.",
+                "**Single initial**, and **Name over initial** with the name arched across the top.",
+            ]),
+            .heading("Frames"),
+            .text("Ring, double ring, diamond, rounded square, scalloped and vine wreath. Frames are bands with a width, so they sew as satin and cut as a weedable outline. The vine's stem and leaves are welded into one outline."),
+            .tip("The letters and the frame go on their own layers (**Monogram letters** and **Monogram frame**) set to **Auto (digitize)**, so they can be sewn in different thread colours. Classic, block, single and arched letters stay editable text; circle and diamond letters become outlines."),
+        ])
+
+    static let multiHooping = HelpTopic(
+        id: "multi-hooping", title: "Multi-hooping", symbol: "square.split.2x2",
+        summary: "Sewing a design bigger than the hoop in several hoopings, lined up with alignment marks.",
+        blocks: [
+            .text("In **File › Export Embroidery…** (⌥⌘E), turn on **Split across several hoopings** under **Multi-hooping**. The design is divided into a grid of hoopings that overlap a little, and each one is exported as its own file."),
+            .steps([
+                "Choose the format and hoop, then turn on **Split across several hoopings**. The preview shows each hooping's area and number over the design.",
+                "Set the **Overlap** (how far neighbouring hoopings reach into each other) and the **Margin** kept clear inside the hoop. **Hoop direction** can use the hoop upright, turned 90°, or whichever needs fewer hoopings.",
+                "Use **Show** to look at one hooping's stitches in the hoop.",
+                "Click **Export Files…** and choose a folder. You get one file per hooping (\"Design 1 of 4.pes\" and so on) and a hooping guide listing where each hoop centre sits on the design.",
+            ]),
+            .heading("How shapes are split"),
+            .text("A shape that fits inside one hooping is sewn whole in it. Bigger shapes are cut at the seam down the middle of each overlap, each part reaching a stitch past the seam so the parts meet."),
+            .heading("Alignment marks"),
+            .text("With **Alignment marks** on, every hooping starts with small crosses in their own colour, two in each overlap it shares with a neighbour. The first hooping sews them on the fabric. When you re-hoop for the next part, move the needle over the crosses already sewn (with the machine's layout or jog keys) and nudge the design until it lands on them, then sew on. Pick the crosses out at the end."),
+            .tip("**Baste each hooping** sews a long running-stitch box around the hooping's area first, to hold the fabric to the stabiliser. Use a stabiliser large enough for the whole design."),
         ])
 
     static let devices = HelpTopic(

@@ -14,8 +14,10 @@
 		A7074BFBE518702B995B1006 /* AppModel+ManualRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DA2412241B16EEF2CD0F040 /* AppModel+ManualRegistration.swift */; };
 		4D237E70D004B46A9AF04A4D /* AppModel+Materials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */; };
 		9CA40CEB1150ECEB91DE8E0E /* AppModel+Mirror.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87545F165D19018DFCB0BAFA /* AppModel+Mirror.swift */; };
+		76B8005A73998DF76D573DE7 /* AppModel+Monogram.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2FFE0C09677FAE2906F33D2 /* AppModel+Monogram.swift */; };
 		09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */; };
 		812D14FCFA6E281651D60078 /* AppModel+Panels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174199DFABED1B1A9119F44A /* AppModel+Panels.swift */; };
+		B972B8CE89D0548DA963E398 /* AppModel+Patch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 480897EE86AB2B0F4C05D3BC /* AppModel+Patch.swift */; };
 		3871119F34138F354675E701 /* AppModel+Print.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DF0E9C0BE0F58E441FB47D7 /* AppModel+Print.swift */; };
 		8DD6CC08722FCCD2B64D7E64 /* AppModel+Rhinestones.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F4A1ACC12482326FDFBBACD /* AppModel+Rhinestones.swift */; };
 		38D649F1F3126A696B8CDFBA /* AppModel+StitchPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E627F7D742EF4CFAC9359FC /* AppModel+StitchPreview.swift */; };
@@ -40,7 +42,9 @@
 		59B48F3495E1625031C3362A /* MaterialLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */; };
 		4F3B7E4FF0A12F0D9B0DDCEF /* MaterialPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = C314F862A43F8498C325A37A /* MaterialPreview.swift */; };
 		F765E64EED6C3083AA8CF0CA /* MirrorOutputPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653C322525E3193AF8D5325D /* MirrorOutputPicker.swift */; };
+		1CBFC59052168A54830A9487 /* MonogramView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DCC24D963FD8113F4CE63FF /* MonogramView.swift */; };
 		39390DF5DCC1043EDC3D1FF6 /* PanelSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D7656A4D4D8BCCFB3746A89 /* PanelSettings.swift */; };
+		134AB2ADA4FC1E17742669BF /* PatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFF2F4A9B62FD4FE26A083B /* PatchView.swift */; };
 		5E097F2BB69ED276741D28A5 /* PrintPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5275DC37D334BB468FAE8C /* PrintPreviewView.swift */; };
 		7C40AA3F2B4F02E4D050EF47 /* RhinestoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004A9381EA56EC12F851590F /* RhinestoneView.swift */; };
 		EF8F4E75A41DCD59C40DC3AA /* ShapeStyleSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */; };
@@ -57,6 +61,7 @@
 		80141C005A0395D8E73FC5AE /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81C6A183E1B0D5E30B61251C /* Document.swift */; };
 		13B3985D3122CBC310AF3941 /* Embroidery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A09A4573DE0FA2583AC705D8 /* Embroidery.swift */; };
 		D9AA76938F0F95FB82E8129F /* EmbroideryFormats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E6BF1284A98FC05B2B0A8FD /* EmbroideryFormats.swift */; };
+		9AF34E3125FB875944567127 /* EmbroideryPatterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F80F0BE0E7655F5F42F84CF /* EmbroideryPatterns.swift */; };
 		B7EB475A2BC47FA78E649FDE /* Freehand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20D75DACEE3597DA39FCBD5C /* Freehand.swift */; };
 		CB5DF4C92B7D89238618208F /* GRBLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */; };
 		9E1E7C74848252EBA2F98FE3 /* Generators.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA00D3AEA459E1003D3A8E03 /* Generators.swift */; };
@@ -67,8 +72,11 @@
 		7CCB44524392862928918E5D /* MaterialColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 492CFAA587BEF86D363F9EC5 /* MaterialColors.swift */; };
 		6DC8D0E6C7C45753D94F1CAA /* MaterialLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B52EDCC1E37978B1DA777BA /* MaterialLibrary.swift */; };
 		BB2C4CFE8BFC425AC035C57C /* MillSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30BBBF1F89B105465D349229 /* MillSimulator.swift */; };
+		863663127E412BEDFB1185D1 /* Monogram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AAD1ED5261D978DEE66421E /* Monogram.swift */; };
+		4AB89F040E6699F811A09DD7 /* MultiHoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9C9B5DAB49A905BC15B0B2 /* MultiHoop.swift */; };
 		658D37C05D4AC167075F61C1 /* OutputMirror.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EF5EF79DBC93F1BFC27DC54 /* OutputMirror.swift */; };
 		DECBAE525F4265D971C65287 /* Panels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F159CD3136830C3B97051752 /* Panels.swift */; };
+		C5A152BBAF34E5E092B7F0B0 /* Patch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19428E51D7A7E78B01E54EDD /* Patch.swift */; };
 		B906C86C1DACE8F4A562B1DF /* PathText.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA5602941646C375BA84D3A2 /* PathText.swift */; };
 		3E0C57B0DC2557B9CE5B00A4 /* Planner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0723E6676B095D4FE0AB26 /* Planner.swift */; };
 		B784B3E7DF3FD2A12DF356BB /* PrintAndCut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5EABADEF8C658BBB6ABD71 /* PrintAndCut.swift */; };
@@ -84,14 +92,18 @@
 		93BF49C7874653269D9A6F99 /* StarterMaterials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5241C9D95C51B5B841046D27 /* StarterMaterials.swift */; };
 		6C0BEF973B7DEAD312D2C01D /* Weeding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390698DD051779D2D5215925 /* Weeding.swift */; };
 		4D91C8E4A7CDCF6975A441ED /* CameraTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8778141C1580672BFF2F6FA2 /* CameraTests.swift */; };
+		B8069BB6DBAB71F53C89C9AC /* EmbroideryPatternTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A54CE00DB8D52EC4C772CE /* EmbroideryPatternTests.swift */; };
 		0B543ACA72299A7B43F62D75 /* EmbroideryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */; };
 		0E80B7CC7F60ADBAC4E80E76 /* FreehandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64E347F90714F86D7645CF06 /* FreehandTests.swift */; };
 		8000ED24F3E9C86A9803077B /* HelpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B1A10E8B190F8C16BF835A /* HelpTests.swift */; };
 		54A8C95104371CFA19F6E6DA /* HoldingTabsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6339144B08447B305B34F59D /* HoldingTabsTests.swift */; };
 		C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 125BC4804EAD037CDE428879 /* KerfCoreTests.swift */; };
 		00E4E4B3C556345D1BE31136 /* ManualRegistrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5954E8821B26F1CD11331757 /* ManualRegistrationTests.swift */; };
+		F8C7987EBF18E28F1B8D9BBA /* MonogramTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33689A54BA2C7C29CB4F8EF1 /* MonogramTests.swift */; };
+		B3BD105F0798E44BCAE969E4 /* MultiHoopTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C1CA5214FAFA4BD1762C40E /* MultiHoopTests.swift */; };
 		D67C569E491C5CF56FF144C5 /* OutputMirrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 691DE43C7B283D21C7703A59 /* OutputMirrorTests.swift */; };
 		E5ACF630F56D801801752D6E /* PanelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC0E3F341D22FD957514AE7 /* PanelsTests.swift */; };
+		FD0D194FB21C2A75E99F3FA4 /* PatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F96AA7FEBD2D6BB0F683E4B /* PatchTests.swift */; };
 		581B9675F489881985235478 /* PrintAndCutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */; };
 		E1CDD52747690D1CFEE8DB13 /* RhinestoneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D11B2E9DA0E56CAC6296E9 /* RhinestoneTests.swift */; };
 		21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */; };
@@ -142,8 +154,10 @@
 		6DA2412241B16EEF2CD0F040 /* AppModel+ManualRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+ManualRegistration.swift"; sourceTree = "<group>"; };
 		113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Materials.swift"; sourceTree = "<group>"; };
 		87545F165D19018DFCB0BAFA /* AppModel+Mirror.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Mirror.swift"; sourceTree = "<group>"; };
+		D2FFE0C09677FAE2906F33D2 /* AppModel+Monogram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Monogram.swift"; sourceTree = "<group>"; };
 		D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Nodes.swift"; sourceTree = "<group>"; };
 		174199DFABED1B1A9119F44A /* AppModel+Panels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Panels.swift"; sourceTree = "<group>"; };
+		480897EE86AB2B0F4C05D3BC /* AppModel+Patch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Patch.swift"; sourceTree = "<group>"; };
 		9DF0E9C0BE0F58E441FB47D7 /* AppModel+Print.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Print.swift"; sourceTree = "<group>"; };
 		4F4A1ACC12482326FDFBBACD /* AppModel+Rhinestones.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Rhinestones.swift"; sourceTree = "<group>"; };
 		3E627F7D742EF4CFAC9359FC /* AppModel+StitchPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+StitchPreview.swift"; sourceTree = "<group>"; };
@@ -168,7 +182,9 @@
 		4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialLibraryView.swift; sourceTree = "<group>"; };
 		C314F862A43F8498C325A37A /* MaterialPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialPreview.swift; sourceTree = "<group>"; };
 		653C322525E3193AF8D5325D /* MirrorOutputPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorOutputPicker.swift; sourceTree = "<group>"; };
+		5DCC24D963FD8113F4CE63FF /* MonogramView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonogramView.swift; sourceTree = "<group>"; };
 		4D7656A4D4D8BCCFB3746A89 /* PanelSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelSettings.swift; sourceTree = "<group>"; };
+		4EFF2F4A9B62FD4FE26A083B /* PatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchView.swift; sourceTree = "<group>"; };
 		DF5275DC37D334BB468FAE8C /* PrintPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrintPreviewView.swift; sourceTree = "<group>"; };
 		004A9381EA56EC12F851590F /* RhinestoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhinestoneView.swift; sourceTree = "<group>"; };
 		F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyleSection.swift; sourceTree = "<group>"; };
@@ -185,6 +201,7 @@
 		81C6A183E1B0D5E30B61251C /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
 		A09A4573DE0FA2583AC705D8 /* Embroidery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Embroidery.swift; sourceTree = "<group>"; };
 		0E6BF1284A98FC05B2B0A8FD /* EmbroideryFormats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryFormats.swift; sourceTree = "<group>"; };
+		5F80F0BE0E7655F5F42F84CF /* EmbroideryPatterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryPatterns.swift; sourceTree = "<group>"; };
 		20D75DACEE3597DA39FCBD5C /* Freehand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Freehand.swift; sourceTree = "<group>"; };
 		AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRBLProtocol.swift; sourceTree = "<group>"; };
 		FA00D3AEA459E1003D3A8E03 /* Generators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Generators.swift; sourceTree = "<group>"; };
@@ -195,8 +212,11 @@
 		492CFAA587BEF86D363F9EC5 /* MaterialColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialColors.swift; sourceTree = "<group>"; };
 		8B52EDCC1E37978B1DA777BA /* MaterialLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialLibrary.swift; sourceTree = "<group>"; };
 		30BBBF1F89B105465D349229 /* MillSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MillSimulator.swift; sourceTree = "<group>"; };
+		3AAD1ED5261D978DEE66421E /* Monogram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Monogram.swift; sourceTree = "<group>"; };
+		6B9C9B5DAB49A905BC15B0B2 /* MultiHoop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiHoop.swift; sourceTree = "<group>"; };
 		7EF5EF79DBC93F1BFC27DC54 /* OutputMirror.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMirror.swift; sourceTree = "<group>"; };
 		F159CD3136830C3B97051752 /* Panels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Panels.swift; sourceTree = "<group>"; };
+		19428E51D7A7E78B01E54EDD /* Patch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Patch.swift; sourceTree = "<group>"; };
 		FA5602941646C375BA84D3A2 /* PathText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathText.swift; sourceTree = "<group>"; };
 		BB0723E6676B095D4FE0AB26 /* Planner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Planner.swift; sourceTree = "<group>"; };
 		7E5EABADEF8C658BBB6ABD71 /* PrintAndCut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrintAndCut.swift; sourceTree = "<group>"; };
@@ -212,14 +232,18 @@
 		5241C9D95C51B5B841046D27 /* StarterMaterials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterMaterials.swift; sourceTree = "<group>"; };
 		390698DD051779D2D5215925 /* Weeding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Weeding.swift; sourceTree = "<group>"; };
 		8778141C1580672BFF2F6FA2 /* CameraTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraTests.swift; sourceTree = "<group>"; };
+		60A54CE00DB8D52EC4C772CE /* EmbroideryPatternTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryPatternTests.swift; sourceTree = "<group>"; };
 		23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbroideryTests.swift; sourceTree = "<group>"; };
 		64E347F90714F86D7645CF06 /* FreehandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreehandTests.swift; sourceTree = "<group>"; };
 		F6B1A10E8B190F8C16BF835A /* HelpTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpTests.swift; sourceTree = "<group>"; };
 		6339144B08447B305B34F59D /* HoldingTabsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingTabsTests.swift; sourceTree = "<group>"; };
 		125BC4804EAD037CDE428879 /* KerfCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerfCoreTests.swift; sourceTree = "<group>"; };
 		5954E8821B26F1CD11331757 /* ManualRegistrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualRegistrationTests.swift; sourceTree = "<group>"; };
+		33689A54BA2C7C29CB4F8EF1 /* MonogramTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonogramTests.swift; sourceTree = "<group>"; };
+		9C1CA5214FAFA4BD1762C40E /* MultiHoopTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiHoopTests.swift; sourceTree = "<group>"; };
 		691DE43C7B283D21C7703A59 /* OutputMirrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMirrorTests.swift; sourceTree = "<group>"; };
 		CAC0E3F341D22FD957514AE7 /* PanelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelsTests.swift; sourceTree = "<group>"; };
+		3F96AA7FEBD2D6BB0F683E4B /* PatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchTests.swift; sourceTree = "<group>"; };
 		14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrintAndCutTests.swift; sourceTree = "<group>"; };
 		81D11B2E9DA0E56CAC6296E9 /* RhinestoneTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhinestoneTests.swift; sourceTree = "<group>"; };
 		FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyleTests.swift; sourceTree = "<group>"; };
@@ -303,8 +327,10 @@
 				6DA2412241B16EEF2CD0F040 /* AppModel+ManualRegistration.swift */,
 				113A298049F5EAA4DC4AEC54 /* AppModel+Materials.swift */,
 				87545F165D19018DFCB0BAFA /* AppModel+Mirror.swift */,
+				D2FFE0C09677FAE2906F33D2 /* AppModel+Monogram.swift */,
 				D306E331A9F128E06FCB45B1 /* AppModel+Nodes.swift */,
 				174199DFABED1B1A9119F44A /* AppModel+Panels.swift */,
+				480897EE86AB2B0F4C05D3BC /* AppModel+Patch.swift */,
 				9DF0E9C0BE0F58E441FB47D7 /* AppModel+Print.swift */,
 				4F4A1ACC12482326FDFBBACD /* AppModel+Rhinestones.swift */,
 				3E627F7D742EF4CFAC9359FC /* AppModel+StitchPreview.swift */,
@@ -329,7 +355,9 @@
 				4233DF0857688EBBA2407B88 /* MaterialLibraryView.swift */,
 				C314F862A43F8498C325A37A /* MaterialPreview.swift */,
 				653C322525E3193AF8D5325D /* MirrorOutputPicker.swift */,
+				5DCC24D963FD8113F4CE63FF /* MonogramView.swift */,
 				4D7656A4D4D8BCCFB3746A89 /* PanelSettings.swift */,
+				4EFF2F4A9B62FD4FE26A083B /* PatchView.swift */,
 				DF5275DC37D334BB468FAE8C /* PrintPreviewView.swift */,
 				004A9381EA56EC12F851590F /* RhinestoneView.swift */,
 				F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */,
@@ -354,6 +382,7 @@
 				81C6A183E1B0D5E30B61251C /* Document.swift */,
 				A09A4573DE0FA2583AC705D8 /* Embroidery.swift */,
 				0E6BF1284A98FC05B2B0A8FD /* EmbroideryFormats.swift */,
+				5F80F0BE0E7655F5F42F84CF /* EmbroideryPatterns.swift */,
 				20D75DACEE3597DA39FCBD5C /* Freehand.swift */,
 				AB4CEFDB661BA1735486809A /* GRBLProtocol.swift */,
 				FA00D3AEA459E1003D3A8E03 /* Generators.swift */,
@@ -364,8 +393,11 @@
 				492CFAA587BEF86D363F9EC5 /* MaterialColors.swift */,
 				8B52EDCC1E37978B1DA777BA /* MaterialLibrary.swift */,
 				30BBBF1F89B105465D349229 /* MillSimulator.swift */,
+				3AAD1ED5261D978DEE66421E /* Monogram.swift */,
+				6B9C9B5DAB49A905BC15B0B2 /* MultiHoop.swift */,
 				7EF5EF79DBC93F1BFC27DC54 /* OutputMirror.swift */,
 				F159CD3136830C3B97051752 /* Panels.swift */,
+				19428E51D7A7E78B01E54EDD /* Patch.swift */,
 				FA5602941646C375BA84D3A2 /* PathText.swift */,
 				BB0723E6676B095D4FE0AB26 /* Planner.swift */,
 				7E5EABADEF8C658BBB6ABD71 /* PrintAndCut.swift */,
@@ -389,14 +421,18 @@
 			isa = PBXGroup;
 			children = (
 				8778141C1580672BFF2F6FA2 /* CameraTests.swift */,
+				60A54CE00DB8D52EC4C772CE /* EmbroideryPatternTests.swift */,
 				23D1EA90D6CCC8BB26CF3956 /* EmbroideryTests.swift */,
 				64E347F90714F86D7645CF06 /* FreehandTests.swift */,
 				F6B1A10E8B190F8C16BF835A /* HelpTests.swift */,
 				6339144B08447B305B34F59D /* HoldingTabsTests.swift */,
 				125BC4804EAD037CDE428879 /* KerfCoreTests.swift */,
 				5954E8821B26F1CD11331757 /* ManualRegistrationTests.swift */,
+				33689A54BA2C7C29CB4F8EF1 /* MonogramTests.swift */,
+				9C1CA5214FAFA4BD1762C40E /* MultiHoopTests.swift */,
 				691DE43C7B283D21C7703A59 /* OutputMirrorTests.swift */,
 				CAC0E3F341D22FD957514AE7 /* PanelsTests.swift */,
+				3F96AA7FEBD2D6BB0F683E4B /* PatchTests.swift */,
 				14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */,
 				81D11B2E9DA0E56CAC6296E9 /* RhinestoneTests.swift */,
 				FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */,
@@ -536,8 +572,10 @@
 				A7074BFBE518702B995B1006 /* AppModel+ManualRegistration.swift in Sources */,
 				4D237E70D004B46A9AF04A4D /* AppModel+Materials.swift in Sources */,
 				9CA40CEB1150ECEB91DE8E0E /* AppModel+Mirror.swift in Sources */,
+				76B8005A73998DF76D573DE7 /* AppModel+Monogram.swift in Sources */,
 				09CFC6BDBD995DBB61F87818 /* AppModel+Nodes.swift in Sources */,
 				812D14FCFA6E281651D60078 /* AppModel+Panels.swift in Sources */,
+				B972B8CE89D0548DA963E398 /* AppModel+Patch.swift in Sources */,
 				3871119F34138F354675E701 /* AppModel+Print.swift in Sources */,
 				8DD6CC08722FCCD2B64D7E64 /* AppModel+Rhinestones.swift in Sources */,
 				38D649F1F3126A696B8CDFBA /* AppModel+StitchPreview.swift in Sources */,
@@ -562,7 +600,9 @@
 				59B48F3495E1625031C3362A /* MaterialLibraryView.swift in Sources */,
 				4F3B7E4FF0A12F0D9B0DDCEF /* MaterialPreview.swift in Sources */,
 				F765E64EED6C3083AA8CF0CA /* MirrorOutputPicker.swift in Sources */,
+				1CBFC59052168A54830A9487 /* MonogramView.swift in Sources */,
 				39390DF5DCC1043EDC3D1FF6 /* PanelSettings.swift in Sources */,
+				134AB2ADA4FC1E17742669BF /* PatchView.swift in Sources */,
 				5E097F2BB69ED276741D28A5 /* PrintPreviewView.swift in Sources */,
 				7C40AA3F2B4F02E4D050EF47 /* RhinestoneView.swift in Sources */,
 				EF8F4E75A41DCD59C40DC3AA /* ShapeStyleSection.swift in Sources */,
@@ -586,6 +626,7 @@
 				80141C005A0395D8E73FC5AE /* Document.swift in Sources */,
 				13B3985D3122CBC310AF3941 /* Embroidery.swift in Sources */,
 				D9AA76938F0F95FB82E8129F /* EmbroideryFormats.swift in Sources */,
+				9AF34E3125FB875944567127 /* EmbroideryPatterns.swift in Sources */,
 				B7EB475A2BC47FA78E649FDE /* Freehand.swift in Sources */,
 				CB5DF4C92B7D89238618208F /* GRBLProtocol.swift in Sources */,
 				9E1E7C74848252EBA2F98FE3 /* Generators.swift in Sources */,
@@ -596,8 +637,11 @@
 				7CCB44524392862928918E5D /* MaterialColors.swift in Sources */,
 				6DC8D0E6C7C45753D94F1CAA /* MaterialLibrary.swift in Sources */,
 				BB2C4CFE8BFC425AC035C57C /* MillSimulator.swift in Sources */,
+				863663127E412BEDFB1185D1 /* Monogram.swift in Sources */,
+				4AB89F040E6699F811A09DD7 /* MultiHoop.swift in Sources */,
 				658D37C05D4AC167075F61C1 /* OutputMirror.swift in Sources */,
 				DECBAE525F4265D971C65287 /* Panels.swift in Sources */,
+				C5A152BBAF34E5E092B7F0B0 /* Patch.swift in Sources */,
 				B906C86C1DACE8F4A562B1DF /* PathText.swift in Sources */,
 				3E0C57B0DC2557B9CE5B00A4 /* Planner.swift in Sources */,
 				B784B3E7DF3FD2A12DF356BB /* PrintAndCut.swift in Sources */,
@@ -620,14 +664,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				4D91C8E4A7CDCF6975A441ED /* CameraTests.swift in Sources */,
+				B8069BB6DBAB71F53C89C9AC /* EmbroideryPatternTests.swift in Sources */,
 				0B543ACA72299A7B43F62D75 /* EmbroideryTests.swift in Sources */,
 				0E80B7CC7F60ADBAC4E80E76 /* FreehandTests.swift in Sources */,
 				8000ED24F3E9C86A9803077B /* HelpTests.swift in Sources */,
 				54A8C95104371CFA19F6E6DA /* HoldingTabsTests.swift in Sources */,
 				C92D1482E537B446E37CB37E /* KerfCoreTests.swift in Sources */,
 				00E4E4B3C556345D1BE31136 /* ManualRegistrationTests.swift in Sources */,
+				F8C7987EBF18E28F1B8D9BBA /* MonogramTests.swift in Sources */,
+				B3BD105F0798E44BCAE969E4 /* MultiHoopTests.swift in Sources */,
 				D67C569E491C5CF56FF144C5 /* OutputMirrorTests.swift in Sources */,
 				E5ACF630F56D801801752D6E /* PanelsTests.swift in Sources */,
+				FD0D194FB21C2A75E99F3FA4 /* PatchTests.swift in Sources */,
 				581B9675F489881985235478 /* PrintAndCutTests.swift in Sources */,
 				E1CDD52747690D1CFEE8DB13 /* RhinestoneTests.swift in Sources */,
 				21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */,
