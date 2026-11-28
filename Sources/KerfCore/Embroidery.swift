@@ -68,6 +68,9 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
     public var embossPattern: EmbossPattern
     /// Satin fills: stitches longer than this are split.
     public var satinSplitLength: Double
+    /// Fill, satin columns and Auto: a border sewn along each shape's outline after its fill, or nil for none.
+    /// Running, triple and satin settings are borders themselves and ignore it.
+    public var border: EmbroideryBorder?
 
     public init(stitchType: StitchType = .running, stitchLength: Double = 2.5, satinWidth: Double = 3,
                 density: Double = 0.4, fillAngle: Double = 45, fillStitchLength: Double = 3.5,
@@ -75,7 +78,7 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
                 fillPattern: FillPattern = .tatami, lineStyle: LineStyle = .plain,
                 patternSize: Double = 6, patternSpacing: Double = 2, fillType: FillType? = nil,
                 tatamiOffset: TatamiOffset = .third, embossPattern: EmbossPattern = .diamonds,
-                satinSplitLength: Double = 7) {
+                satinSplitLength: Double = 7, border: EmbroideryBorder? = nil) {
         self.stitchType = stitchType
         self.stitchLength = stitchLength
         self.satinWidth = satinWidth
@@ -93,12 +96,13 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
         self.tatamiOffset = tatamiOffset
         self.embossPattern = embossPattern
         self.satinSplitLength = satinSplitLength
+        self.border = border
     }
 
     private enum CodingKeys: String, CodingKey {
         case stitchType, stitchLength, satinWidth, density, fillAngle, fillStitchLength, underlay, pullCompensation, maxColumnWidth
         case fillPattern, lineStyle, patternSize, patternSpacing
-        case fillType, tatamiOffset, embossPattern, satinSplitLength
+        case fillType, tatamiOffset, embossPattern, satinSplitLength, border
     }
 
     public init(from decoder: Decoder) throws {
@@ -123,7 +127,11 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
         tatamiOffset = (try? c.decodeIfPresent(TatamiOffset.self, forKey: .tatamiOffset)) ?? d.tatamiOffset
         embossPattern = (try? c.decodeIfPresent(EmbossPattern.self, forKey: .embossPattern)) ?? d.embossPattern
         satinSplitLength = try c.decodeIfPresent(Double.self, forKey: .satinSplitLength) ?? d.satinSplitLength
+        border = try? c.decodeIfPresent(EmbroideryBorder.self, forKey: .border)
     }
+
+    /// True when the settings sew the inside of shapes (fill, satin columns or Auto), so a border can go with them.
+    public var hasFill: Bool { BorderStitch(stitchType) == nil }
 
     /// The settings with another fill type, keeping the pattern when it suits the new type.
     public func withFillType(_ type: FillType) -> EmbroiderySettings {
@@ -154,6 +162,7 @@ public struct EmbroiderySettings: Codable, Hashable, Sendable {
         s.patternSize = clamp(patternSize, 2, 40, 6)
         s.patternSpacing = clamp(patternSpacing, 0.5, 20, 2)
         s.satinSplitLength = clamp(satinSplitLength, 2, 12, 7)
+        s.border = hasFill ? border?.sanitized : nil
         // A pattern that doesn't belong to the fill type (from hand-edited files) falls back to the type's own.
         if !s.fillType.patterns.contains(s.fillPattern) { s.fillPattern = s.fillType == .motif ? .stars : .tatami }
         return s
@@ -346,13 +355,48 @@ public enum EmbroideryPlanner {
             runs = autoRuns(shapes, settings: s, cursor: &cursor)
         case .running, .bean, .satin:
             let polys = shapes.flatMap(\.placedPaths).map { $0.deduplicated() }.filter { $0.points.count >= 2 }
-            for path in Planner.order(polys, from: cursor, innerFirst: true) {
-                if s.lineStyle != .plain {
-                    runs += styledLine(path, style: s.lineStyle, width: s.satinWidth, settings: s,
-                                       triple: s.stitchType == .bean)
-                    if let last = runs.last?.last { cursor = last }
-                    continue
+            runs = lineRuns(polys, settings: s, cursor: &cursor)
+        case .fill, .satinColumns:
+            // Each shape's closed outlines (to fill) and all its paths (for the border).
+            var remaining = shapes.map { shape -> (closed: [Polyline], all: [Polyline]) in
+                let all = shape.placedPaths.map { $0.deduplicated() }.filter { $0.points.count >= 2 }
+                return (all.filter { $0.closed && $0.points.count >= 3 }, all)
+            }
+            .filter { !$0.closed.isEmpty || (s.border != nil && !$0.all.isEmpty) }
+            while !remaining.isEmpty {
+                // Next shape: the one whose box is nearest.
+                let pos = cursor
+                let k = remaining.indices.min { distance(pos, to: remaining[$0].all.bounds) < distance(pos, to: remaining[$1].all.bounds) }!
+                let (polys, all) = remaining.remove(at: k)
+                if !polys.isEmpty {
+                    let sewn = s.stitchType == .satinColumns ? satinColumns(polys, settings: s, from: cursor)
+                                                             : patternFill(polys, settings: s, from: cursor)
+                    runs += sewn
+                    if let last = sewn.last?.last { cursor = last }
                 }
+                // The border goes on top of the fill, straight after it, so the shape is finished before moving on.
+                if let border = s.border {
+                    runs += lineRuns(all, settings: border.settings, cursor: &cursor)
+                }
+            }
+        }
+        if s.stitchType == .auto, let border = s.border {
+            // Auto sews stroked lines by their width already; the border goes round the filled shapes.
+            let outlines = shapes.filter { $0.strokeWidth == nil }.flatMap(\.placedPaths).map { $0.deduplicated() }
+                .filter { $0.closed && $0.points.count >= 3 }
+            runs += lineRuns(outlines, settings: border.settings, cursor: &cursor)
+        }
+        return runs.filter { $0.count >= 2 }
+    }
+
+    /// Running, triple or satin lines along paths, nearest first, in the settings' line style.
+    static func lineRuns(_ polys: [Polyline], settings s: EmbroiderySettings, cursor: inout Vec2) -> [[Vec2]] {
+        var runs: [[Vec2]] = []
+        for path in Planner.order(polys, from: cursor, innerFirst: true) {
+            if s.lineStyle != .plain {
+                runs += styledLine(path, style: s.lineStyle, width: s.satinWidth, settings: s,
+                                   triple: s.stitchType == .bean)
+            } else {
                 switch s.stitchType {
                 case .bean:
                     runs.append(bean(running(path, length: s.stitchLength)))
@@ -361,28 +405,10 @@ public enum EmbroideryPlanner {
                 default:
                     runs.append(running(path, length: s.stitchLength))
                 }
-                if let last = runs.last?.last { cursor = last }
             }
-        case .fill, .satinColumns:
-            var remaining = shapes.map { $0.placedPaths.map { $0.deduplicated() }.filter { $0.closed && $0.points.count >= 3 } }
-                .filter { !$0.isEmpty }
-            while !remaining.isEmpty {
-                // Next shape: the one whose box is nearest.
-                let pos = cursor
-                let k = remaining.indices.min { distance(pos, to: remaining[$0].bounds) < distance(pos, to: remaining[$1].bounds) }!
-                let polys = remaining.remove(at: k)
-                if s.stitchType == .satinColumns {
-                    let cols = satinColumns(polys, settings: s, from: cursor)
-                    runs += cols
-                    if let last = cols.last?.last { cursor = last }
-                    continue
-                }
-                let sewn = patternFill(polys, settings: s, from: cursor)
-                runs += sewn
-                if let last = sewn.last?.last { cursor = last }
-            }
+            if let last = runs.last?.last { cursor = last }
         }
-        return runs.filter { $0.count >= 2 }
+        return runs
     }
 
     /// Automatic digitizing: filled shapes become satin columns (tatami where too wide), sewn first and nearest

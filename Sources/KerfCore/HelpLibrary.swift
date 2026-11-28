@@ -522,7 +522,8 @@ public enum HelpLibrary {
                 "**Satin columns (lettering)** for text and narrow strokes.",
             ]),
             .heading("Stitch settings in Arrange"),
-            .text("Select shapes and open **Arrange › Embroidery** to set how their layer sews: stitch type, fill type and pattern, line style, stitch length, density and pull compensation. With nothing selected it shows the current layer. Tick **Show stitches on canvas** and the preview redraws as you change each setting."),
+            .text("Select shapes and open **Arrange › Embroidery** to set how their layer sews. With nothing selected it shows the current layer. Tick **Show stitches on canvas** and the preview redraws as you change each setting."),
+            .text("Every shape has two parts, each with its own settings: a **Fill** for the inside (a fill type, satin columns, Auto, or **None** for an outline only) and a **Border** along the outline (**Running stitch**, **Triple (bean) stitch**, **Satin border**, or **None**), with its own line style, stitch length and width. The border is sewn straight after the shape's fill, so it covers the fill's edge."),
             .heading("Fill types"),
             .bullets([
                 "**Tatami (complex fill)**: staggered, brick-like rows for a stable, matte finish across large shapes and backgrounds. Choose the **Stitch offset** (brick ½, steps ⅓, diagonal ¼, shallow ⅕ or random) and straight, **Waves** or **Zig-zag** rows.",
