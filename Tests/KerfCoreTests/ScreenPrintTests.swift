@@ -41,7 +41,8 @@ final class ScreenPrintTests: XCTestCase {
         ctx.scaleBy(x: ppm, y: -ppm)
         ctx.translateBy(x: -e.minX, y: -e.minY)
         ScreenPrint.draw(film, of: set, in: ctx)
-        let data = ctx.data!.assumingMemoryBound(to: UInt8.self)
+        // Copy the pixels out: the context's own buffer is freed when it goes away.
+        let data = Array(UnsafeBufferPointer(start: ctx.data!.assumingMemoryBound(to: UInt8.self), count: w * h))
         return { x, y in
             let px = min(w - 1, max(0, Int((x - e.minX) * ppm))), py = min(h - 1, max(0, Int((y - e.minY) * ppm)))
             return data[py * w + px]
