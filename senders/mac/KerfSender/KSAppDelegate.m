@@ -23,7 +23,8 @@ static NSButton *KSButton(NSString *title, id target, SEL action) {
     NSWindow *_window;
     KSFlippedView *_content;
 
-    NSButton *_openButton;
+    NSButton *_openButton, *_cameraButton;
+    KSCameraWindowController *_camera;
     NSTextField *_jobTitle, *_jobSummary;
 
     NSBox *_connectionBox;
@@ -145,6 +146,10 @@ static NSButton *KSButton(NSString *title, id target, SEL action) {
     NSMenuItem *windowItem = [[NSMenuItem alloc] init];
     NSMenu *windowMenu = [[NSMenu alloc] initWithTitle:@"Window"];
     [windowMenu addItemWithTitle:@"Minimize" action:@selector(performMiniaturize:) keyEquivalent:@"m"];
+    [windowMenu addItem:[NSMenuItem separatorItem]];
+    NSMenuItem *cameraItem = [windowMenu addItemWithTitle:@"Camera…" action:@selector(showCamera:) keyEquivalent:@"c"];
+    cameraItem.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagOption;
+    cameraItem.target = self;
     windowItem.submenu = windowMenu;
     [bar addItem:windowItem];
     NSApp.windowsMenu = windowMenu;
@@ -177,7 +182,9 @@ static NSButton *KSButton(NSString *title, id target, SEL action) {
     _jobSummary = KSLabel(@"Open a .kerfjob exported from KerfKutter, or drop one on this window.");
     _jobSummary.textColor = [NSColor secondaryLabelColor];
     _jobSummary.font = [NSFont systemFontOfSize:11];
-    for (NSView *v in @[ _openButton, _jobTitle, _jobSummary ]) [_content addSubview:v];
+    _cameraButton = KSButton(@"Camera…", self, @selector(showCamera:));
+    _cameraButton.toolTip = @"Line the job up on the material with a camera above the bed";
+    for (NSView *v in @[ _openButton, _jobTitle, _jobSummary, _cameraButton ]) [_content addSubview:v];
 
     // Connection
     _connectionBox = [[NSBox alloc] init];
@@ -283,8 +290,10 @@ static NSButton *KSButton(NSString *title, id target, SEL action) {
     CGFloat m = 16, y = 14;
 
     _openButton.frame = NSMakeRect(m - 6, y, 120, 32);
-    _jobTitle.frame = NSMakeRect(140, y - 2, W - 140 - m, 22);
-    _jobSummary.frame = NSMakeRect(140, y + 20, W - 140 - m, 16);
+    CGFloat textRight = _cameraButton.hidden ? W - m : W - m - 112;
+    _cameraButton.frame = NSMakeRect(W - m - 104, y, 110, 32);
+    _jobTitle.frame = NSMakeRect(140, y - 2, textRight - 140, 22);
+    _jobSummary.frame = NSMakeRect(140, y + 20, textRight - 140, 16);
     y += 48;
 
     // Connection box contents (flipped, relative to the box).
@@ -373,6 +382,7 @@ static NSButton *KSButton(NSString *title, id target, SEL action) {
     _portLabel.hidden = _portPopup.hidden = _refreshButton.hidden = printer;
     _baudLabel.hidden = _baudCombo.hidden = printer;
     _controlBox.hidden = cutter;
+    _cameraButton.hidden = cutter;
     _jogButtons[4].hidden = _jogButtons[5].hidden = !self.isCnc;
     _pauseButton.hidden = cutter;
     if (cutter && _grbl.isConnected) [_grbl close];
@@ -406,6 +416,7 @@ static NSButton *KSButton(NSString *title, id target, SEL action) {
         _pauseButton.title = _grbl.isPaused ? @"Resume" : @"Pause";
         _stopButton.enabled = connected;
     }
+    [_camera machineChanged];
     [self layout];
 }
 
@@ -502,6 +513,7 @@ static NSButton *KSButton(NSString *title, id target, SEL action) {
     }
     [self updateMachineFields];
     [self updateControls];
+    [_camera jobOpened:job];
     return YES;
 }
 
@@ -571,7 +583,18 @@ static NSButton *KSButton(NSString *title, id target, SEL action) {
             [self alert:@"The machine is in an alarm state." info:@"Home it, or Unlock it, before starting."];
             return;
         }
-        [_grbl run:_job.gcodeLines];
+        NSArray<NSString *> *lines = _job.gcodeLines;
+        if (_camera.placementActive) {
+            NSString *error = nil;
+            NSArray<NSString *> *placed = [_camera placedLinesForJob:_job error:&error];
+            if (!placed) {
+                [self alert:@"The job can't be placed with the camera." info:error ?: @""];
+                return;
+            }
+            [self grblLog:[NSString stringWithFormat:@"Running the job as placed with the camera: %@.", _camera.placementDescription] isError:NO];
+            lines = placed;
+        }
+        [_grbl run:lines];
     }
     [self updateControls];
 }
@@ -611,6 +634,21 @@ static NSButton *KSButton(NSString *title, id target, SEL action) {
     [a addButtonWithTitle:@"Cancel"];
     return [a runModal] == NSAlertFirstButtonReturn;
 }
+
+#pragma mark - Camera
+
+- (void)showCamera:(id)sender {
+    if (!_camera) {
+        _camera = [[KSCameraWindowController alloc] initWithHost:self];
+        [_camera jobOpened:_job];
+    }
+    [_camera showWindow:nil];
+}
+
+- (KSJob *)cameraCurrentJob { return _job; }
+- (BOOL)cameraMachineIsLaser { return _kindPopup.indexOfSelectedItem == 0; }
+- (KSGrbl *)cameraGrbl { return _grbl; }
+- (void)cameraLog:(NSString *)text isError:(BOOL)isError { [self grblLog:text isError:isError]; }
 
 #pragma mark - KSGrblDelegate
 

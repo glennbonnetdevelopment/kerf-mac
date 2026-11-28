@@ -43,6 +43,7 @@ namespace KerfSender
 
         // Run
         readonly Button openButton = new Button { Text = "Open Job…", AutoSize = true };
+        readonly Button cameraButton = new Button { Text = "Camera…", AutoSize = true };
         readonly Button startButton = new Button { Text = "Start", AutoSize = true, Font = new Font(SystemFonts.MessageBoxFont, FontStyle.Bold) };
         readonly Button pauseButton = new Button { Text = "Pause", AutoSize = true };
         readonly Button stopButton = new Button { Text = "Stop", AutoSize = true, ForeColor = Color.DarkRed };
@@ -53,6 +54,7 @@ namespace KerfSender
         readonly CutterSender cutter = new CutterSender();
         readonly Settings settings = Settings.Load();
         Job job;
+        CameraForm cameraForm;
 
         public MainForm(string initialFile)
         {
@@ -118,14 +120,16 @@ namespace KerfSender
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
             // Job header
-            var header = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, AutoSize = true };
+            var header = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, AutoSize = true };
             header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             var jobText = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, AutoSize = true, WrapContents = false, Margin = new Padding(8, 0, 0, 0) };
             jobText.Controls.Add(jobTitle);
             jobText.Controls.Add(jobSummary);
             header.Controls.Add(openButton, 0, 0);
             header.Controls.Add(jobText, 1, 0);
+            header.Controls.Add(cameraButton, 2, 0);
             root.Controls.Add(header);
 
             // Machine settings
@@ -201,6 +205,7 @@ namespace KerfSender
                     if (dlg.ShowDialog(this) == DialogResult.OK) OpenJob(dlg.FileName);
                 }
             };
+            cameraButton.Click += (s, e) => ShowCamera();
             DragEnter += (s, e) => { if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy; };
             DragDrop += (s, e) =>
             {
@@ -253,6 +258,7 @@ namespace KerfSender
                 if (grbl.IsRunning) grbl.Realtime(0x18);
                 cutter.Cancel();
                 SaveSettings();
+                if (cameraForm != null) cameraForm.Dispose();
                 grbl.Dispose();
             };
         }
@@ -301,6 +307,18 @@ namespace KerfSender
                 Append("This is a plain file, so check the machine type and connection settings before starting.", false);
             UpdateMachineFields();
             UpdateButtons();
+            if (cameraForm != null) cameraForm.JobOpened(job);
+        }
+
+        void ShowCamera()
+        {
+            if (cameraForm == null || cameraForm.IsDisposed)
+            {
+                cameraForm = new CameraForm(grbl, () => job, () => kindBox.SelectedIndex == 0, Append);
+                cameraForm.JobOpened(job);
+            }
+            if (!cameraForm.Visible) cameraForm.Show(this);
+            cameraForm.Activate();
         }
 
         void RefreshPorts()
@@ -329,6 +347,7 @@ namespace KerfSender
             portLabel.Visible = portBox.Visible = refreshButton.Visible = !UsesPrinter;
             baudLabel.Visible = baudBox.Visible = !UsesPrinter;
             grblGroup.Visible = !cutterKind;
+            cameraButton.Visible = !cutterKind;
             jogButtons[4].Visible = jogButtons[5].Visible = IsCnc;
             if (cutterKind && grbl.IsConnected) grbl.Close();
         }
@@ -367,6 +386,7 @@ namespace KerfSender
                 pauseButton.Text = grbl.IsPaused ? "Resume" : "Pause";
                 stopButton.Enabled = connected;
             }
+            if (cameraForm != null && !cameraForm.IsDisposed) cameraForm.MachineChanged();
         }
 
         void ToggleConnection()
@@ -434,7 +454,20 @@ namespace KerfSender
                                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                grbl.Run(job.GcodeLines());
+                var lines = job.GcodeLines();
+                if (cameraForm != null && !cameraForm.IsDisposed && cameraForm.PlacementActive)
+                {
+                    string error;
+                    var placed = cameraForm.PlacedLines(job, out error);
+                    if (placed == null)
+                    {
+                        MessageBox.Show(this, error, "KerfSender", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                    Append("Running the job as placed with the camera: " + cameraForm.PlacementDescription + ".", false);
+                    lines = placed;
+                }
+                grbl.Run(lines);
             }
             UpdateButtons();
         }

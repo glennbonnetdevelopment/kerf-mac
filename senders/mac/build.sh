@@ -4,6 +4,7 @@
 # Needs only the Xcode command line tools (any recent Xcode works: the app is plain
 # Objective-C, so nothing from Swift has to run on 10.12). Run from anywhere:
 #     senders/mac/build.sh
+#     senders/mac/build.sh test     (runs the camera and toolpath self-tests instead)
 # The app is written to senders/mac/build/KerfSender.app and zipped next to it.
 #
 # The Intel slice targets 10.12; the Apple silicon slice targets 11.0 (the first macOS on
@@ -15,7 +16,18 @@ ARCHS="${ARCHS:-x86_64 arm64}"
 OUT=build
 APP="$OUT/KerfSender.app"
 SRC=KerfSender
-SOURCES=("$SRC"/*.m)
+SOURCES=("$SRC"/*.m "$SRC"/*.c)
+FRAMEWORKS=(-framework Cocoa -framework IOKit -framework AVFoundation -framework CoreMedia -framework CoreVideo)
+
+if [ "${1:-}" = "test" ]; then
+  mkdir -p "$OUT/obj"
+  xcrun clang -O2 -std=c99 -Wall -I "$SRC" "$SRC/KSCameraMath.c" Tests/camera_math_test.c -lm -o "$OUT/obj/camera_math_test"
+  "$OUT/obj/camera_math_test"
+  xcrun clang -fobjc-arc -fmodules -O2 -Wall -Wno-deprecated-declarations -I "$SRC" \
+    "$SRC/KSJob.m" "$SRC/KSToolpath.m" "$SRC/KSCameraMath.c" Tests/toolpath_test.m "${FRAMEWORKS[@]}" -o "$OUT/obj/toolpath_test"
+  "$OUT/obj/toolpath_test"
+  exit 0
+fi
 
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$OUT/obj"
@@ -26,7 +38,7 @@ for arch in $ARCHS; do
   bin="$OUT/obj/KerfSender-$arch"
   xcrun clang -arch "$arch" -mmacosx-version-min="$min" \
     -fobjc-arc -fmodules -O2 -Wall -Wno-deprecated-declarations \
-    -framework Cocoa -framework IOKit \
+    "${FRAMEWORKS[@]}" \
     "${SOURCES[@]}" -o "$bin"
   SLICES+=("$bin")
 done

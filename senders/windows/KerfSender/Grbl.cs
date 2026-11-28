@@ -77,6 +77,7 @@ namespace KerfSender
             port = null;
             try { p.DataReceived -= OnData; p.Close(); } catch { }
             p.Dispose();
+            MachinePosition = null;
             IsRunning = false;
             IsPaused = false;
             if (streamer != null) streamer.Reset();
@@ -182,6 +183,15 @@ namespace KerfSender
 
         double[] workOffset = { 0, 0, 0 };
 
+        /// <summary>The work coordinate offset (machine = work + offset), from GRBL's WCO reports; zero until one arrives.</summary>
+        public double[] WorkOffset { get { return workOffset; } }
+
+        /// <summary>True once the controller has reported its work offset.</summary>
+        public bool HasWorkOffset { get; private set; }
+
+        /// <summary>The head's last reported position in machine coordinates (X, Y), or null before the first report.</summary>
+        public double[] MachinePosition { get; private set; }
+
         void ParseStatus(string body)
         {
             string[] fields = body.Split('|');
@@ -195,13 +205,15 @@ namespace KerfSender
                 double[] v = Numbers(f.Substring(colon + 1));
                 if (key == "MPos") mpos = v;
                 else if (key == "WPos") wpos = v;
-                else if (key == "WCO" && v.Length >= 2) workOffset = v;
+                else if (key == "WCO" && v.Length >= 2) { workOffset = v; HasWorkOffset = true; }
             }
             if (wpos == null && mpos != null)
             {
                 wpos = new double[mpos.Length];
                 for (int i = 0; i < mpos.Length; i++) wpos[i] = mpos[i] - (i < workOffset.Length ? workOffset[i] : 0);
             }
+            if (mpos != null && mpos.Length >= 2) MachinePosition = new[] { mpos[0], mpos[1] };
+            else if (wpos != null && wpos.Length >= 2) MachinePosition = new[] { wpos[0] + workOffset[0], wpos[1] + workOffset[1] };
             State = state;
             var sb = new StringBuilder(state);
             if (wpos != null && wpos.Length >= 2)

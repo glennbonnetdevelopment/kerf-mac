@@ -28,6 +28,8 @@ typedef NS_ENUM(NSInteger, KSMachineKind) {
 @property (nonatomic) NSInteger estimatedSeconds;
 @property (nonatomic, copy) NSString *data;
 @property (nonatomic) BOOL fromKerfKutter;
+/// Work area in mm from the KerfKutter profile (0 for plain files).
+@property (nonatomic) double bedWidth, bedHeight;
 @property (nonatomic, readonly) BOOL usesGrbl;
 
 + (nullable KSJob *)jobWithContentsOfFile:(NSString *)path error:(NSString *_Nullable *_Nullable)error;
@@ -84,6 +86,12 @@ typedef NS_ENUM(NSInteger, KSMachineKind) {
 @property (nonatomic, weak, nullable) id<KSGrblDelegate> delegate;
 @property (nonatomic, readonly) BOOL isConnected, isRunning, isPaused;
 @property (nonatomic, readonly, copy) NSString *state;
+/// Work coordinate offset (machine = work + offset) from GRBL's WCO reports; zero until one arrives.
+@property (nonatomic, readonly) double wcoX, wcoY;
+@property (nonatomic, readonly) BOOL hasWorkOffset;
+/// The head's last reported position in machine coordinates.
+@property (nonatomic, readonly) double machineX, machineY;
+@property (nonatomic, readonly) BOOL hasMachinePosition;
 - (BOOL)openPort:(NSString *)path baud:(NSInteger)baud bufferSize:(NSInteger)size;
 - (void)close;
 - (void)send:(NSString *)line;
@@ -106,9 +114,48 @@ typedef NS_ENUM(NSInteger, KSMachineKind) {
 - (void)cancel;
 @end
 
+#pragma mark - Camera
+
+/// The burning moves of a G-code job (G1/G2/G3 with the laser on), in work coordinates.
+@interface KSToolpath : NSObject
+/// Each entry holds packed KSV2 points (x, y doubles).
+@property (nonatomic, readonly) NSArray<NSData *> *burns;
+@property (nonatomic, readonly) double minX, minY, maxX, maxY;
+@property (nonatomic, readonly) BOOL hasRelativeMoves, isEmpty;
+@property (nonatomic, readonly) NSInteger pointCount;
++ (KSToolpath *)toolpathFromLines:(NSArray<NSString *> *)lines;
+/// The lines with every X/Y (and arc I/J) turned by `degrees` about (px, py), then moved by (dx, dy).
+/// Returns nil for jobs with relative (G91) moves.
++ (nullable NSArray<NSString *> *)transformLines:(NSArray<NSString *> *)lines pivotX:(double)px pivotY:(double)py
+                                         degrees:(double)degrees dx:(double)dx dy:(double)dy error:(NSString *_Nullable *_Nullable)error;
+/// G-code burning the alignment target (each mark a cross in a circle; mark 1 has an inner ring).
++ (NSArray<NSString *> *)targetGcodeForMarks:(NSArray<NSValue *> *)marks size:(double)size feed:(double)feed
+                                       power:(double)powerPercent sMax:(double)sMax;
++ (NSString *)format:(double)v;
+@end
+
+@class KSCameraWindowController;
+
+@protocol KSCameraHost <NSObject>
+- (nullable KSJob *)cameraCurrentJob;
+- (BOOL)cameraMachineIsLaser;
+- (KSGrbl *)cameraGrbl;
+- (void)cameraLog:(NSString *)text isError:(BOOL)isError;
+@end
+
+@interface KSCameraWindowController : NSWindowController <NSWindowDelegate>
+- (instancetype)initWithHost:(id<KSCameraHost>)host;
+/// True when Start should run the placed copy of the job.
+@property (nonatomic, readonly) BOOL placementActive;
+@property (nonatomic, readonly) NSString *placementDescription;
+- (nullable NSArray<NSString *> *)placedLinesForJob:(KSJob *)job error:(NSString *_Nullable *_Nullable)error;
+- (void)jobOpened:(nullable KSJob *)job;
+- (void)machineChanged;
+@end
+
 #pragma mark - App
 
-@interface KSAppDelegate : NSObject <NSApplicationDelegate, KSGrblDelegate, NSWindowDelegate>
+@interface KSAppDelegate : NSObject <NSApplicationDelegate, KSGrblDelegate, NSWindowDelegate, KSCameraHost>
 @end
 
 NS_ASSUME_NONNULL_END
