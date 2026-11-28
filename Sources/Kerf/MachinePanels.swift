@@ -356,38 +356,8 @@ struct CutterPanel: View {
                 Toggle("Cut selected shapes only", isOn: $model.cutSelectionOnly)
                     .help("Send and export only the selected shapes")
                 MirrorOutputPicker()
-                if model.profile.language == .svgFile {
-                    Text("This machine has no live connection. Export an SVG and load it with a USB stick or the maker's app.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else {
-                    Picker("Send via", selection: profileBinding(\.output)) {
-                        ForEach(CutterOutput.allCases) { Text($0.title).tag($0) }
-                    }
-                    if model.profile.output == .serial {
-                        HStack {
-                            Picker("Port", selection: $cutter.selectedPort) {
-                                if cutter.ports.isEmpty { Text("No serial ports").tag("") }
-                                ForEach(cutter.ports, id: \.self) { Text($0.replacingOccurrences(of: "/dev/", with: "")).tag($0) }
-                            }
-                            Button { cutter.refreshPorts() } label: { Image(systemName: "arrow.clockwise") }
-                                .buttonStyle(.borderless)
-                        }
-                        Text("\(model.profile.baudRate) baud, \(model.profile.flowControl.title) flow control")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        Picker("Printer queue", selection: profileBinding(\.printerQueue)) {
-                            if !queues.contains(model.profile.printerQueue) {
-                                Text(model.profile.printerQueue.isEmpty ? "Choose…" : model.profile.printerQueue).tag(model.profile.printerQueue)
-                            }
-                            ForEach(queues, id: \.self) { Text($0).tag($0) }
-                        }
-                        Text("Add the cutter in System Settings › Printers as a Generic PostScript printer; Kerf sends raw data to it.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    LabeledContent("Language", value: model.profile.language.title)
+                CutterConnectionSettings(queues: queues)
+                if model.profile.language != .svgFile {
                     LabeledContent("Blade offset (mm)") {
                         TextField("", value: profileBinding(\.bladeOffset), format: .number).frame(width: 70)
                     }
@@ -453,14 +423,11 @@ struct CutterPanel: View {
                 if model.profile.language != .svgFile {
                     if cutter.isSending {
                         Button("Stop", role: .destructive) { cutter.cancel() }
-                    } else if tiled, let panel = model.currentPanel {
-                        Button("Send panel \(panel.name)") { model.sendPanel(panel, with: cutter) }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(model.profile.output == .serial && cutter.selectedPort.isEmpty)
                     } else {
-                        Button("Send to cutter") { cutter.send(model.plotterText(), profile: model.profile) }
+                        Button(tiled ? "Send panel \(model.currentPanel?.name ?? "")…" : "Send to cutter…") { model.showSendToCutter = true }
                             .buttonStyle(.borderedProminent)
-                            .disabled(tp.isEmpty || (model.profile.output == .serial && cutter.selectedPort.isEmpty))
+                            .disabled(tp.isEmpty)
+                            .help("Check blade, force, mirror and placement with a preview of the cut, then send")
                     }
                 }
             }

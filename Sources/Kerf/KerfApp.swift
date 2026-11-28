@@ -39,6 +39,9 @@ struct KerfApp: App {
                     .keyboardShortcut("i", modifiers: [.command, .shift])
                 Button("Export Machine File…") { model.exportMachineFile() }
                     .keyboardShortcut("e")
+                Button("Send to Cutter…") { model.showSendToCutter = true }
+                    .keyboardShortcut("k")
+                    .disabled(!model.canJogCutter)
                 Button("Export for KerfSender…") { model.exportForSender() }
                     .keyboardShortcut("e", modifiers: [.command, .shift])
                 Button("Export Print PDF…") { model.exportPrintPDF() }
@@ -234,6 +237,11 @@ struct ContentView: View {
         }
         .sheet(isPresented: $model.showManualRegistration) {
             ManualRegistrationView()
+                .environmentObject(model)
+                .environmentObject(cutter)
+        }
+        .sheet(isPresented: $model.showSendToCutter) {
+            SendToCutterView()
                 .environmentObject(model)
                 .environmentObject(cutter)
         }

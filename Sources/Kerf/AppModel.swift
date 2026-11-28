@@ -131,6 +131,17 @@ final class AppModel: ObservableObject {
     /// Flips the job as it goes to the machine (heat-transfer vinyl, stamps). The design on the canvas
     /// stays as drawn. Not saved, so a later job doesn't come out mirrored by surprise.
     @Published var mirrorOutput: OutputMirror = .none
+    /// Send to Cutter sheet (see SendToCutterView).
+    @Published var showSendToCutter = false
+    /// Where a cutter job lands on the material: as placed on the canvas, or moved into the home corner.
+    /// Remembered between launches.
+    @Published var cutterPlacement: CutterPlacement = CutterPlacement(rawValue: UserDefaults.standard.string(forKey: "cutterPlacement") ?? "") ?? .asPlaced {
+        didSet { UserDefaults.standard.set(cutterPlacement.rawValue, forKey: "cutterPlacement") }
+    }
+    /// Gap between the home corner and the job when aligning to it, mm.
+    @Published var cutterHomeMargin: Double = UserDefaults.standard.object(forKey: "cutterHomeMargin") as? Double ?? 5 {
+        didSet { UserDefaults.standard.set(cutterHomeMargin, forKey: "cutterHomeMargin") }
+    }
     /// Panel (tiling) settings for vinyl signs bigger than the cutter, remembered between launches.
     @Published var panels: PanelOptions = AppModel.loadPanels() {
         didSet {
@@ -560,6 +571,9 @@ final class AppModel: ObservableObject {
             // The cutter measures the marks, then cuts relative to the origin mark.
             options.origin = job.origin
             options.preamble = GCCAAS.command(job, units: profile.aasUnits, unitsPerMM: profile.unitsPerMM)
+        } else if homeCornerUnavailableReason == nil, cutterPlacement == .homeCorner {
+            options.placement = .homeCorner
+            options.homeMargin = max(0, cutterHomeMargin)
         }
         return PlotterGenerator.generate(outputToolpath, profile: profile, options: options)
     }
