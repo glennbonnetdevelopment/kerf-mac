@@ -246,29 +246,96 @@ private struct EmbroideryLayerSummary: View {
 struct EmbroiderySettingsFields: View {
     @Binding var settings: EmbroiderySettings
 
+    /// What fills the shape: nothing (border only), automatic digitizing, a fill type, or satin columns.
+    private enum FillChoice: Hashable {
+        case none, auto, satinColumns
+        case fill(FillType)
+    }
+
+    private var fillChoice: Binding<FillChoice> {
+        Binding(
+            get: {
+                switch settings.stitchType {
+                case .auto: return .auto
+                case .satinColumns: return .satinColumns
+                case .fill: return .fill(settings.fillType)
+                case .running, .bean, .satin: return .none
+                }
+            },
+            set: { choice in
+                var n = settings
+                if choice == .none {
+                    // Border only: the border becomes the shape's own line stitch.
+                    if n.hasFill {
+                        let b = n.border ?? EmbroideryBorder(stitch: .running)
+                        n.stitchType = b.stitch.stitchType
+                        n.stitchLength = b.stitchLength
+                        n.satinWidth = b.width
+                        n.density = b.density
+                        n.lineStyle = b.lineStyle
+                        n.underlay = b.underlay
+                        n.pullCompensation = b.pullCompensation
+                        n.border = nil
+                    }
+                } else {
+                    // Adding a fill to a line keeps the line as the border.
+                    if !n.hasFill {
+                        n.border = EmbroideryBorder(settings: n)
+                        n.lineStyle = .plain
+                    }
+                    switch choice {
+                    case .auto: n.stitchType = .auto
+                    case .satinColumns: n.stitchType = .satinColumns
+                    case .fill(let t):
+                        n = n.withFillType(t)
+                        n.stitchType = .fill
+                    case .none: break
+                    }
+                }
+                settings = n
+            })
+    }
+
+    private var borderChoice: Binding<BorderStitch?> {
+        Binding(
+            get: { settings.hasFill ? settings.border?.stitch : BorderStitch(settings.stitchType) },
+            set: { stitch in
+                if settings.hasFill {
+                    if let stitch {
+                        var b = settings.border ?? EmbroideryBorder()
+                        b.stitch = stitch
+                        settings.border = b
+                    } else {
+                        settings.border = nil
+                    }
+                } else if let stitch {
+                    settings.stitchType = stitch.stitchType
+                }
+            })
+    }
+
+    /// The border's settings as line settings: the border of a filled shape, or the shape's own line stitch.
+    private var borderSettings: Binding<EmbroiderySettings>? {
+        if !settings.hasFill { return $settings }
+        guard settings.border != nil else { return nil }
+        return Binding(get: { (settings.border ?? EmbroideryBorder()).settings },
+                       set: { settings.border = EmbroideryBorder(settings: $0) })
+    }
+
     var body: some View {
         let s = $settings
-        Picker("Stitch", selection: s.stitchType) {
-            ForEach(StitchType.allCases) { Text($0.title).tag($0) }
+        Text("Fill").font(.headline)
+        Picker("Fill", selection: fillChoice) {
+            Text("None (border only)").tag(FillChoice.none)
+            Divider()
+            ForEach(FillType.allCases) { Text($0.title).tag(FillChoice.fill($0)) }
+            Divider()
+            Text("Satin columns (lettering)").tag(FillChoice.satinColumns)
+            Text("Auto (digitize)").tag(FillChoice.auto)
         }
         switch settings.stitchType {
-        case .running, .bean:
-            lineStylePicker
-            if settings.lineStyle != .rope {
-                number("Stitch length (mm)", s.stitchLength)
-            }
-            lineStyleFields
-        case .satin:
-            lineStylePicker
-            if settings.lineStyle == .plain {
-                number("Column width (mm)", s.satinWidth)
-                number("Density (mm between stitches)", s.density)
-                number("Pull compensation (mm)", s.pullCompensation)
-                Toggle("Centre-run underlay", isOn: s.underlay)
-            } else {
-                if settings.lineStyle != .rope { number("Stitch length (mm)", s.stitchLength) }
-                lineStyleFields
-            }
+        case .running, .bean, .satin:
+            caption("Only the border is sewn. Choose a fill to sew the inside as well.")
         case .auto:
             number("Satin and fill density (mm)", s.density)
             number("Widest satin column (mm)", s.maxColumnWidth)
@@ -281,19 +348,32 @@ struct EmbroiderySettingsFields: View {
             Toggle("Underlay", isOn: s.underlay)
             lineStylePicker
             if settings.lineStyle != .plain {
-                caption("Lines are sewn in this style, as wide as their stroke (or the style width for thin lines).")
+                caption("Stroked lines are sewn in this style, as wide as their stroke (or the style width for thin lines).")
                 number("Style width for thin lines (mm)", s.satinWidth)
             }
-            caption("Narrow parts of filled shapes become satin columns that turn with the stroke, wide parts are filled, and lines are sewn by their width from the SVG (satin, triple or running). Areas are sewn first, lines on top. For tatami, satin, embossed or motif fills, choose Fill.")
+            caption("Narrow parts of filled shapes become satin columns that turn with the stroke, wide parts are filled, and stroked lines are sewn by their width from the SVG (satin, triple or running).")
         case .satinColumns:
             number("Density (mm between stitches)", s.density)
             number("Widest column (mm)", s.maxColumnWidth)
             number("Pull compensation (mm)", s.pullCompensation)
             Toggle("Centre-run underlay", isOn: s.underlay)
             number("Fill angle for wide parts (°)", s.fillAngle)
-            caption("Satin stitches cross each stroke and turn with it. Parts wider than the widest column are filled. Open lines are skipped.")
+            caption("Satin stitches cross each stroke and turn with it. Parts wider than the widest column are filled.")
         case .fill:
             fillFields
+        }
+
+        Divider()
+        Text("Border").font(.headline)
+        Picker("Border", selection: borderChoice) {
+            if settings.hasFill { Text("None").tag(BorderStitch?.none) }
+            ForEach(BorderStitch.allCases) { Text($0.title).tag(BorderStitch?.some($0)) }
+        }
+        if let border = borderSettings {
+            LineStitchFields(settings: border)
+            if settings.hasFill {
+                caption("Sewn along the outline after the fill, so it covers the fill's edge. Open lines get the border only.")
+            }
         }
     }
 
@@ -301,10 +381,6 @@ struct EmbroiderySettingsFields: View {
     @ViewBuilder private var fillFields: some View {
         let s = $settings
         let type = settings.fillType
-        Picker("Fill type", selection: Binding(get: { settings.fillType },
-                                               set: { settings = settings.withFillType($0) })) {
-            ForEach(FillType.allCases) { Text($0.title).tag($0) }
-        }
         caption(type.detail)
         switch type {
         case .tatami:
@@ -362,7 +438,6 @@ struct EmbroiderySettingsFields: View {
                 caption("Running-stitch lines repeated across the shape; the fabric shows between them.")
             }
         }
-        caption("Fill sews the inside of closed shapes. Open lines are skipped.")
     }
 
     private var lineStylePicker: some View {
@@ -374,22 +449,45 @@ struct EmbroiderySettingsFields: View {
         }
     }
 
-    @ViewBuilder private var lineStyleFields: some View {
-        let s = $settings
-        if settings.lineStyle != .plain {
-            number("Style width (mm)", s.satinWidth)
-            if settings.lineStyle == .rope {
-                number("Density (mm between stitches)", s.density)
-                Toggle("Centre-run underlay", isOn: s.underlay)
-            }
-            if settings.stitchType == .bean && settings.lineStyle != .rope {
-                caption("Each stitch of the style is sewn three times.")
-            }
-        }
-    }
-
     private func caption(_ text: String) -> some View {
         Text(text).font(.caption).foregroundStyle(.secondary)
+    }
+
+    private func number(_ title: String, _ value: Binding<Double>) -> some View {
+        LabeledContent(title) {
+            TextField("", value: value, format: .number.precision(.fractionLength(0...2))).frame(width: 70)
+        }
+    }
+}
+
+/// Running, triple or satin line settings: line style, stitch length, width and density.
+private struct LineStitchFields: View {
+    @Binding var settings: EmbroiderySettings
+
+    var body: some View {
+        let s = $settings
+        Picker("Line style", selection: s.lineStyle) {
+            ForEach(LineStyle.allCases) { Text($0.title).tag($0) }
+        }
+        if settings.lineStyle != .plain { PatternSwatch(settings: settings) }
+        if settings.stitchType == .satin && settings.lineStyle == .plain {
+            number("Column width (mm)", s.satinWidth)
+            number("Density (mm between stitches)", s.density)
+            number("Pull compensation (mm)", s.pullCompensation)
+            Toggle("Centre-run underlay", isOn: s.underlay)
+        } else {
+            if settings.lineStyle != .rope { number("Stitch length (mm)", s.stitchLength) }
+            if settings.lineStyle != .plain {
+                number("Style width (mm)", s.satinWidth)
+                if settings.lineStyle == .rope {
+                    number("Density (mm between stitches)", s.density)
+                    Toggle("Centre-run underlay", isOn: s.underlay)
+                }
+                if settings.stitchType == .bean && settings.lineStyle != .rope {
+                    Text("Each stitch of the style is sewn three times.").font(.caption).foregroundStyle(.secondary)
+                }
+            }
+        }
     }
 
     private func number(_ title: String, _ value: Binding<Double>) -> some View {

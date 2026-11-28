@@ -211,6 +211,11 @@ public extension EmbroiderySettings {
     /// A short description, such as "Fill · Tatami, steps (⅓ offset)" or "Running stitch · Rope".
     var summary: String {
         let s = sanitized
+        let border = s.border.map { " + " + ($0.stitch == .satin ? "satin" : $0.stitch == .bean ? "triple" : "running") + " border" } ?? ""
+        return mainSummary(s) + border
+    }
+
+    private func mainSummary(_ s: EmbroiderySettings) -> String {
         switch s.stitchType {
         case .fill:
             switch s.fillType {
