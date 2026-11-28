@@ -93,6 +93,13 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
     public var swapAxes: Bool
     public var baudRate: Int
     public var flowControl: FlowControl
+    /// How a GRBL laser is reached: USB serial, or Wi-Fi on machines that support it.
+    public var link: LaserLink
+    /// IP address of the machine on the network (Wi-Fi link).
+    public var networkHost: String
+    public var networkPort: Int
+    /// Start an uploaded Wi-Fi job from the app instead of the machine's button.
+    public var wifiAutoStart: Bool
 
     // GRBL laser
     /// GRBL $30 (maximum spindle / laser S value).
@@ -146,6 +153,8 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
 
     public init(id: UUID = UUID(), name: String, kind: DeviceKind, bedWidth: Double, bedHeight: Double,
                 origin: OriginCorner, swapAxes: Bool = false, baudRate: Int, flowControl: FlowControl = .none,
+                link: LaserLink = .usbSerial, networkHost: String = "", networkPort: Int = XToolWiFi.defaultPort,
+                wifiAutoStart: Bool = false,
                 sMax: Double = 1000, rapidSpeed: Double = 3000, rxBufferSize: Int = 127,
                 language: CutterLanguage = .hpgl, unitsPerMM: Double = 40, bladeOffset: Double = 0.25,
                 overcut: Double = 1, output: CutterOutput = .serial, printerQueue: String = "",
@@ -163,6 +172,10 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
         self.swapAxes = swapAxes
         self.baudRate = baudRate
         self.flowControl = flowControl
+        self.link = link
+        self.networkHost = networkHost
+        self.networkPort = networkPort
+        self.wifiAutoStart = wifiAutoStart
         self.sMax = sMax
         self.rapidSpeed = rapidSpeed
         self.rxBufferSize = rxBufferSize
@@ -187,7 +200,8 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, name, kind, bedWidth, bedHeight, origin, swapAxes, baudRate, flowControl, sMax, rapidSpeed,
+        case id, name, kind, bedWidth, bedHeight, origin, swapAxes, baudRate, flowControl, link, networkHost, networkPort,
+             wifiAutoStart, sMax, rapidSpeed,
              rxBufferSize, language, unitsPerMM, bladeOffset, overcut, output, printerQueue, sendSpeedAndForce, safeZ,
              rotaryEnabled, rotaryType, rotaryMMPerRotation, rotaryRollerDiameter, rotaryObjectDiameter, aasEnabled, aasUnits,
              hasLaserPointer, laserOffsetX, laserOffsetY
@@ -205,6 +219,10 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
                   swapAxes: try c.decodeIfPresent(Bool.self, forKey: .swapAxes) ?? false,
                   baudRate: try c.decode(Int.self, forKey: .baudRate),
                   flowControl: try c.decodeIfPresent(FlowControl.self, forKey: .flowControl) ?? .none,
+                  link: try c.decodeIfPresent(LaserLink.self, forKey: .link) ?? .usbSerial,
+                  networkHost: try c.decodeIfPresent(String.self, forKey: .networkHost) ?? "",
+                  networkPort: try c.decodeIfPresent(Int.self, forKey: .networkPort) ?? XToolWiFi.defaultPort,
+                  wifiAutoStart: try c.decodeIfPresent(Bool.self, forKey: .wifiAutoStart) ?? false,
                   sMax: try c.decodeIfPresent(Double.self, forKey: .sMax) ?? 1000,
                   rapidSpeed: try c.decodeIfPresent(Double.self, forKey: .rapidSpeed) ?? 3000,
                   rxBufferSize: try c.decodeIfPresent(Int.self, forKey: .rxBufferSize) ?? 127,
@@ -227,6 +245,9 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
                   laserOffsetX: try c.decodeIfPresent(Double.self, forKey: .laserOffsetX) ?? 0,
                   laserOffsetY: try c.decodeIfPresent(Double.self, forKey: .laserOffsetY) ?? 0)
     }
+
+    /// True when jobs go to this machine over Wi-Fi rather than USB.
+    public var usesWiFi: Bool { kind == .grblLaser && link == .xToolWiFi }
 
     /// The laser pointer's offset from the blade in cutter mm, or zero when there is no pointer
     /// (marks are then sighted with the blade tip).
@@ -259,9 +280,12 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
                       origin: .topLeft, baudRate: 115200),
         DeviceProfile(name: "xTool D1 Pro + extension kit", kind: .grblLaser, bedWidth: 432, bedHeight: 940,
                       origin: .topLeft, baudRate: 115200),
+        // Same machine, sent over Wi-Fi: the job is uploaded and started with the machine's button.
+        DeviceProfile(name: "xTool D1 Pro (Wi-Fi)", kind: .grblLaser, bedWidth: 432, bedHeight: 406,
+                      origin: .topLeft, baudRate: 115200, link: .xToolWiFi),
         DeviceProfile(name: "Generic GRBL laser", kind: .grblLaser, bedWidth: 400, bedHeight: 400,
                       origin: .bottomLeft, baudRate: 115200),
-        // Creality Falcon2: 400×415 mm work area, GRBL over USB serial. Check which corner yours homes to.
+        // Creality Falcon2: 400×415 mm work area, GRBL over USB serial (it has no Wi-Fi). Check which corner yours homes to.
         DeviceProfile(name: "Creality Falcon2 12 W", kind: .grblLaser, bedWidth: 400, bedHeight: 415,
                       origin: .bottomLeft, baudRate: 115200, sMax: 1000, rapidSpeed: 6000),
         DeviceProfile(name: "Creality Falcon2 40 W", kind: .grblLaser, bedWidth: 400, bedHeight: 415,

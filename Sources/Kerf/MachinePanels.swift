@@ -75,7 +75,12 @@ struct LaserPanel: View {
                         }
                     }
                 }
-                .disabled(!laser.isConnected || laser.isRunning)
+                .disabled(!laser.isConnected || laser.isRunning || laser.isWiFi)
+            }
+            if laser.isWiFi {
+                Text("Over Wi-Fi the laser doesn't report its position and can't be jogged or homed from here. Jobs run from where the head is: the laser treats that as X0 Y0.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
             if model.profile.rotaryEnabled {
                 Label(String(format: "Rotary on (%@): Y scaled ×%.3f", model.profile.rotaryType.title.lowercased(), model.profile.rotaryYScale),
@@ -93,8 +98,9 @@ struct LaserPanel: View {
                         .foregroundStyle(.secondary)
                     HStack {
                         Button("Frame") { laser.frame(lines: frameLines()) }
-                            .help("Trace the job outline with the laser off")
-                            .disabled(tp.isEmpty || laser.isRunning)
+                            .help(laser.isWiFi ? "Upload the job outline, then press the laser's button to trace it with the laser off"
+                                               : "Trace the job outline with the laser off")
+                            .disabled(tp.isEmpty || laser.isRunning || laser.isUploading)
                         Spacer()
                         if laser.isRunning {
                             if laser.isPaused {
@@ -103,14 +109,25 @@ struct LaserPanel: View {
                                 Button("Pause") { laser.pause() }
                             }
                         } else {
-                            Button("Start") { laser.run(lines: model.gcodeLines(offset: jobOffset())) }
+                            Button(startTitle) { laser.run(lines: model.gcodeLines(offset: jobOffset())) }
                                 .buttonStyle(.borderedProminent)
-                                .disabled(tp.isEmpty)
+                                .disabled(tp.isEmpty || laser.isUploading)
                         }
                         Button("Stop", role: .destructive) { laser.stop() }
                     }
                     .disabled(!laser.isConnected)
-                    if laser.isRunning {
+                    if laser.isUploading {
+                        ProgressView { Text("Uploading to the laser…").font(.caption) }
+                            .progressViewStyle(.linear)
+                    } else if laser.awaitingButton {
+                        Label("Uploaded. Press the button on the laser to start.", systemImage: "hand.point.up.left")
+                            .font(.caption)
+                            .foregroundStyle(.blue)
+                    }
+                    if laser.isRunning && laser.isWiFi {
+                        Text("Running on the laser · \(formatDuration(laser.elapsed)) elapsed")
+                            .font(.caption)
+                    } else if laser.isRunning {
                         ProgressView(value: laser.progress) {
                             Text("\(Int(laser.progress * 100))% · \(formatDuration(laser.elapsed)) elapsed")
                                 .font(.caption)
@@ -162,11 +179,39 @@ struct LaserPanel: View {
                     }
                 }
             }
-            .disabled(!laser.isConnected)
+            .disabled(!laser.isConnected || laser.isWiFi)
         }
     }
 
+    /// Over Wi-Fi without auto start, the button only uploads; the laser's own button starts the job.
+    private var startTitle: String {
+        laser.isWiFi && !model.profile.wifiAutoStart ? "Upload" : "Start"
+    }
+
+    @ViewBuilder
     private var connectionRow: some View {
+        if model.profile.usesWiFi || laser.isWiFi {
+            wifiConnectionRow
+        } else {
+            serialConnectionRow
+        }
+    }
+
+    private var wifiConnectionRow: some View {
+        HStack {
+            Label(model.profile.networkHost.isEmpty ? "No IP address set" : model.profile.networkHost, systemImage: "wifi")
+                .foregroundStyle(model.profile.networkHost.isEmpty ? .secondary : .primary)
+            Spacer()
+            if laser.isConnected {
+                Button("Disconnect") { laser.disconnect() }
+            } else {
+                Button("Connect") { laser.connect(profile: model.profile) }
+                    .disabled(model.profile.networkHost.isEmpty)
+            }
+        }
+    }
+
+    private var serialConnectionRow: some View {
         HStack {
             Picker("Port", selection: $laser.selectedPort) {
                 if laser.ports.isEmpty { Text("No serial ports").tag("") }
@@ -518,11 +563,34 @@ private struct ProfileForm: View {
                 Toggle("Swap X and Y", isOn: $profile.swapAxes)
             }
             Section("Connection") {
-                Picker("Baud rate", selection: $profile.baudRate) {
-                    ForEach([9600, 19200, 38400, 57600, 115200, 230400, 250000], id: \.self) { Text("\($0)").tag($0) }
+                if profile.kind == .grblLaser {
+                    Picker("Connect by", selection: $profile.link) {
+                        ForEach(LaserLink.allCases) { Text($0.title).tag($0) }
+                    }
                 }
-                Picker("Flow control", selection: $profile.flowControl) {
-                    ForEach(FlowControl.allCases) { Text($0.title).tag($0) }
+                if profile.usesWiFi {
+                    LabeledContent("IP address") {
+                        TextField("192.168.1.50", text: $profile.networkHost).frame(width: 140)
+                    }
+                    LabeledContent("Port") { TextField("", value: $profile.networkPort, format: .number.grouping(.never)).frame(width: 80) }
+                    Toggle("Start jobs from KerfKutter", isOn: $profile.wifiAutoStart)
+                    Text(profile.wifiAutoStart
+                         ? "Jobs start as soon as they're uploaded, using a call xTool doesn't document. On older firmware (40.30.002.01) the laser has been seen to fire while framing this way. Framing always waits for the button."
+                         : "Jobs are uploaded to the laser, then you press its button to start. This is the safest way. Find the IP address in xTool Creative Space or your router.")
+                        .font(.caption)
+                        .foregroundStyle(profile.wifiAutoStart ? .orange : .secondary)
+                } else {
+                    Picker("Baud rate", selection: $profile.baudRate) {
+                        ForEach([9600, 19200, 38400, 57600, 115200, 230400, 250000], id: \.self) { Text("\($0)").tag($0) }
+                    }
+                    Picker("Flow control", selection: $profile.flowControl) {
+                        ForEach(FlowControl.allCases) { Text($0.title).tag($0) }
+                    }
+                    if profile.kind == .grblLaser && profile.name.localizedCaseInsensitiveContains("falcon") {
+                        Text("The Falcon2 connects over USB only. Falcon A1 models have Wi-Fi, but KerfKutter can't send to them over it yet.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             if profile.kind == .cncRouter {

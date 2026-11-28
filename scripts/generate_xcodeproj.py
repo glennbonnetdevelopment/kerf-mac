@@ -223,7 +223,7 @@ target_settings = {
         "PRODUCT_NAME": "KerfKutter", "PRODUCT_BUNDLE_IDENTIFIER": BUNDLE_ID, "GENERATE_INFOPLIST_FILE": "YES",
         "INFOPLIST_KEY_CFBundleDisplayName": "KerfKutter", "INFOPLIST_KEY_LSApplicationCategoryType": "public.app-category.graphics-design",
         "INFOPLIST_KEY_NSHumanReadableCopyright": "",
-        "INFOPLIST_KEY_NSCameraUsageDescription": "KerfKutter shows the camera above your laser bed on the canvas so you can place designs on the material.", "MARKETING_VERSION": "0.2", "CURRENT_PROJECT_VERSION": "2",
+        "INFOPLIST_KEY_NSCameraUsageDescription": "KerfKutter shows the camera above your laser bed on the canvas so you can place designs on the material.", "INFOPLIST_KEY_NSLocalNetworkUsageDescription": "KerfKutter sends jobs to your laser over your local network.", "MARKETING_VERSION": "0.2", "CURRENT_PROJECT_VERSION": "2",
         "ENABLE_HARDENED_RUNTIME": "YES", "ENABLE_APP_SANDBOX": "YES",
         "CODE_SIGN_ENTITLEMENTS": "Resources/KerfKutter.entitlements",
         "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
