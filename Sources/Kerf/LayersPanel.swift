@@ -80,7 +80,7 @@ private struct LayerRow: View {
                     }
                 }
                 Spacer()
-                Text(layer.mode.title)
+                Text(layer.output == .embroidery ? "Embroidery" : layer.mode.title)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Text("\(count)")
@@ -120,72 +120,88 @@ struct LayerSettings: View {
                     .font(.caption)
                     .foregroundStyle(.orange)
             }
-            if layer.mode != .print {
+            if showsIdentity && layer.mode != .print && layer.mode != .image {
+                Picker("Used for", selection: $layer.output) {
+                    ForEach(LayerOutput.allCases) { Text($0.title).tag($0) }
+                }
+                .help("Keep a layer to embroidery export only (never cut or engraved), or to the machine only (never sewn)")
+                if layer.output != .machines {
+                    Toggle("Stop the embroidery machine before and after", isOn: $layer.embroideryStop)
+                        .help("For appliqué: the machine stops so you can lay or trim fabric. The layer is never grouped with others of its thread.")
+                }
+            }
+            if layer.output == .embroidery {
+                Text("Sewn only: this layer is left out of laser, cutter and CNC jobs. Set its stitches in File › Export Embroidery.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if layer.mode != .print {
                 Stepper("Passes: \(layer.passes)", value: $layer.passes, in: 1...50)
             }
 
-            switch layer.mode {
-            case .print:
-                Text("Print-only layers hold registration marks and print artwork. They go into the print PDF and are never cut.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            case .cut:
-                number("Speed (cm/s)", $layer.cutSpeed)
-                number("Force (g)", $layer.cutForce)
-                if kind == .vinylCutter { bladeOffsetSettings }
-                if kind == .grblLaser { tabSettings(cnc: false) }
-            case .mill:
-                number("Feed (mm/min)", $layer.speed)
-                number("Plunge (mm/min)", $layer.plungeRate)
-                number("Spindle (S value)", $layer.spindleSpeed)
-                number("Cut depth (mm)", $layer.cutDepth)
-                number("Pass depth (mm)", $layer.stepDown)
-                number("Tool diameter (mm)", $layer.toolDiameter)
-                Picker("Default cut", selection: $layer.defaultMillRole) {
-                    ForEach(MillRole.allCases) { Text($0.title).tag($0) }
-                }
-                Text("Auto treats outer shapes as parts (cut outside) and shapes inside them as holes (cut inside). Set a shape's own cut type in Arrange.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Picker("Milling", selection: $layer.millStyle) {
-                    ForEach(MillStyle.allCases) { Text($0.title).tag($0) }
-                }
-                LabeledContent("Pocket stepover \(Int((layer.stepover * 100).rounded()))%") {
-                    Slider(value: $layer.stepover, in: 0.1...0.9, step: 0.05).frame(width: 150)
-                }
-                number("Ramp length (mm)", $layer.rampLength)
-                tabSettings(cnc: true)
-            case .line, .fill, .image:
-                number("Speed (mm/min)", $layer.speed)
-                LabeledContent(layer.mode == .image ? "Max power \(Int(layer.power))%" : "Power \(Int(layer.power))%") {
-                    Slider(value: $layer.power, in: 0...100, step: 1).frame(width: 150)
-                }
-                if layer.mode == .image {
-                    LabeledContent("Min power \(Int(layer.powerMin))%") {
-                        Slider(value: $layer.powerMin, in: 0...100, step: 1).frame(width: 150)
-                    }
-                    Picker("Dither", selection: $layer.dither) {
-                        ForEach(DitherMode.allCases) { Text($0.title).tag($0) }
-                    }
-                    LabeledContent("Line interval (mm)") {
-                        TextField("", value: $layer.fillInterval, format: .number.precision(.fractionLength(0...3))).frame(width: 70)
-                    }
-                    Text(String(format: "%.0f DPI", 25.4 / max(0.01, layer.fillInterval)))
+            if layer.output != .embroidery {
+                switch layer.mode {
+                case .print:
+                    Text("Print-only layers hold registration marks and print artwork. They go into the print PDF and are never cut.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    number("Overscan (mm)", $layer.overscan)
-                    Toggle("Invert", isOn: $layer.invertImage)
-                    Toggle("Bidirectional", isOn: $layer.fillBidirectional)
-                }
-                Toggle("Air assist", isOn: $layer.airAssist)
-                if layer.mode == .fill {
-                    LabeledContent("Line interval (mm)") {
-                        TextField("", value: $layer.fillInterval, format: .number.precision(.fractionLength(0...3))).frame(width: 70)
+                case .cut:
+                    number("Speed (cm/s)", $layer.cutSpeed)
+                    number("Force (g)", $layer.cutForce)
+                    if kind == .vinylCutter { bladeOffsetSettings }
+                    if kind == .grblLaser { tabSettings(cnc: false) }
+                case .mill:
+                    number("Feed (mm/min)", $layer.speed)
+                    number("Plunge (mm/min)", $layer.plungeRate)
+                    number("Spindle (S value)", $layer.spindleSpeed)
+                    number("Cut depth (mm)", $layer.cutDepth)
+                    number("Pass depth (mm)", $layer.stepDown)
+                    number("Tool diameter (mm)", $layer.toolDiameter)
+                    Picker("Default cut", selection: $layer.defaultMillRole) {
+                        ForEach(MillRole.allCases) { Text($0.title).tag($0) }
                     }
-                    number("Angle (°)", $layer.fillAngle)
-                    Toggle("Bidirectional", isOn: $layer.fillBidirectional)
+                    Text("Auto treats outer shapes as parts (cut outside) and shapes inside them as holes (cut inside). Set a shape's own cut type in Arrange.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Picker("Milling", selection: $layer.millStyle) {
+                        ForEach(MillStyle.allCases) { Text($0.title).tag($0) }
+                    }
+                    LabeledContent("Pocket stepover \(Int((layer.stepover * 100).rounded()))%") {
+                        Slider(value: $layer.stepover, in: 0.1...0.9, step: 0.05).frame(width: 150)
+                    }
+                    number("Ramp length (mm)", $layer.rampLength)
+                    tabSettings(cnc: true)
+                case .line, .fill, .image:
+                    number("Speed (mm/min)", $layer.speed)
+                    LabeledContent(layer.mode == .image ? "Max power \(Int(layer.power))%" : "Power \(Int(layer.power))%") {
+                        Slider(value: $layer.power, in: 0...100, step: 1).frame(width: 150)
+                    }
+                    if layer.mode == .image {
+                        LabeledContent("Min power \(Int(layer.powerMin))%") {
+                            Slider(value: $layer.powerMin, in: 0...100, step: 1).frame(width: 150)
+                        }
+                        Picker("Dither", selection: $layer.dither) {
+                            ForEach(DitherMode.allCases) { Text($0.title).tag($0) }
+                        }
+                        LabeledContent("Line interval (mm)") {
+                            TextField("", value: $layer.fillInterval, format: .number.precision(.fractionLength(0...3))).frame(width: 70)
+                        }
+                        Text(String(format: "%.0f DPI", 25.4 / max(0.01, layer.fillInterval)))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        number("Overscan (mm)", $layer.overscan)
+                        Toggle("Invert", isOn: $layer.invertImage)
+                        Toggle("Bidirectional", isOn: $layer.fillBidirectional)
+                    }
+                    Toggle("Air assist", isOn: $layer.airAssist)
+                    if layer.mode == .fill {
+                        LabeledContent("Line interval (mm)") {
+                            TextField("", value: $layer.fillInterval, format: .number.precision(.fractionLength(0...3))).frame(width: 70)
+                        }
+                        number("Angle (°)", $layer.fillAngle)
+                        Toggle("Bidirectional", isOn: $layer.fillBidirectional)
+                    }
+                    if layer.mode == .line, kind == .grblLaser { tabSettings(cnc: false) }
                 }
-                if layer.mode == .line, kind == .grblLaser { tabSettings(cnc: false) }
             }
         }
         .formStyle(.grouped)

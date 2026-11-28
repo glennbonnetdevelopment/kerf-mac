@@ -84,6 +84,8 @@ struct EditorToolbar: View {
             Button { model.showRhinestones = true } label: { Label("Rhinestones", systemImage: "circle.grid.3x3.fill") }
                 .help("Lay rhinestones along and inside the selected shapes or text, and cut the template holes")
                 .disabled(model.rhinestoneTargets.isEmpty)
+            Button { model.showPatch = true } label: { Label("Patch", systemImage: "shield.lefthalf.filled") }
+                .help("Make an embroidered patch around the selected design: shape, satin border, fabric or fill background, and cut lines")
             Divider().frame(height: 22)
 
             colorSwatches

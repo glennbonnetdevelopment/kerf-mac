@@ -129,7 +129,7 @@ public enum Planner {
         let rank: (LayerMode) -> Int = { $0 == .image ? 0 : ($0 == .fill ? 1 : 2) }
         let ordered = doc.layers.enumerated().sorted { (rank($0.element.mode), $0.offset) < (rank($1.element.mode), $1.offset) }.map(\.element)
         let all = doc.machineShapes()
-        for var layer in ordered where layer.enabled && supports(layer.mode, on: kind) {
+        for var layer in ordered where layer.enabled && layer.output != .embroidery && supports(layer.mode, on: kind) {
             if kind == .cncRouter { layer.mode = .mill }
             let shapes = all.filter { $0.layerID == layer.id }
             if layer.mode == .image {

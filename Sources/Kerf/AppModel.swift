@@ -184,6 +184,15 @@ final class AppModel: ObservableObject {
     }
     /// Shows the rhinestone layout sheet (see RhinestoneView).
     @Published var showRhinestones = false
+    /// Embroidered patch settings, remembered between launches (see AppModel+Patch).
+    @Published var patch: PatchOptions = AppModel.loadPatchOptions() {
+        didSet {
+            guard patch != oldValue else { return }
+            if let data = try? JSONEncoder().encode(patch) { UserDefaults.standard.set(data, forKey: "patch") }
+        }
+    }
+    /// Shows the embroidered patch sheet (see PatchView).
+    @Published var showPatch = false
     /// The shape open in the stitch editor window.
     @Published var stitchEditorShapeID: UUID?
     /// Draws the design as sewn stitches on the canvas instead of vector outlines (see AppModel+StitchPreview).
