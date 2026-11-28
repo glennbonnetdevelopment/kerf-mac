@@ -115,7 +115,7 @@ public extension Layer {
     }
 
     /// Whether the layer is sewn when exporting embroidery (print-only and image layers are not).
-    var isEmbroidered: Bool { enabled && mode != .print && mode != .image }
+    var isEmbroidered: Bool { enabled && output != .machines && mode != .print && mode != .image }
 }
 
 // MARK: - Plan
@@ -193,6 +193,7 @@ public enum EmbroideryPlanner {
     public static func plan(_ doc: KerfDocument, shapeIDs: Set<UUID>? = nil, groupColors: Bool = true,
                             optimizeOrder: Bool = true) -> EmbroideryPlan {
         var blocks: [StitchBlock] = []
+        var stops: Set<Int> = []
         var cursor = Vec2.zero
         var started = false
         var source = doc
@@ -211,7 +212,8 @@ public enum EmbroideryPlanner {
             let box = block.bounds
             var target: Int?
             var j = blocks.count - 1
-            while j >= 0 {
+            // A stop layer is sewn on its own, and nothing moves past it.
+            while j >= 0 && !layer.embroideryStop && !stops.contains(j) {
                 if blocks[j].color == block.color { target = j; break }
                 // Only the block right before may be joined unless grouping; never move past an overlapping one.
                 if !groupColors || blocks[j].bounds.intersects(box) { break }
@@ -220,6 +222,7 @@ public enum EmbroideryPlanner {
             if let t = target {
                 blocks[t].runs += runs
             } else {
+                if layer.embroideryStop { stops.insert(blocks.count) }
                 blocks.append(block)
             }
         }

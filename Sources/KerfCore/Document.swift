@@ -29,6 +29,26 @@ public enum LayerMode: String, Codable, CaseIterable, Sendable, Identifiable {
     }
 }
 
+/// Which kinds of output a layer goes to.
+public enum LayerOutput: String, Codable, CaseIterable, Sendable, Identifiable {
+    /// The current machine and embroidery export.
+    case all
+    /// Only embroidery export (never sent to a laser, cutter or CNC).
+    case embroidery
+    /// Only the laser, cutter or CNC (never sewn).
+    case machines
+
+    public var id: String { rawValue }
+
+    public var title: String {
+        switch self {
+        case .all: return "Machine and embroidery"
+        case .embroidery: return "Embroidery only"
+        case .machines: return "Machine only (not sewn)"
+        }
+    }
+}
+
 public enum DitherMode: String, Codable, CaseIterable, Sendable, Identifiable {
     case threshold, floydSteinberg, atkinson, grayscale
     public var id: String { rawValue }
@@ -163,6 +183,11 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
     public var materialID: UUID?
     /// Embroidery machine settings; nil uses the defaults for the layer's mode (see `embroiderySettings`).
     public var embroidery: EmbroiderySettings?
+    /// Which outputs use this layer: everything, only embroidery, or only the laser, cutter and CNC.
+    public var output: LayerOutput = .all
+    /// Embroidery: the machine stops before and after this layer, and it is never grouped with another layer
+    /// of the same thread. For appliqué steps such as laying fabric on a placement line or trimming it.
+    public var embroideryStop: Bool = false
 
     public init(id: UUID = UUID(), name: String, colorHex: String, mode: LayerMode = .line,
                 enabled: Bool = true, passes: Int = 1, speed: Double = 1000, power: Double = 50,
@@ -217,7 +242,7 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         case id, name, colorHex, mode, enabled, passes, speed, power, powerMin, airAssist, fillInterval, fillAngle,
              fillBidirectional, dither, invertImage, overscan, cutSpeed, cutForce, cutDepth, stepDown, toolDiameter,
              millOffset, plungeRate, spindleSpeed, defaultMillRole, millStyle, stepover, tabsEnabled, tabPlacement, tabCount,
-             tabSpacing, tabWidth, tabHeight, laserTabWidth, rampLength, materialID, embroidery, bladeOffset
+             tabSpacing, tabWidth, tabHeight, laserTabWidth, rampLength, materialID, embroidery, bladeOffset, output, embroideryStop
     }
 
     /// Missing keys fall back to defaults so older project files still open.
@@ -262,6 +287,8 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         materialID = try c.decodeIfPresent(UUID.self, forKey: .materialID)
         embroidery = try c.decodeIfPresent(EmbroiderySettings.self, forKey: .embroidery)
         bladeOffset = try c.decodeIfPresent(Double.self, forKey: .bladeOffset)
+        output = try c.decodeIfPresent(LayerOutput.self, forKey: .output) ?? .all
+        embroideryStop = try c.decodeIfPresent(Bool.self, forKey: .embroideryStop) ?? false
     }
 
     /// Default layer colours, in the order new layers take them.

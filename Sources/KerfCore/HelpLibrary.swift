@@ -97,6 +97,7 @@ public enum HelpLibrary {
         gccOpticalMarks,
         rhinestones,
         embroidery,
+        patches,
         devices,
         previewExport,
         shortcuts,
@@ -497,6 +498,37 @@ public enum HelpLibrary {
             .text("**Optimize order** sews similar shapes together, nearest first. Turn it off to set the order yourself with the up and down arrows. Reorder whole colours in the Layers panel."),
             .heading("Hand tweaking"),
             .text("Select a shape and, in **Arrange › Embroidery**, tick **Own stitch settings** to sew it differently from its layer. **Edit stitches…** opens the stitch editor, where you can move, add and delete stitch points, split a run with a trim and jump, or join runs. Saved stitches sew exactly as edited; **Discard hand edits** goes back to automatic stitches."),
+        ])
+
+    static let patches = HelpTopic(
+        id: "patches", title: "Embroidered patches", symbol: "shield.lefthalf.filled",
+        summary: "Making sew-on patches: shape, satin border, fabric or fill background, and cut lines.",
+        blocks: [
+            .text("**Patch** (above the canvas, or **Arrange › Make Embroidered Patch…**) builds a standalone patch around the selected design, to sew or iron on later. Each part goes on a layer of its own, in sewing order."),
+            .steps([
+                "Select the design (text, shapes or an imported SVG) and click **Patch**.",
+                "Pick a **Shape**: circle, oval, rounded rectangle, rectangle, shield, hexagon, or **Follow the design** for a die-cut look. It sizes itself around the design with the space you set, or turn that off and type the finished size.",
+                "Choose the **Border**: a satin edge (the merrowed look) or a triple stitch line, and its thread.",
+                "Choose the **Background**: fabric (twill appliqué), a stitched fill, or none.",
+                "Add **Cut lines** if you want the laser or cutter to cut the fabric piece or cut the patch out, then click **Add Patch** and export from **File › Export Embroidery**.",
+            ]),
+            .heading("Sewing order"),
+            .bullets([
+                "**Fabric**: a placement line, then the machine stops so you can lay the twill over it. A light zig-zag tackdown follows, and the machine stops again so you can trim the fabric close to it.",
+                "**Fill**: tatami fill covers the patch and runs a little under the border, so no gap shows.",
+                "Your design sews next, then the border last, over every raw edge.",
+                "The stops show as extra colour changes on the machine. Placement and tackdown are sewn on their own even when they share a thread with the design.",
+            ]),
+            .heading("Cut lines"),
+            .bullets([
+                "**Cut the fabric piece to shape** cuts the twill a little bigger than the tackdown, well inside the satin. Cut it first, lay it on the placement line, and skip the trimming.",
+                "**Cut out the finished patch** adds a line just outside the border to cut the patch free from the stabiliser or fabric after sewing.",
+                "Cut lines go on layers for the current machine and are never sewn. Sewing layers are set to **Embroidery only**, so the laser or cutter skips them. **Keep the design off the laser and cutter** does the same for your design's layers.",
+            ]),
+            .tip("Use a firm cut-away or tear-away stabiliser, and for iron-on patches add heat-activated adhesive film to the back after sewing."),
+            .warning("Only laser-cut fabrics that are safe to laser, such as polyester twill. Don't laser vinyl (PVC) or fabrics with PVC backing."),
+            .heading("Layer settings"),
+            .text("Any layer can be set to **Used for: Embroidery only** or **Machine only (not sewn)** in the Layers panel, and **Stop the embroidery machine before and after** gives your own appliqué steps a stop."),
         ])
 
     static let devices = HelpTopic(
