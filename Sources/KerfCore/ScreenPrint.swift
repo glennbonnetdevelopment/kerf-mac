@@ -48,6 +48,12 @@ public struct ScreenPrintOptions: Codable, Hashable, Sendable {
     /// Halftone screen angle in degrees. 22.5° keeps the dots from lining up with the mesh threads.
     public var halftoneAngle = 22.5
     public var dotShape: HalftoneDotShape = .round
+    /// The mesh count picked from the presets (threads per inch), which set `halftoneLPI`; nil when typed by hand.
+    public var mesh: Int?
+    /// Exposure test film: how many columns, the shortest exposure, and the time added per column (seconds).
+    public var testSteps = 6
+    public var testBaseSeconds = 60.0
+    public var testStepSeconds = 30.0
     /// Paper the films print on, unless `fitToArtwork`.
     public var paper: PaperSize = .letter
     /// Make each film page just big enough for the artwork instead of a paper size.
@@ -77,6 +83,10 @@ public struct ScreenPrintOptions: Codable, Hashable, Sendable {
         halftoneLPI = try c.decodeIfPresent(Double.self, forKey: .halftoneLPI) ?? d.halftoneLPI
         halftoneAngle = try c.decodeIfPresent(Double.self, forKey: .halftoneAngle) ?? d.halftoneAngle
         dotShape = try c.decodeIfPresent(HalftoneDotShape.self, forKey: .dotShape) ?? d.dotShape
+        mesh = try c.decodeIfPresent(Int.self, forKey: .mesh)
+        testSteps = try c.decodeIfPresent(Int.self, forKey: .testSteps) ?? d.testSteps
+        testBaseSeconds = try c.decodeIfPresent(Double.self, forKey: .testBaseSeconds) ?? d.testBaseSeconds
+        testStepSeconds = try c.decodeIfPresent(Double.self, forKey: .testStepSeconds) ?? d.testStepSeconds
         paper = try c.decodeIfPresent(PaperSize.self, forKey: .paper) ?? d.paper
         fitToArtwork = try c.decodeIfPresent(Bool.self, forKey: .fitToArtwork) ?? d.fitToArtwork
         landscape = try c.decodeIfPresent(Bool.self, forKey: .landscape) ?? d.landscape
@@ -85,7 +95,7 @@ public struct ScreenPrintOptions: Codable, Hashable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case excludedLayers, knockout, trap, underbase, underbaseChoke, invert, negativeMargin, mirror,
-             registrationMarks, markSize, markMargin, labels, halftoneLPI, halftoneAngle, dotShape, paper, fitToArtwork,
+             registrationMarks, markSize, markMargin, labels, halftoneLPI, halftoneAngle, dotShape, mesh, testSteps, testBaseSeconds, testStepSeconds, paper, fitToArtwork,
              landscape, pageMargin
     }
 
@@ -216,7 +226,8 @@ public enum ScreenPrint {
             areas.append(spread(area(of: mine), by: layer.screenSpread))
             let d = CGMutablePath()
             for s in mine where s.image != nil {
-                d.addPath(halftone(s, invert: layer.invertImage, lpi: o.halftoneLPI, angle: o.halftoneAngle, shape: o.dotShape))
+                d.addPath(halftone(s, invert: layer.invertImage, lpi: o.halftoneLPI, angle: layer.screenAngle ?? o.halftoneAngle,
+                                   shape: o.dotShape))
             }
             dots.append(d)
         }

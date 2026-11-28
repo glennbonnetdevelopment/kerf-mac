@@ -17,6 +17,22 @@ extension AppModel {
         if included { screenPrint.excludedLayers.remove(id) } else { screenPrint.excludedLayers.insert(id) }
     }
 
+    /// Sets a layer's own halftone angle (nil uses the films' angle), undoably.
+    func setScreenAngle(_ id: UUID, _ angle: Double?) {
+        guard let i = document.layers.firstIndex(where: { $0.id == id }), document.layers[i].screenAngle != angle else { return }
+        checkpoint()
+        document.layers[i].screenAngle = angle
+    }
+
+    /// Picks a mesh preset, which sets the halftone line count.
+    func applyMesh(_ mesh: Int?) {
+        screenPrint.mesh = mesh
+        if let m = mesh { screenPrint.halftoneLPI = MeshPreset.preset(m)?.lpi ?? MeshPreset.recommendedLPI(mesh: m) }
+    }
+
+    /// The exposure test film with the current settings.
+    var exposureTestFilms: FilmSet { ExposureTest.films(options: screenPrint) }
+
     /// Sets a layer's spread (positive) or choke (negative) in mm, undoably.
     func setScreenSpread(_ id: UUID, _ mm: Double) {
         guard let i = document.layers.firstIndex(where: { $0.id == id }), document.layers[i].screenSpread != mm else { return }
@@ -29,15 +45,15 @@ extension AppModel {
     private var filmJobName: String { fileURL?.deletingPathExtension().lastPathComponent ?? "Screen print" }
 
     /// Saves every film as one page of a PDF, at true size.
-    func saveFilmsPDF() {
-        let set = screenPrintFilms
+    func saveFilmsPDF(_ films: FilmSet? = nil, name: String? = nil) {
+        let set = films ?? screenPrintFilms
         guard !set.isEmpty else {
             alertMessage = "Nothing to put on film: add artwork on an enabled layer first."
             return
         }
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.pdf]
-        panel.nameFieldStringValue = filmJobName + " films.pdf"
+        panel.nameFieldStringValue = (name ?? filmJobName + " films") + ".pdf"
         guard panel.runModal() == .OK, let url = panel.url else { return }
         let pt = 72 / 25.4
         let page = set.pageSize
@@ -61,8 +77,8 @@ extension AppModel {
     }
 
     /// Prints every film, one per page, at 100% through the macOS print dialog.
-    func printFilms() {
-        let set = screenPrintFilms
+    func printFilms(_ films: FilmSet? = nil, name: String? = nil) {
+        let set = films ?? screenPrintFilms
         guard !set.isEmpty else {
             alertMessage = "Nothing to put on film: add artwork on an enabled layer first."
             return
@@ -86,7 +102,7 @@ extension AppModel {
 
         let view = FilmPagesView(set: set, pageSize: NSSize(width: page.x * pt, height: page.y * pt))
         let op = NSPrintOperation(view: view, printInfo: info)
-        op.jobTitle = filmJobName + " films"
+        op.jobTitle = name ?? filmJobName + " films"
         op.showsPrintPanel = true
         op.showsProgressPanel = true
         op.printPanel.options.insert(.showsPreview)
@@ -147,6 +163,81 @@ extension AppModel {
     func invertLayerToNegative(_ id: UUID) {
         selection = Set(document.shapes.filter { $0.layerID == id && $0.image == nil }.map(\.id))
         invertSelectionToNegative()
+    }
+}
+
+// MARK: - Colour photo separation
+
+/// A colour picture opened for separating into spot colours.
+struct ColorSeparationSource {
+    var name: String
+    var image: ColorImage
+    /// Size on the bed, mm.
+    var size: Vec2
+}
+
+extension AppModel {
+    /// Asks for a colour picture and opens the separation sheet on it.
+    func chooseColorImageToSeparate() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.png, .jpeg, .tiff, .bmp, .gif, .heic]
+        panel.message = "Choose a colour picture to separate into ink colours"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard let ns = NSImage(contentsOf: url), let cg = ns.cgImage(forProposedRect: nil, context: nil, hints: nil),
+              let img = Self.colorImage(cg, maxSide: 1200) else {
+            alertMessage = "\(url.lastPathComponent) could not be read as an image."
+            return
+        }
+        var wmm = Double(ns.size.width) / 72 * 25.4
+        var hmm = Double(ns.size.height) / 72 * 25.4
+        let fit = min(1, profile.bedWidth * 0.9 / max(wmm, 1), profile.bedHeight * 0.9 / max(hmm, 1))
+        wmm *= fit
+        hmm *= fit
+        colorSeparationSource = ColorSeparationSource(name: url.deletingPathExtension().lastPathComponent, image: img,
+                                                      size: Vec2(wmm, hmm))
+    }
+
+    /// The picture as straight RGBA, at most `maxSide` pixels on its long side.
+    static func colorImage(_ image: CGImage, maxSide: Int) -> ColorImage? {
+        let scale = min(1, Double(maxSide) / Double(max(image.width, image.height)))
+        let w = max(1, Int(Double(image.width) * scale)), h = max(1, Int(Double(image.height) * scale))
+        var bytes = [UInt8](repeating: 0, count: w * h * 4)
+        let ok = bytes.withUnsafeMutableBytes { buf -> Bool in
+            guard let ctx = CGContext(data: buf.baseAddress, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                      space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+            ctx.interpolationQuality = .high
+            ctx.draw(image, in: CGRect(x: 0, y: 0, width: w, height: h))
+            return true
+        }
+        guard ok else { return nil }
+        // Undo the premultiplied alpha.
+        for i in 0..<(w * h) {
+            let a = Int(bytes[i * 4 + 3])
+            guard a > 0, a < 255 else { continue }
+            for c in 0..<3 { bytes[i * 4 + c] = UInt8(min(255, Int(bytes[i * 4 + c]) * 255 / a)) }
+        }
+        return ColorImage(width: w, height: h, rgba: bytes)
+    }
+
+    /// Adds one image layer per ink, in print order, each holding that ink's separation of the picture.
+    func addSeparationLayers(_ source: ColorSeparationSource, inks: [InkColor], garment: InkColor?, smoothing: Double) {
+        let planes = PhotoSeparation.separate(source.image, inks: inks, garment: garment, smoothing: smoothing)
+        guard !planes.isEmpty else { return }
+        checkpoint()
+        let frame = Polyline([Vec2(0, 0), Vec2(source.size.x, 0), Vec2(source.size.x, source.size.y), Vec2(0, source.size.y)], closed: true)
+        var ids: [UUID] = []
+        for (k, plane) in planes.enumerated() {
+            var layer = Layer(name: "\(source.name) ink \(k + 1)", colorHex: inks[k].hex, mode: .image)
+            layer.speed = 3000
+            layer.power = 40
+            document.layers.append(layer)
+            let art = Artwork(layerID: layer.id, name: "\(source.name) \(inks[k].hex)", paths: [frame],
+                              transform: .translation(10, 10), image: plane)
+            document.shapes.append(art)
+            ids.append(art.id)
+        }
+        selection = Set(ids)
     }
 }
 

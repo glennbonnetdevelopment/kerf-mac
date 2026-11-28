@@ -520,7 +520,7 @@ public enum HelpLibrary {
 
     static let screenPrinting = HelpTopic(
         id: "screen-printing", title: "Screen printing", symbol: "square.stack.3d.down.right",
-        summary: "Black films for each colour, negatives and stencil masks, halftones, trap and underbase.",
+        summary: "Black films for each colour, colour photo separations, negatives and stencils, halftones, trap, underbase and exposure tests.",
         blocks: [
             .text("**File › Screen Print Films…** (⇧⌘P) turns each colour of the design into its own film in solid black, ready to print on transparency film and expose a screen. Each layer is one colour."),
             .steps([
@@ -546,6 +546,20 @@ public enum HelpLibrary {
             ]),
             .heading("Halftones"),
             .text("Photos and greys on image layers become halftone dots, since a screen can only print solid ink. 35 to 55 lines per inch suits inkjet film on 156 to 230 mesh. Keep the angle at 22.5° to avoid moiré with the mesh."),
+            .bullets([
+                "Pick your **Mesh** and the line count is set to one that the mesh holds (110 mesh 25 LPI up to 305 mesh 65 LPI).",
+                "Each colour with images can have its own **angle** (the ° box in the Colours list). Leave it empty to use the films' angle.",
+            ]),
+            .heading("Colour photos"),
+            .steps([
+                "Choose **File › Separate Colour Picture into Inks…**, or the button in Screen Print Films.",
+                "Set how many **Ink colours** to use. They're picked from the picture, lightest first; click a swatch to match the ink you have.",
+                "Set the **Garment colour**. Parts of the picture that match it get no ink, which saves a screen.",
+                "**Smooth tones** blends neighbouring inks as halftone dots, for photos. Slide it to the left for flat art, where each spot gets one ink.",
+                "Click **Add Ink Layers**. Each ink becomes an image layer, and Screen Print Films opens with a film for each one.",
+            ]),
+            .heading("Exposure test"),
+            .text("**Exposure test film** prints the same detail patches (fine lines, reversed lines, halftone patches, dots and small text) in several columns. Lay it on the screen, start the exposure, and slide a card over one more column each time the step passes. Column 1 gets the shortest time. Wash out the screen and use the shortest time where every patch holds and the emulsion feels hard."),
             .heading("Stencils and masks"),
             .bullets([
                 "**Add Stencil Cut Layers** puts each film's outlines on its own Cut layer (turned off), with the knockouts, trap and choke already in. Turn one on at a time to cut it from stencil vinyl.",

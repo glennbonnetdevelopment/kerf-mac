@@ -8,10 +8,12 @@ struct ScreenPrintView: View {
     @Environment(\.dismiss) private var dismiss
     /// The film shown in the preview, or nil for all colours together.
     @State private var shown: Int? = 0
+    /// Show the exposure test film in the preview instead of the design's films.
+    @State private var showTest = false
 
     var body: some View {
-        let set = model.screenPrintFilms
-        let index = shown.flatMap { set.films.indices.contains($0) ? $0 : nil }
+        let set = showTest ? model.exposureTestFilms : model.screenPrintFilms
+        let index = showTest ? 0 : shown.flatMap { set.films.indices.contains($0) ? $0 : nil }
         VStack(spacing: 0) {
             HStack(alignment: .top, spacing: 0) {
                 settings(set)
@@ -25,6 +27,10 @@ struct ScreenPrintView: View {
                         }
                     }
                     .frame(maxWidth: 360)
+                    .disabled(showTest)
+                    if showTest {
+                        Text("Exposure test film").font(.headline)
+                    }
                     FilmCanvas(set: set, index: index, background: model.document.workpiece?.colorHex)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(Color(nsColor: .underPageBackgroundColor))
@@ -108,8 +114,17 @@ struct ScreenPrintView: View {
             }
 
             Section("Halftones for images") {
+                Picker("Mesh", selection: Binding(get: { model.screenPrint.mesh }, set: { model.applyMesh($0) })) {
+                    Text("Custom").tag(Int?.none)
+                    ForEach(MeshPreset.all) { Text($0.title).tag(Int?.some($0.mesh)) }
+                }
+                if let mesh = model.screenPrint.mesh, let preset = MeshPreset.preset(mesh) {
+                    Text(preset.use).font(.caption).foregroundStyle(.secondary)
+                }
                 LabeledContent("Lines per inch") {
-                    TextField("", value: $model.screenPrint.halftoneLPI, format: .number).frame(width: 60)
+                    TextField("", value: Binding(get: { model.screenPrint.halftoneLPI },
+                                                 set: { model.screenPrint.halftoneLPI = $0; model.screenPrint.mesh = nil }),
+                              format: .number).frame(width: 60)
                 }
                 .help("35 to 55 suits inkjet film on 156 to 230 mesh. Higher needs finer mesh.")
                 LabeledContent("Angle (°)") {
@@ -118,6 +133,33 @@ struct ScreenPrintView: View {
                 .help("22.5° keeps the dots from lining up with the mesh threads (moiré)")
                 Picker("Dot", selection: $model.screenPrint.dotShape) {
                     ForEach(HalftoneDotShape.allCases) { Text($0.title).tag($0) }
+                }
+                Button("Separate a Colour Picture into Inks…") {
+                    dismiss()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { model.chooseColorImageToSeparate() }
+                }
+                Text("Image layers can each have their own angle in the Colours list.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Exposure test film") {
+                Stepper("Columns: \(model.screenPrint.testSteps)", value: $model.screenPrint.testSteps, in: 2...12)
+                LabeledContent("Shortest exposure (s)") {
+                    TextField("", value: $model.screenPrint.testBaseSeconds, format: .number).frame(width: 60)
+                }
+                LabeledContent("Added per column (s)") {
+                    TextField("", value: $model.screenPrint.testStepSeconds, format: .number).frame(width: 60)
+                }
+                let times = ExposureTest.times(steps: model.screenPrint.testSteps, base: model.screenPrint.testBaseSeconds,
+                                               step: model.screenPrint.testStepSeconds)
+                Text("Columns get \(ExposureTest.clock(times.first ?? 0)) to \(ExposureTest.clock(times.last ?? 0)). Cover one more column with card every \(ExposureTest.clock(model.screenPrint.testStepSeconds)).")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                HStack {
+                    Button("Print Test Film…") { model.printFilms(model.exposureTestFilms, name: "Exposure test") }
+                    Button("Save as PDF…") { model.saveFilmsPDF(model.exposureTestFilms, name: "Exposure test") }
+                    Button(showTest ? "Hide" : "Preview") { showTest.toggle() }
                 }
             }
 
@@ -156,6 +198,10 @@ private struct SeparationRow: View {
     @EnvironmentObject var model: AppModel
     let layer: Layer
 
+    private var hasImages: Bool {
+        model.document.shapes.contains { $0.layerID == layer.id && $0.image != nil }
+    }
+
     var body: some View {
         HStack(spacing: 8) {
             Toggle("", isOn: Binding(get: { !model.screenPrint.excludedLayers.contains(layer.id) },
@@ -172,6 +218,13 @@ private struct SeparationRow: View {
                 .frame(width: 50)
                 .help("Spread (+) or choke (−) in mm")
             Text("mm").foregroundStyle(.secondary)
+            if hasImages {
+                TextField("", value: Binding(get: { layer.screenAngle }, set: { model.setScreenAngle(layer.id, $0) }),
+                          format: .number, prompt: Text("\(model.screenPrint.halftoneAngle, specifier: "%g")"))
+                    .frame(width: 40)
+                    .help("Halftone angle for this colour's images, in degrees. Empty uses the films' angle.")
+                Text("°").foregroundStyle(.secondary)
+            }
         }
     }
 }

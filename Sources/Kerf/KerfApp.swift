@@ -47,6 +47,7 @@ struct KerfApp: App {
                 Button("Export Print PDF…") { model.exportPrintPDF() }
                 Button("Screen Print Films…") { model.showScreenPrint = true }
                     .keyboardShortcut("p", modifiers: [.command, .shift])
+                Button("Separate Colour Picture into Inks…") { model.chooseColorImageToSeparate() }
                 Button("Export Embroidery (PES, JEF, DST)…") { model.showEmbroideryExport = true }
                     .keyboardShortcut("e", modifiers: [.command, .option])
             }
@@ -253,6 +254,13 @@ struct ContentView: View {
         .sheet(isPresented: $model.showScreenPrint) {
             ScreenPrintView()
                 .environmentObject(model)
+        }
+        .sheet(isPresented: Binding(get: { model.colorSeparationSource != nil },
+                                    set: { if !$0 { model.colorSeparationSource = nil } })) {
+            if let source = model.colorSeparationSource {
+                ColorSeparationView(source: source)
+                    .environmentObject(model)
+            }
         }
         .sheet(isPresented: $model.showRhinestones) {
             RhinestoneView()

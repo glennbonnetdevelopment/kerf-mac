@@ -190,6 +190,8 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
     public var embroideryStop: Bool = false
     /// Screen printing: grow (spread, positive) or shrink (choke, negative) this colour's artwork on its film, in mm.
     public var screenSpread: Double = 0
+    /// Screen printing: halftone angle in degrees for this colour's images; nil uses the films' angle.
+    public var screenAngle: Double?
 
     public init(id: UUID = UUID(), name: String, colorHex: String, mode: LayerMode = .line,
                 enabled: Bool = true, passes: Int = 1, speed: Double = 1000, power: Double = 50,
@@ -244,7 +246,7 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         case id, name, colorHex, mode, enabled, passes, speed, power, powerMin, airAssist, fillInterval, fillAngle,
              fillBidirectional, dither, invertImage, overscan, cutSpeed, cutForce, cutDepth, stepDown, toolDiameter,
              millOffset, plungeRate, spindleSpeed, defaultMillRole, millStyle, stepover, tabsEnabled, tabPlacement, tabCount,
-             tabSpacing, tabWidth, tabHeight, laserTabWidth, rampLength, materialID, embroidery, bladeOffset, output, embroideryStop, screenSpread
+             tabSpacing, tabWidth, tabHeight, laserTabWidth, rampLength, materialID, embroidery, bladeOffset, output, embroideryStop, screenSpread, screenAngle
     }
 
     /// Missing keys fall back to defaults so older project files still open.
@@ -292,6 +294,7 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         output = try c.decodeIfPresent(LayerOutput.self, forKey: .output) ?? .all
         embroideryStop = try c.decodeIfPresent(Bool.self, forKey: .embroideryStop) ?? false
         screenSpread = try c.decodeIfPresent(Double.self, forKey: .screenSpread) ?? 0
+        screenAngle = try c.decodeIfPresent(Double.self, forKey: .screenAngle)
     }
 
     /// Default layer colours, in the order new layers take them.
