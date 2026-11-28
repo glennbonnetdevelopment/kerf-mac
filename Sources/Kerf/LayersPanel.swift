@@ -10,6 +10,10 @@ struct LayersPanel: View {
                 ForEach(model.document.layers) { layer in
                     LayerRow(layerID: layer.id)
                         .tag(Optional(layer.id))
+                        .contextMenu {
+                            Button("Invert Layer to Negative") { model.invertLayerToNegative(layer.id) }
+                            Button("Screen Print Films…") { model.showScreenPrint = true }
+                        }
                 }
                 .onMove { from, to in
                     model.checkpoint()

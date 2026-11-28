@@ -20,6 +20,7 @@
 		B972B8CE89D0548DA963E398 /* AppModel+Patch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 480897EE86AB2B0F4C05D3BC /* AppModel+Patch.swift */; };
 		3871119F34138F354675E701 /* AppModel+Print.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DF0E9C0BE0F58E441FB47D7 /* AppModel+Print.swift */; };
 		8DD6CC08722FCCD2B64D7E64 /* AppModel+Rhinestones.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F4A1ACC12482326FDFBBACD /* AppModel+Rhinestones.swift */; };
+		04607FB8850DFFD95CCDE8E0 /* AppModel+ScreenPrint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C51993D7D1EDFC9C857BCE9 /* AppModel+ScreenPrint.swift */; };
 		2DC817339EEED071F6B7BA2D /* AppModel+SendToCutter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE6D91B24F43DBE5753D64E /* AppModel+SendToCutter.swift */; };
 		38D649F1F3126A696B8CDFBA /* AppModel+StitchPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E627F7D742EF4CFAC9359FC /* AppModel+StitchPreview.swift */; };
 		F0FF9454A7FC4BCB68BED5AE /* AppModel+Style.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80D966CE6D41858560CD3BD2 /* AppModel+Style.swift */; };
@@ -48,6 +49,7 @@
 		134AB2ADA4FC1E17742669BF /* PatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFF2F4A9B62FD4FE26A083B /* PatchView.swift */; };
 		5E097F2BB69ED276741D28A5 /* PrintPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5275DC37D334BB468FAE8C /* PrintPreviewView.swift */; };
 		7C40AA3F2B4F02E4D050EF47 /* RhinestoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004A9381EA56EC12F851590F /* RhinestoneView.swift */; };
+		B95ECC3F14ED24DE8AB9B261 /* ScreenPrintView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDEEB91B642B4D18115254DC /* ScreenPrintView.swift */; };
 		D3FBCCC33567EFE4C3D1E557 /* SendToCutterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DDBB32978FEA587108A8B5F /* SendToCutterView.swift */; };
 		EF8F4E75A41DCD59C40DC3AA /* ShapeStyleSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */; };
 		BA3AE8E421587C01568F3F3E /* StitchEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */; };
@@ -92,6 +94,7 @@
 		F00463AA8572B1903D69CACC /* Rhinestone.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E68E51899E261E721796BE /* Rhinestone.swift */; };
 		62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */; };
 		2706ED034AAE2711CF2A72E4 /* SatinColumns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6228BF706D25036A4E831890 /* SatinColumns.swift */; };
+		5C91C15A753F7DB9F7625A67 /* ScreenPrint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81935BD76537320B22A5884A /* ScreenPrint.swift */; };
 		88E7F9CAF7BD3424144BD586 /* SenderJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 412B3A78BDA08630D1A8243C /* SenderJob.swift */; };
 		97E8D0E03E319B8BB69C1EBA /* SerialPort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */; };
 		173B8B79F880460B7E279E1F /* ShapeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */; };
@@ -117,6 +120,7 @@
 		FD0D194FB21C2A75E99F3FA4 /* PatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F96AA7FEBD2D6BB0F683E4B /* PatchTests.swift */; };
 		581B9675F489881985235478 /* PrintAndCutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */; };
 		E1CDD52747690D1CFEE8DB13 /* RhinestoneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D11B2E9DA0E56CAC6296E9 /* RhinestoneTests.swift */; };
+		6B40EF99EE7BBC92C9BB5936 /* ScreenPrintTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFFDC10CFBE10FAD153B3B6A /* ScreenPrintTests.swift */; };
 		4D5358950BA35788AD7B0359 /* SendToCutterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D391B911F7F734680E0B0DE7 /* SendToCutterTests.swift */; };
 		21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */; };
 		6B1C7B36FE999A7B57A5AA2E /* WeedingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A7274E1EC283143FAAF08A /* WeedingTests.swift */; };
@@ -173,6 +177,7 @@
 		480897EE86AB2B0F4C05D3BC /* AppModel+Patch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Patch.swift"; sourceTree = "<group>"; };
 		9DF0E9C0BE0F58E441FB47D7 /* AppModel+Print.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Print.swift"; sourceTree = "<group>"; };
 		4F4A1ACC12482326FDFBBACD /* AppModel+Rhinestones.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Rhinestones.swift"; sourceTree = "<group>"; };
+		0C51993D7D1EDFC9C857BCE9 /* AppModel+ScreenPrint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+ScreenPrint.swift"; sourceTree = "<group>"; };
 		9BE6D91B24F43DBE5753D64E /* AppModel+SendToCutter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+SendToCutter.swift"; sourceTree = "<group>"; };
 		3E627F7D742EF4CFAC9359FC /* AppModel+StitchPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+StitchPreview.swift"; sourceTree = "<group>"; };
 		80D966CE6D41858560CD3BD2 /* AppModel+Style.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Style.swift"; sourceTree = "<group>"; };
@@ -201,6 +206,7 @@
 		4EFF2F4A9B62FD4FE26A083B /* PatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchView.swift; sourceTree = "<group>"; };
 		DF5275DC37D334BB468FAE8C /* PrintPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrintPreviewView.swift; sourceTree = "<group>"; };
 		004A9381EA56EC12F851590F /* RhinestoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhinestoneView.swift; sourceTree = "<group>"; };
+		FDEEB91B642B4D18115254DC /* ScreenPrintView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenPrintView.swift; sourceTree = "<group>"; };
 		5DDBB32978FEA587108A8B5F /* SendToCutterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendToCutterView.swift; sourceTree = "<group>"; };
 		F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyleSection.swift; sourceTree = "<group>"; };
 		823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StitchEditorView.swift; sourceTree = "<group>"; };
@@ -245,6 +251,7 @@
 		C5E68E51899E261E721796BE /* Rhinestone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rhinestone.swift; sourceTree = "<group>"; };
 		8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SVGImporter.swift; sourceTree = "<group>"; };
 		6228BF706D25036A4E831890 /* SatinColumns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SatinColumns.swift; sourceTree = "<group>"; };
+		81935BD76537320B22A5884A /* ScreenPrint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenPrint.swift; sourceTree = "<group>"; };
 		412B3A78BDA08630D1A8243C /* SenderJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SenderJob.swift; sourceTree = "<group>"; };
 		6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerialPort.swift; sourceTree = "<group>"; };
 		7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeLibrary.swift; sourceTree = "<group>"; };
@@ -270,6 +277,7 @@
 		3F96AA7FEBD2D6BB0F683E4B /* PatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchTests.swift; sourceTree = "<group>"; };
 		14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrintAndCutTests.swift; sourceTree = "<group>"; };
 		81D11B2E9DA0E56CAC6296E9 /* RhinestoneTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhinestoneTests.swift; sourceTree = "<group>"; };
+		BFFDC10CFBE10FAD153B3B6A /* ScreenPrintTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenPrintTests.swift; sourceTree = "<group>"; };
 		D391B911F7F734680E0B0DE7 /* SendToCutterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendToCutterTests.swift; sourceTree = "<group>"; };
 		FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeStyleTests.swift; sourceTree = "<group>"; };
 		D3A7274E1EC283143FAAF08A /* WeedingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeedingTests.swift; sourceTree = "<group>"; };
@@ -359,6 +367,7 @@
 				480897EE86AB2B0F4C05D3BC /* AppModel+Patch.swift */,
 				9DF0E9C0BE0F58E441FB47D7 /* AppModel+Print.swift */,
 				4F4A1ACC12482326FDFBBACD /* AppModel+Rhinestones.swift */,
+				0C51993D7D1EDFC9C857BCE9 /* AppModel+ScreenPrint.swift */,
 				9BE6D91B24F43DBE5753D64E /* AppModel+SendToCutter.swift */,
 				3E627F7D742EF4CFAC9359FC /* AppModel+StitchPreview.swift */,
 				80D966CE6D41858560CD3BD2 /* AppModel+Style.swift */,
@@ -387,6 +396,7 @@
 				4EFF2F4A9B62FD4FE26A083B /* PatchView.swift */,
 				DF5275DC37D334BB468FAE8C /* PrintPreviewView.swift */,
 				004A9381EA56EC12F851590F /* RhinestoneView.swift */,
+				FDEEB91B642B4D18115254DC /* ScreenPrintView.swift */,
 				5DDBB32978FEA587108A8B5F /* SendToCutterView.swift */,
 				F85BF9AE78F764F5B6597F4C /* ShapeStyleSection.swift */,
 				823C1AD8BC69A22AF5B816A8 /* StitchEditorView.swift */,
@@ -439,6 +449,7 @@
 				C5E68E51899E261E721796BE /* Rhinestone.swift */,
 				8C938FA9D0B8E4C0A4028AA7 /* SVGImporter.swift */,
 				6228BF706D25036A4E831890 /* SatinColumns.swift */,
+				81935BD76537320B22A5884A /* ScreenPrint.swift */,
 				412B3A78BDA08630D1A8243C /* SenderJob.swift */,
 				6B2E94E5901F49FED8EFB8F9 /* SerialPort.swift */,
 				7FA3261E2EA5A806F5E4960E /* ShapeLibrary.swift */,
@@ -472,6 +483,7 @@
 				3F96AA7FEBD2D6BB0F683E4B /* PatchTests.swift */,
 				14E7C47DB5BA66EA190FB631 /* PrintAndCutTests.swift */,
 				81D11B2E9DA0E56CAC6296E9 /* RhinestoneTests.swift */,
+				BFFDC10CFBE10FAD153B3B6A /* ScreenPrintTests.swift */,
 				D391B911F7F734680E0B0DE7 /* SendToCutterTests.swift */,
 				FBED333CEE93AF47A187A696 /* ShapeStyleTests.swift */,
 				D3A7274E1EC283143FAAF08A /* WeedingTests.swift */,
@@ -617,6 +629,7 @@
 				B972B8CE89D0548DA963E398 /* AppModel+Patch.swift in Sources */,
 				3871119F34138F354675E701 /* AppModel+Print.swift in Sources */,
 				8DD6CC08722FCCD2B64D7E64 /* AppModel+Rhinestones.swift in Sources */,
+				04607FB8850DFFD95CCDE8E0 /* AppModel+ScreenPrint.swift in Sources */,
 				2DC817339EEED071F6B7BA2D /* AppModel+SendToCutter.swift in Sources */,
 				38D649F1F3126A696B8CDFBA /* AppModel+StitchPreview.swift in Sources */,
 				F0FF9454A7FC4BCB68BED5AE /* AppModel+Style.swift in Sources */,
@@ -645,6 +658,7 @@
 				134AB2ADA4FC1E17742669BF /* PatchView.swift in Sources */,
 				5E097F2BB69ED276741D28A5 /* PrintPreviewView.swift in Sources */,
 				7C40AA3F2B4F02E4D050EF47 /* RhinestoneView.swift in Sources */,
+				B95ECC3F14ED24DE8AB9B261 /* ScreenPrintView.swift in Sources */,
 				D3FBCCC33567EFE4C3D1E557 /* SendToCutterView.swift in Sources */,
 				EF8F4E75A41DCD59C40DC3AA /* ShapeStyleSection.swift in Sources */,
 				BA3AE8E421587C01568F3F3E /* StitchEditorView.swift in Sources */,
@@ -696,6 +710,7 @@
 				F00463AA8572B1903D69CACC /* Rhinestone.swift in Sources */,
 				62419B7507CE3B0B76ACE91A /* SVGImporter.swift in Sources */,
 				2706ED034AAE2711CF2A72E4 /* SatinColumns.swift in Sources */,
+				5C91C15A753F7DB9F7625A67 /* ScreenPrint.swift in Sources */,
 				88E7F9CAF7BD3424144BD586 /* SenderJob.swift in Sources */,
 				97E8D0E03E319B8BB69C1EBA /* SerialPort.swift in Sources */,
 				173B8B79F880460B7E279E1F /* ShapeLibrary.swift in Sources */,
@@ -728,6 +743,7 @@
 				FD0D194FB21C2A75E99F3FA4 /* PatchTests.swift in Sources */,
 				581B9675F489881985235478 /* PrintAndCutTests.swift in Sources */,
 				E1CDD52747690D1CFEE8DB13 /* RhinestoneTests.swift in Sources */,
+				6B40EF99EE7BBC92C9BB5936 /* ScreenPrintTests.swift in Sources */,
 				4D5358950BA35788AD7B0359 /* SendToCutterTests.swift in Sources */,
 				21A8389B77E7851A0A066A67 /* ShapeStyleTests.swift in Sources */,
 				6B1C7B36FE999A7B57A5AA2E /* WeedingTests.swift in Sources */,

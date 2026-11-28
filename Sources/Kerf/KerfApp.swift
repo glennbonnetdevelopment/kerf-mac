@@ -45,6 +45,8 @@ struct KerfApp: App {
                 Button("Export for KerfSender…") { model.exportForSender() }
                     .keyboardShortcut("e", modifiers: [.command, .shift])
                 Button("Export Print PDF…") { model.exportPrintPDF() }
+                Button("Screen Print Films…") { model.showScreenPrint = true }
+                    .keyboardShortcut("p", modifiers: [.command, .shift])
                 Button("Export Embroidery (PES, JEF, DST)…") { model.showEmbroideryExport = true }
                     .keyboardShortcut("e", modifiers: [.command, .option])
             }
@@ -82,6 +84,7 @@ struct KerfApp: App {
                 Button("Join Open Paths") { model.joinSelectedPaths() }
                     .keyboardShortcut("j")
                 Button("Break Apart") { model.breakApartSelection() }
+                Button("Invert to Negative") { model.invertSelectionToNegative() }
                 Divider()
                 Button("Nest on Bed") { model.nest() }
                 Button("Put Text Around Selected Shape") { model.addTextAlongSelection() }
@@ -246,6 +249,10 @@ struct ContentView: View {
             SendToCutterView()
                 .environmentObject(model)
                 .environmentObject(cutter)
+        }
+        .sheet(isPresented: $model.showScreenPrint) {
+            ScreenPrintView()
+                .environmentObject(model)
         }
         .sheet(isPresented: $model.showRhinestones) {
             RhinestoneView()

@@ -188,6 +188,8 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
     /// Embroidery: the machine stops before and after this layer, and it is never grouped with another layer
     /// of the same thread. For appliqué steps such as laying fabric on a placement line or trimming it.
     public var embroideryStop: Bool = false
+    /// Screen printing: grow (spread, positive) or shrink (choke, negative) this colour's artwork on its film, in mm.
+    public var screenSpread: Double = 0
 
     public init(id: UUID = UUID(), name: String, colorHex: String, mode: LayerMode = .line,
                 enabled: Bool = true, passes: Int = 1, speed: Double = 1000, power: Double = 50,
@@ -242,7 +244,7 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         case id, name, colorHex, mode, enabled, passes, speed, power, powerMin, airAssist, fillInterval, fillAngle,
              fillBidirectional, dither, invertImage, overscan, cutSpeed, cutForce, cutDepth, stepDown, toolDiameter,
              millOffset, plungeRate, spindleSpeed, defaultMillRole, millStyle, stepover, tabsEnabled, tabPlacement, tabCount,
-             tabSpacing, tabWidth, tabHeight, laserTabWidth, rampLength, materialID, embroidery, bladeOffset, output, embroideryStop
+             tabSpacing, tabWidth, tabHeight, laserTabWidth, rampLength, materialID, embroidery, bladeOffset, output, embroideryStop, screenSpread
     }
 
     /// Missing keys fall back to defaults so older project files still open.
@@ -289,6 +291,7 @@ public struct Layer: Identifiable, Codable, Hashable, Sendable {
         bladeOffset = try c.decodeIfPresent(Double.self, forKey: .bladeOffset)
         output = try c.decodeIfPresent(LayerOutput.self, forKey: .output) ?? .all
         embroideryStop = try c.decodeIfPresent(Bool.self, forKey: .embroideryStop) ?? false
+        screenSpread = try c.decodeIfPresent(Double.self, forKey: .screenSpread) ?? 0
     }
 
     /// Default layer colours, in the order new layers take them.

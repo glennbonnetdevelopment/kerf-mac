@@ -97,6 +97,7 @@ public enum HelpLibrary {
         gccOpticalMarks,
         manualRegistration,
         rhinestones,
+        screenPrinting,
         monograms,
         embroidery,
         patches,
@@ -517,6 +518,42 @@ public enum HelpLibrary {
             .warning("Don't laser-cut vinyl-based (PVC) template materials. Use a laser-safe rubber or foam template sheet."),
         ])
 
+    static let screenPrinting = HelpTopic(
+        id: "screen-printing", title: "Screen printing", symbol: "square.stack.3d.down.right",
+        summary: "Black films for each colour, negatives and stencil masks, halftones, trap and underbase.",
+        blocks: [
+            .text("**File › Screen Print Films…** (⇧⌘P) turns each colour of the design into its own film in solid black, ready to print on transparency film and expose a screen. Each layer is one colour."),
+            .steps([
+                "Put each ink colour on its own layer, in print order: the top of the Layers list prints first.",
+                "Open **Screen Print Films**. Pick a film in the preview, or **All colours** to see the finished print on the garment colour.",
+                "Turn on **Knock out colours underneath** and set the **Trap**, and add a **White underbase** for dark garments.",
+                "Click **Print Films…** (one page per film, at 100%) or **Save Films as PDF…**.",
+            ]),
+            .heading("Films"),
+            .bullets([
+                "Everything prints solid black, whatever the layer colour, with the same **registration marks** on every film so the screens line up.",
+                "**Negative** prints the artwork clear on a black frame, for blockout masks or checking a stencil.",
+                "**Mirror (emulsion side)** flips the films when you print on the back of the film.",
+                "**Label each film** prints the film number, colour name and colour code under the artwork.",
+                "**Paper** can be a standard sheet or **Fit to artwork** for a film just big enough for the design.",
+            ]),
+            .heading("Overlapping colours"),
+            .bullets([
+                "**Knock out** leaves a colour open wherever a colour printed later covers it, so inks don't pile up.",
+                "**Trap** is how far the colour underneath still runs under the one on top. 0.2 to 0.4 mm hides small shifts on press.",
+                "Each colour has its own **spread (+)** or **choke (−)** in mm, for fine lines that close up or colours that need to grow.",
+                "The **White underbase** is every colour together, pulled in by the **Underbase choke** so it hides under the top colours. It prints first.",
+            ]),
+            .heading("Halftones"),
+            .text("Photos and greys on image layers become halftone dots, since a screen can only print solid ink. 35 to 55 lines per inch suits inkjet film on 156 to 230 mesh. Keep the angle at 22.5° to avoid moiré with the mesh."),
+            .heading("Stencils and masks"),
+            .bullets([
+                "**Add Stencil Cut Layers** puts each film's outlines on its own Cut layer (turned off), with the knockouts, trap and choke already in. Turn one on at a time to cut it from stencil vinyl.",
+                "**Arrange › Invert to Negative** replaces the selected shapes with a frame around them that has the shapes cut out. Right-click a layer for **Invert Layer to Negative**.",
+            ]),
+            .tip("For the darkest films, choose your printer's transparency or film paper setting and the highest quality. Hold a film up to the light: if you can see through the black, print it twice and stack them."),
+        ])
+
     static let embroidery = HelpTopic(
         id: "embroidery", title: "Embroidery", symbol: "circle.hexagongrid",
         summary: "Turning artwork into stitches and exporting PES, JEF or DST files.",
@@ -689,6 +726,7 @@ public enum HelpLibrary {
                 HelpKey("⌘K", "Send to Cutter"),
                 HelpKey("⌥⌘E", "Export embroidery"),
                 HelpKey("⌘P", "Print preview and print"),
+                HelpKey("⇧⌘P", "Screen print films"),
             ]),
             .heading("Edit and arrange"),
             .keys([
