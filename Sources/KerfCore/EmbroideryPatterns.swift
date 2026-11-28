@@ -126,12 +126,30 @@ extension EmbroideryPlanner {
             if let last = r.last?.last { cursor = last }
         }
         let size = s.patternSize
-        switch s.fillPattern {
-        case .tatami, .waves, .zigzag:
+        func underlay() {
             if s.underlay {
                 add(fill(polys, angle: s.fillAngle + 90, spacing: max(1.5, s.density * 5), stitchLength: 3.5,
                          extend: -0.6, from: cursor))
             }
+        }
+        switch s.fillType {
+        case .satin:
+            underlay()
+            add(fill(polys, angle: s.fillAngle, spacing: s.density, stitchLength: s.satinSplitLength,
+                     extend: s.pullCompensation / 2, from: cursor, satinSplit: s.satinSplitLength))
+            return runs.filter { $0.count >= 2 }
+        case .embossed:
+            underlay()
+            add(fill(polys, angle: s.fillAngle, spacing: s.density, stitchLength: s.fillStitchLength,
+                     extend: s.pullCompensation / 2, from: cursor, offset: s.tatamiOffset,
+                     emboss: (s.embossPattern, size)))
+            return runs.filter { $0.count >= 2 }
+        case .tatami, .motif:
+            break
+        }
+        switch s.fillPattern {
+        case .tatami, .waves, .zigzag:
+            underlay()
             let warp: (Double) -> Double
             let length: Double
             switch s.fillPattern {
@@ -154,7 +172,8 @@ extension EmbroideryPlanner {
             }
             add(fill(polys, angle: s.fillAngle, spacing: s.density, stitchLength: length,
                      extend: s.pullCompensation / 2, from: cursor,
-                     warp: s.fillPattern == .tatami ? nil : warp, stagger: s.fillPattern != .zigzag))
+                     warp: s.fillPattern == .tatami ? nil : warp, stagger: s.fillPattern != .zigzag,
+                     offset: s.tatamiOffset))
         case .lines, .crosshatch, .lattice:
             let angles: [Double]
             switch s.fillPattern {
