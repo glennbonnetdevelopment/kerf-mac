@@ -34,12 +34,13 @@ public struct StitchPattern: Hashable, Sendable {
 
     /// Builds the machine pattern. Runs closer than `connectGap` mm are joined with a stitch; further apart the
     /// thread is tied off, trimmed and jumped. Every run starts and ends with small tie (lock) stitches.
-    public init(plan: EmbroideryPlan, name: String = "Design", connectGap: Double = 1, tieLength: Double = 0.5) {
+    /// The pattern is centred on `center` (design mm) when given, otherwise on the middle of the stitches.
+    public init(plan: EmbroideryPlan, name: String = "Design", center: Vec2? = nil, connectGap: Double = 1, tieLength: Double = 0.5) {
         self.name = name
         threads = []
         entries = []
         let b = plan.bounds
-        let c = b.isEmpty ? Vec2.zero : b.center
+        let c = center ?? (b.isEmpty ? Vec2.zero : b.center)
         func unit(_ p: Vec2) -> (Int, Int) {
             (Int(((p.x - c.x) * 10).rounded()), Int(((p.y - c.y) * 10).rounded()))
         }

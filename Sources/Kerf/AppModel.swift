@@ -193,6 +193,22 @@ final class AppModel: ObservableObject {
     }
     /// Shows the embroidered patch sheet (see PatchView).
     @Published var showPatch = false
+    /// Monogram template settings, remembered between launches (see AppModel+Monogram).
+    @Published var monogram: MonogramOptions = AppModel.loadMonogram() {
+        didSet {
+            guard monogram != oldValue else { return }
+            if let data = try? JSONEncoder().encode(monogram) { UserDefaults.standard.set(data, forKey: "monogram") }
+        }
+    }
+    /// Shows the monogram sheet (see MonogramView).
+    @Published var showMonogram = false
+    /// Multi-hooping settings for the embroidery export, remembered between launches.
+    @Published var multiHoop: MultiHoopOptions = AppModel.loadMultiHoop() {
+        didSet {
+            guard multiHoop != oldValue else { return }
+            if let data = try? JSONEncoder().encode(multiHoop) { UserDefaults.standard.set(data, forKey: "multiHoop") }
+        }
+    }
     /// The shape open in the stitch editor window.
     @Published var stitchEditorShapeID: UUID?
     /// Draws the design as sewn stitches on the canvas instead of vector outlines (see AppModel+StitchPreview).
@@ -218,7 +234,7 @@ final class AppModel: ObservableObject {
     var lastWorkpieceColorEdit: Date?
     /// The last embroidery pattern and what it was made from, so the export sheet doesn't redigitize on every redraw.
     var embroideryCache: (document: KerfDocument, shapes: Set<UUID>?, groupColors: Bool, optimizeOrder: Bool, name: String,
-                          pattern: StitchPattern)?
+                          plan: EmbroideryPlan, pattern: StitchPattern)?
 
     // Nesting
     @Published var nestSpacing = 3.0

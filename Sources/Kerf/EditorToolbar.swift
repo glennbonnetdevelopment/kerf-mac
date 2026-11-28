@@ -86,6 +86,8 @@ struct EditorToolbar: View {
                 .disabled(model.rhinestoneTargets.isEmpty)
             Button { model.showPatch = true } label: { Label("Patch", systemImage: "shield.lefthalf.filled") }
                 .help("Make an embroidered patch around the selected design: shape, satin border, fabric or fill background, and cut lines")
+            Button { model.showMonogram = true } label: { Label("Monogram", systemImage: "textformat.abc.dottedunderline") }
+                .help("Add a monogram from a template: classic, circle, diamond, vine wreath and more")
             Divider().frame(height: 22)
 
             colorSwatches
