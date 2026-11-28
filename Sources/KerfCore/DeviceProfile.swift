@@ -136,6 +136,14 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
     /// Units for the mark distances in the AAS command.
     public var aasUnits: AASDistanceUnits
 
+    // Manual registration (vinyl cutter)
+    /// The cutter has a laser pointer on the head, used to sight registration marks.
+    public var hasLaserPointer: Bool
+    /// Where the laser dot is relative to the blade, in cutter mm along the cutter's X and Y
+    /// (pointer position = blade position + offset).
+    public var laserOffsetX: Double
+    public var laserOffsetY: Double
+
     public init(id: UUID = UUID(), name: String, kind: DeviceKind, bedWidth: Double, bedHeight: Double,
                 origin: OriginCorner, swapAxes: Bool = false, baudRate: Int, flowControl: FlowControl = .none,
                 sMax: Double = 1000, rapidSpeed: Double = 3000, rxBufferSize: Int = 127,
@@ -144,7 +152,8 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
                 sendSpeedAndForce: Bool = true, safeZ: Double = 5,
                 rotaryEnabled: Bool = false, rotaryType: RotaryType = .roller, rotaryMMPerRotation: Double = 360,
                 rotaryRollerDiameter: Double = 25, rotaryObjectDiameter: Double = 80,
-                aasEnabled: Bool = false, aasUnits: AASDistanceUnits = .plotterUnits) {
+                aasEnabled: Bool = false, aasUnits: AASDistanceUnits = .plotterUnits,
+                hasLaserPointer: Bool = false, laserOffsetX: Double = 0, laserOffsetY: Double = 0) {
         self.id = id
         self.name = name
         self.kind = kind
@@ -172,12 +181,16 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
         self.rotaryObjectDiameter = rotaryObjectDiameter
         self.aasEnabled = aasEnabled
         self.aasUnits = aasUnits
+        self.hasLaserPointer = hasLaserPointer
+        self.laserOffsetX = laserOffsetX
+        self.laserOffsetY = laserOffsetY
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, name, kind, bedWidth, bedHeight, origin, swapAxes, baudRate, flowControl, sMax, rapidSpeed,
              rxBufferSize, language, unitsPerMM, bladeOffset, overcut, output, printerQueue, sendSpeedAndForce, safeZ,
-             rotaryEnabled, rotaryType, rotaryMMPerRotation, rotaryRollerDiameter, rotaryObjectDiameter, aasEnabled, aasUnits
+             rotaryEnabled, rotaryType, rotaryMMPerRotation, rotaryRollerDiameter, rotaryObjectDiameter, aasEnabled, aasUnits,
+             hasLaserPointer, laserOffsetX, laserOffsetY
     }
 
     /// Missing keys fall back to defaults so saved profiles survive upgrades.
@@ -209,7 +222,20 @@ public struct DeviceProfile: Identifiable, Codable, Hashable, Sendable {
                   rotaryRollerDiameter: try c.decodeIfPresent(Double.self, forKey: .rotaryRollerDiameter) ?? 25,
                   rotaryObjectDiameter: try c.decodeIfPresent(Double.self, forKey: .rotaryObjectDiameter) ?? 80,
                   aasEnabled: try c.decodeIfPresent(Bool.self, forKey: .aasEnabled) ?? false,
-                  aasUnits: try c.decodeIfPresent(AASDistanceUnits.self, forKey: .aasUnits) ?? .plotterUnits)
+                  aasUnits: try c.decodeIfPresent(AASDistanceUnits.self, forKey: .aasUnits) ?? .plotterUnits,
+                  hasLaserPointer: try c.decodeIfPresent(Bool.self, forKey: .hasLaserPointer) ?? false,
+                  laserOffsetX: try c.decodeIfPresent(Double.self, forKey: .laserOffsetX) ?? 0,
+                  laserOffsetY: try c.decodeIfPresent(Double.self, forKey: .laserOffsetY) ?? 0)
+    }
+
+    /// The laser pointer's offset from the blade in cutter mm, or zero when there is no pointer
+    /// (marks are then sighted with the blade tip).
+    public var laserOffset: Vec2 {
+        get { hasLaserPointer ? Vec2(laserOffsetX, laserOffsetY) : .zero }
+        set {
+            laserOffsetX = newValue.x
+            laserOffsetY = newValue.y
+        }
     }
 
     /// The blade offset to use for a layer: the layer's own when it has one, else the machine's.

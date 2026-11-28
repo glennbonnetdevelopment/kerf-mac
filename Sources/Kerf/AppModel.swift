@@ -260,6 +260,18 @@ final class AppModel: ObservableObject {
     @Published var measuredMark2: Vec2?
     @Published var useAlignment = false
 
+    // Print and cut on a vinyl cutter by moving the head to each mark from the software
+    @Published var showManualRegistration = false
+    /// Where the app last sent the cutter head (blade), in cutter mm from the origin set on the cutter.
+    @Published var cutterHead = Vec2.zero
+    /// Pointer positions confirmed for registration marks, by index into `allRegistrationPoints`.
+    @Published var manualMarks: [Int: Vec2] = [:]
+    /// Fit the cut to the confirmed marks.
+    @Published var useManualRegistration = false
+    @Published var cutterJogStep = 1.0
+    /// Where the blade cut the laser calibration cross, while calibrating.
+    @Published var laserCalibrationCross: Vec2?
+
     // Text tool settings
     /// Text tool settings. When one text shape is selected they show and edit that text.
     @Published var textToAdd = "Kerf" { didSet { applyTextFieldsToSelection() } }
@@ -532,7 +544,10 @@ final class AppModel: ObservableObject {
     /// HPGL or GP-GL for the active cutter profile.
     func plotterText() -> String {
         var options = CutterJobOptions(weeding: weeding)
-        if useAAS, let job = aasJob {
+        if let fit = manualRegistrationTransform {
+            // Cut where the user found the marks with the pointer; the AAS sensor isn't used.
+            options.alignment = fit
+        } else if useAAS, let job = aasJob {
             // The cutter measures the marks, then cuts relative to the origin mark.
             options.origin = job.origin
             options.preamble = GCCAAS.command(job, units: profile.aasUnits, unitsPerMM: profile.unitsPerMM)

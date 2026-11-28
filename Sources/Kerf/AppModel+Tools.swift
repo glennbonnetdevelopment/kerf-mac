@@ -253,6 +253,8 @@ extension AppModel {
         let size = max(1, registrationMarkSize)
         let layerID = document.layer(forMode: .print, name: "Registration", colorHex: "#000000")
         document.shapes.removeAll { $0.layerID == layerID && $0.name.hasPrefix("Mark ") }
+        manualMarks = [:]
+        useManualRegistration = false
         if registrationStyle == .gccAAS {
             addAASMarks(around: b, layerID: layerID)
             return

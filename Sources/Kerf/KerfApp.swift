@@ -81,6 +81,8 @@ struct KerfApp: App {
                 Button("Nest on Bed") { model.nest() }
                 Button("Put Text Around Selected Shape") { model.addTextAlongSelection() }
                 Button("Add Registration Marks") { model.addRegistrationMarks() }
+                Button("Manual Registration…") { model.showManualRegistration = true }
+                    .disabled(!model.canJogCutter)
                 Button("Add Contour Cut Around Artwork") { model.addContourCut() }
                 Button("Rhinestone Layout…") { model.showRhinestones = true }
                     .keyboardShortcut("k", modifiers: [.command, .option])
@@ -168,6 +170,7 @@ enum SidebarTab: String, CaseIterable, Identifiable {
 
 struct ContentView: View {
     @EnvironmentObject var model: AppModel
+    @EnvironmentObject var cutter: CutterSender
     @State private var tab: SidebarTab = .layers
 
     var body: some View {
@@ -227,6 +230,11 @@ struct ContentView: View {
         .sheet(isPresented: $model.showPrintPreview) {
             PrintPreviewView()
                 .environmentObject(model)
+        }
+        .sheet(isPresented: $model.showManualRegistration) {
+            ManualRegistrationView()
+                .environmentObject(model)
+                .environmentObject(cutter)
         }
         .sheet(isPresented: $model.showRhinestones) {
             RhinestoneView()
