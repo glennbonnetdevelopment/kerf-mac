@@ -620,17 +620,27 @@ public enum HelpLibrary {
             .text("Click the gear next to **Device** in the Machine tab to open the device editor. Add a machine from the presets, then check its settings against your machine."),
             .heading("Presets"),
             .bullets([
-                "Lasers: xTool D1 Pro (with and without the extension kit), Creality Falcon2 12 W and 40 W, a K40-style CO2 laser, and a generic GRBL laser.",
+                "Lasers: xTool D1 Pro (USB, Wi-Fi, and with the extension kit), Creality Falcon2 12 W and 40 W, a K40-style CO2 laser, and a generic GRBL laser.",
                 "CNC: SainSmart Genmitsu 4040 Pro.",
                 "Cutters: GCC Expert 24, GCC Expert II 24 LX (reads printed marks), Redsail RS series, EasyCut-class USB cutters, Janome Artistic Edge 15 (experimental), and Brother ScanNCut 12×12 and 12×24 mats (SVG export).",
             ]),
             .heading("Settings"),
             .bullets([
                 "**Work area**: bed width and height, where the origin is (front left, rear left and so on), and Swap X and Y.",
-                "**Connection**: baud rate and flow control.",
+                "**Connection**: USB serial (baud rate and flow control) or, for the xTool D1 and D1 Pro, Wi-Fi (the laser's IP address).",
                 "**GRBL**: max S value ($30), rapid speed and receive buffer size. Lasers run with dynamic power (M4), so set laser mode ($32=1) on the controller.",
                 "**Cutter**: HPGL, GP-GL or SVG file only, units per mm, blade offset, overcut, and whether to send speed and force.",
             ]),
+            .heading("xTool D1 and D1 Pro over Wi-Fi"),
+            .text("Set **Connect by** to **xTool Wi-Fi** and enter the laser's IP address (xTool Creative Space and your router both show it). Put the Mac on the same network as the laser, then click **Connect** in the Machine tab."),
+            .bullets([
+                "**Upload** sends the job to the laser, which keeps it and runs it itself. Press the button on the laser to start. **Frame** uploads the outline the same way.",
+                "Over Wi-Fi the laser doesn't report its position and can't be jogged or homed. It treats wherever the head is as X0 Y0, so place the head first.",
+                "Pause, resume and stop work on firmware 40.30.010.01 and newer. On older firmware use the laser's button or power switch.",
+                "**Start jobs from KerfKutter** skips the button. xTool doesn't document how, so it's off by default.",
+            ]),
+            .text("xTool doesn't publish this Wi-Fi protocol. KerfKutter uses what the community has worked out, so a firmware update could change it. USB is the most reliable connection."),
+            .text("Creality Falcon2 lasers connect over USB only. Falcon A1 models have Wi-Fi, but KerfKutter can't send to them over it yet."),
             .warning("Preset bed sizes and origins are typical values. Check them against your own machine before the first job."),
         ])
 

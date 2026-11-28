@@ -7,5 +7,7 @@
 <dict>
 	<key>NSCameraUsageDescription</key>
 	<string>KerfKutter shows the camera above your laser bed on the canvas so you can place designs on the material.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>KerfKutter sends jobs to your laser over your local network.</string>
 </dict>
 </plist>

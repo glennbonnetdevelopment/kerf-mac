@@ -13,6 +13,9 @@
 	<true/>
 	<key>com.apple.security.device.usb</key>
 	<true/>
+	<!-- Send jobs to lasers on the local network (xTool D1 / D1 Pro over Wi-Fi). -->
+	<key>com.apple.security.network.client</key>
+	<true/>
 	<!-- A USB or built-in camera above the laser bed, for camera alignment. -->
 	<key>com.apple.security.device.camera</key>
 	<true/>

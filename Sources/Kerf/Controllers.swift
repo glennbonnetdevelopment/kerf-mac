@@ -8,7 +8,7 @@ struct LogLine: Identifiable {
     let text: String
 }
 
-/// Talks to a GRBL controller over USB serial.
+/// Talks to a GRBL controller over USB serial, or to an xTool D1 / D1 Pro over Wi-Fi.
 @MainActor
 final class LaserController: ObservableObject {
     @Published var ports: [String] = []
@@ -21,6 +21,18 @@ final class LaserController: ObservableObject {
     @Published private(set) var isPaused = false
     @Published private(set) var progress = 0.0
     @Published private(set) var elapsed: TimeInterval = 0
+
+    // Wi-Fi (xTool D1 / D1 Pro)
+    /// Connected over Wi-Fi: no position, jogging or homing, and jobs run from the machine's own copy.
+    @Published private(set) var isWiFi = false
+    @Published private(set) var wifiFirmware: XToolFirmware?
+    /// A job is being uploaded.
+    @Published private(set) var isUploading = false
+    /// A job was uploaded and waits for the machine's button.
+    @Published private(set) var awaitingButton = false
+    private var wifi: XToolWiFiClient?
+    private var wifiAutoStart = false
+    private var wifiPoll: Task<Void, Never>?
 
     private var port: SerialPort?
     private var streamer = GRBLStreamer()
@@ -42,7 +54,14 @@ final class LaserController: ObservableObject {
         }
     }
 
+    /// The laser answers pause, resume and stop over Wi-Fi (firmware 40.30.010.01 and newer).
+    var wifiJobControl: Bool { wifiFirmware?.hasJobControl == true }
+
     func connect(profile: DeviceProfile) {
+        if profile.usesWiFi {
+            connectWiFi(profile)
+            return
+        }
         guard !isConnected, !selectedPort.isEmpty else { return }
         let p = SerialPort(path: selectedPort)
         p.onData = { [weak self] data in
@@ -81,6 +100,15 @@ final class LaserController: ObservableObject {
 
     private func handleDisconnect(reason: String) {
         guard isConnected else { return }
+        if isWiFi {
+            wifiPoll?.cancel()
+            wifiPoll = nil
+            wifi = nil
+            isWiFi = false
+            wifiFirmware = nil
+            isUploading = false
+            awaitingButton = false
+        }
         statusTimer?.invalidate()
         statusTimer = nil
         port?.close()
@@ -166,6 +194,10 @@ final class LaserController: ObservableObject {
 
     func send(_ line: String) {
         guard isConnected else { return }
+        if isWiFi {
+            sendWiFi(line)
+            return
+        }
         streamer.enqueue([line])
         pump()
     }
@@ -196,6 +228,12 @@ final class LaserController: ObservableObject {
 
     func frame(lines: [String]) {
         guard isConnected, !isRunning else { return }
+        if isWiFi {
+            let job = XToolWiFi.frameJob(lines)
+            guard !job.isEmpty else { return }
+            uploadWiFi(job, label: "Frame", autoStart: false)
+            return
+        }
         append(.info, "Framing job outline")
         streamer.enqueue(lines)
         pump()
@@ -203,6 +241,10 @@ final class LaserController: ObservableObject {
 
     func run(lines: [String]) {
         guard isConnected, !isRunning else { return }
+        if isWiFi {
+            uploadWiFi(lines, label: "Job", autoStart: wifiAutoStart)
+            return
+        }
         let before = streamer.total
         streamer.enqueue(lines)
         jobLineCount = streamer.total - before
@@ -218,17 +260,29 @@ final class LaserController: ObservableObject {
     }
 
     func pause() {
+        if isWiFi {
+            wifiAction(.pause)
+            return
+        }
         realtime(.feedHold)
         isPaused = true
     }
 
     func resume() {
+        if isWiFi {
+            wifiAction(.resume)
+            return
+        }
         realtime(.cycleStart)
         isPaused = false
     }
 
     /// Stops immediately: feed hold, then a soft reset (which also turns the laser off).
     func stop() {
+        if isWiFi {
+            wifiAction(.stop)
+            return
+        }
         realtime(.feedHold)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
             self?.realtime(.softReset)
@@ -245,6 +299,185 @@ final class LaserController: ObservableObject {
     }
 
     func clearLog() { log.removeAll() }
+
+    // MARK: - Wi-Fi (xTool D1 / D1 Pro)
+
+    private func connectWiFi(_ profile: DeviceProfile) {
+        guard !isConnected else { return }
+        guard let base = XToolWiFi.baseURL(host: profile.networkHost, port: profile.networkPort) else {
+            append(.error, "Enter the laser's IP address in the device settings (gear button).")
+            return
+        }
+        let client = XToolWiFiClient(base: base)
+        wifi = client
+        wifiAutoStart = profile.wifiAutoStart
+        isWiFi = true
+        isConnected = true
+        isRunning = false
+        isPaused = false
+        awaitingButton = false
+        workPosition = nil
+        status = GRBLStatus(state: "Connecting")
+        append(.info, "Connecting to \(base.absoluteString) over Wi-Fi")
+        Task { [weak self] in
+            do {
+                try await client.ping()
+            } catch {
+                guard let self, self.wifi?.base == base else { return }
+                self.append(.error, error.localizedDescription)
+                self.append(.info, "Check the IP address, that the laser is on, and that this Mac is on the same network.")
+                self.handleDisconnect(reason: "Not connected.")
+                return
+            }
+            let fw = await client.firmware()
+            guard let self, self.wifi?.base == base else { return }
+            self.wifiFirmware = fw
+            self.status = GRBLStatus(state: "Idle")
+            self.append(.info, "Connected over Wi-Fi" + (fw.map { ", firmware \($0)" } ?? ""))
+            if fw?.hasJobControl != true {
+                self.append(.info, "This firmware can't pause or stop over Wi-Fi. Use the laser's button, or update its firmware to 40.30.010.01 or newer.")
+            }
+            self.startWiFiPolling()
+        }
+    }
+
+    private func startWiFiPolling() {
+        wifiPoll?.cancel()
+        wifiPoll = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self else { return }
+                await self.pollWiFi()
+                let seconds: UInt64 = self.wifiJobControl ? 1 : 5
+                try? await Task.sleep(nanoseconds: seconds * 1_000_000_000)
+            }
+        }
+    }
+
+    private func pollWiFi() async {
+        guard let client = wifi else { return }
+        if let start = jobStarted, isRunning { elapsed = Date().timeIntervalSince(start) }
+        do {
+            if wifiJobControl {
+                let state = try await client.workingState()
+                guard wifi?.base == client.base else { return }
+                if state.isBusy {
+                    if !isRunning {
+                        isRunning = true
+                        awaitingButton = false
+                        jobStarted = Date()
+                        elapsed = 0
+                        append(.info, "The laser started the job.")
+                    }
+                    status = GRBLStatus(state: isPaused ? "Hold" : "Run")
+                } else {
+                    if isRunning {
+                        let secs = Int(Date().timeIntervalSince(jobStarted ?? Date()))
+                        append(.info, "Job finished in \(secs / 60)m \(secs % 60)s.")
+                    }
+                    isRunning = false
+                    isPaused = false
+                    status = GRBLStatus(state: awaitingButton ? "Ready" : "Idle")
+                }
+            } else {
+                try await client.ping()
+                guard wifi?.base == client.base else { return }
+                status = GRBLStatus(state: awaitingButton ? "Ready" : "Idle")
+            }
+        } catch {
+            guard wifi?.base == client.base else { return }
+            if status.state != "No answer" { append(.error, error.localizedDescription) }
+            status = GRBLStatus(state: "No answer")
+        }
+    }
+
+    /// Uploads a job or frame. The machine keeps one stored job, so an upload replaces the last one.
+    private func uploadWiFi(_ lines: [String], label: String, autoStart: Bool) {
+        guard let client = wifi, !isUploading else { return }
+        isUploading = true
+        let text = XToolWiFi.jobFile(lines)
+        let checkBusy = wifiJobControl
+        Task { [weak self] in
+            defer { self?.isUploading = false }
+            do {
+                // An upload replaces the stored job, which cancels one that is running or paused.
+                if checkBusy, try await client.workingState().isBusy {
+                    self?.append(.error, "The laser is running or has paused a job. Stop it first. Nothing was uploaded.")
+                    return
+                }
+                self?.append(.info, "Uploading \(label.lowercased()) (\(lines.count) lines)…")
+                try await client.upload(text)
+                // The button only starts a stored job once the laser has had $I (it forgets after a button stop).
+                try? await client.command("$I")
+                guard let self else { return }
+                if autoStart {
+                    try await client.start()
+                    self.awaitingButton = false
+                    self.jobStarted = Date()
+                    self.elapsed = 0
+                    self.append(.info, "\(label) uploaded and started.")
+                } else {
+                    self.awaitingButton = true
+                    self.status = GRBLStatus(state: "Ready")
+                    self.append(.info, "\(label) uploaded. Press the button on the laser to start it.")
+                }
+            } catch {
+                self?.append(.error, error.localizedDescription)
+            }
+        }
+    }
+
+    private func wifiAction(_ action: XToolWiFi.JobAction) {
+        guard let client = wifi else { return }
+        guard wifiJobControl else {
+            switch action {
+            case .stop: append(.error, "This laser's firmware can't stop over Wi-Fi. Press its button, or switch it off.")
+            default: append(.error, "This laser's firmware can't pause over Wi-Fi. Press its button.")
+            }
+            return
+        }
+        Task { [weak self] in
+            do {
+                let ok = try await client.action(action)
+                guard let self else { return }
+                switch action {
+                case .pause:
+                    if ok { self.isPaused = true; self.status = GRBLStatus(state: "Hold") }
+                case .resume:
+                    if ok { self.isPaused = false; self.status = GRBLStatus(state: "Run") }
+                case .stop:
+                    // What the laser does with its beam after a stop isn't documented, so switch it off too.
+                    try? await client.command("M5")
+                    self.isPaused = false
+                    self.awaitingButton = false
+                    if ok {
+                        self.isRunning = false
+                        self.append(.info, "Stop sent. The laser now treats the head's position as X0 Y0, so put the head where the next job should start.")
+                    }
+                }
+                if !ok { self.append(.error, "The laser refused \(action.rawValue).") }
+            } catch {
+                self?.append(.error, error.localizedDescription)
+            }
+        }
+    }
+
+    private func sendWiFi(_ line: String) {
+        guard let client = wifi else { return }
+        // Console lines join the laser's job queue, so they'd run inside a running or paused job.
+        guard !isRunning else {
+            append(.error, "Not sent: the laser is running a job.")
+            return
+        }
+        append(.sent, line)
+        Task { [weak self] in
+            do {
+                try await client.command(line)
+                self?.append(.received, "ok")
+            } catch {
+                self?.append(.error, error.localizedDescription)
+            }
+        }
+    }
 }
 
 /// Thread-safe cancel flag for background sends.
